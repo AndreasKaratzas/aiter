@@ -8,17 +8,17 @@ Two entry points:
 1. Via PRETUNE_MODULES during setup.py build (full build + retune + .so rebuild):
 
     PREBUILD_KERNELS=1 PRETUNE_MODULES=module_gemm_a8w8_blockscale_tune \
-    python setup.py develop
+    python -m pip wheel --no-build-isolation --no-deps .
 
 2. As a standalone script on an already-installed aiter (tune only, no full rebuild):
 
-    python3 aiter/utility/pretune.py module_gemm_a8w8_blockscale_tune
-    python3 aiter/utility/pretune.py module_gemm_a8w8_tune,module_gemm_a8w8_blockscale_tune
-    python3 aiter/utility/pretune.py all
-    python3 aiter/utility/pretune.py --list          # show available tune modules
+    python3 -m aiter.utility.pretune module_gemm_a8w8_blockscale_tune
+    python3 -m aiter.utility.pretune module_gemm_a8w8_tune,module_gemm_a8w8_blockscale_tune
+    python3 -m aiter.utility.pretune all
+    python3 -m aiter.utility.pretune --list          # show available tune modules
 
    After tuning completes, the inference .so is rebuilt automatically.
-   Verify with: python3 op_tests/test_gemm_a8w8_blockscale.py
+   Verify with: python3 tests/operators/hip/drivers/gemm_a8w8_blockscale.py
 
 Both modes accept a single module name, a comma-separated list, or "all".
 Requires a live GPU — the GPU's architecture and cu_num are auto-detected and used to tag the tuned results.
@@ -43,6 +43,10 @@ import re
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
+
+from aiter.codegen import BuildContext
+from aiter.tuning.search.registry import for_build
 
 logger = logging.getLogger("aiter")
 
@@ -76,67 +80,33 @@ _SCRIPT_FALLBACK: dict = {
 _SENTINEL = object()  # distinct from None: "not in fallback table"
 
 
-def _get_tune_script(entry: dict, csrc_dir: str):
-    """Derive the tune .py path from the non-pybind _tune.cu src entry."""
-    AITER_CSRC_DIR = csrc_dir  # noqa: F841 — referenced by eval()
-    for src_expr in entry.get("srcs", []):
-        if "_tune" in src_expr and "pybind" not in src_expr:
-            try:
-                return eval(src_expr).replace(".cu", ".py")
-            # Best-effort probe: any failure just means this src expression is
-            # not resolvable, so swallowing it silently is intentional.
-            except Exception:  # noqa: BLE001,S110
-                pass
-    return None
-
-
 def _get_config_attr(cfg: dict, tune_module_name: str):
     """
     Find the AITER_CONFIGS.<ATTR> property name used by the inference module
-    that corresponds to this tune module.
-
-    Strips _cktile_tune / _tune suffixes to derive candidate inference module
-    names and searches their blob_gen_cmd for AITER_CONFIGS.<ATTR>.
+    that corresponds to this tune module, using declared recipe references.
     """
     candidates = [
         tune_module_name.replace("_cktile_tune", "").replace("_tune", ""),
         tune_module_name.replace("_tune", ""),
     ]
+    from aiter.jit.recipes import config_references
+
     for inf_name in candidates:
         cmd = cfg.get(inf_name, {}).get("blob_gen_cmd", "")
-        m = re.search(r"AITER_CONFIGS\.(\w+)", cmd)
-        if m:
-            return m.group(1)
+        references = config_references(cmd)
+        if references:
+            return references[0]
     return None
 
 
 def _resolve(module_name: str, cfg: dict, csrc_dir: str):
-    """
-    Return (tune_script_path, config_attr) for a tune module.
-
-    Looks up the module's own tune script; if absent or missing on disk,
-    consults _SCRIPT_FALLBACK.  Returns (None, config_attr) when no script
-    is available.
-    """
-    entry = cfg.get(module_name, {})
-    tune_script = _get_tune_script(entry, csrc_dir)
-    config_attr = _get_config_attr(cfg, module_name)
-
-    if tune_script and not os.path.exists(tune_script):
-        tune_script = None
-
-    if tune_script is None:
-        fallback_key = _SCRIPT_FALLBACK.get(module_name, _SENTINEL)
-        if fallback_key is _SENTINEL:
-            # Not in table: auto-derive parent by stripping _cktile suffix
-            parent = module_name.replace("_cktile_tune", "_tune")
-            fallback_key = parent if (parent != module_name and parent in cfg) else None
-        if fallback_key is not None:
-            fb_script = _get_tune_script(cfg.get(fallback_key, {}), csrc_dir)
-            if fb_script and os.path.exists(fb_script):
-                tune_script = fb_script
-
-    return tune_script, config_attr
+    """Resolve an explicitly registered search for this native tuning module."""
+    script = for_build(module_name)
+    if script is None:
+        fallback = _SCRIPT_FALLBACK.get(module_name)
+        if fallback is not None:
+            script = for_build(fallback)
+    return script, _get_config_attr(cfg, module_name)
 
 
 def _all_tune_modules(cfg: dict) -> list:
@@ -205,6 +175,7 @@ def run_pretune(
     repo_dir: str,
     build_one_module=None,
     libtype: str = "all",
+    strict: bool = False,
 ) -> None:
     """
     Pretune cycle for one tune module.
@@ -221,6 +192,10 @@ def run_pretune(
       the tune .so on first invocation.  Step 4 uses core.build_module() directly
       (no PREBUILD_KERNELS flag injection).  Results are written back to the
       primary source CSV rather than the ephemeral /tmp merged path.
+
+    strict=True rejects missing prerequisites and propagates a failed tuner
+    before rebuilding inference. Release prebuilds use this mode; existing
+    standalone callers retain best-effort behavior by default.
     """
     _log = print if build_one_module is None else logger.info
     _warn = print if build_one_module is None else logger.warning
@@ -228,9 +203,13 @@ def run_pretune(
     tune_script, config_attr = _resolve(module_name, cfg, csrc_dir)
 
     if not tune_script:
+        if strict:
+            raise ValueError(f"{module_name}: no tune script available")
         _warn(f"[pretune] {module_name}: no tune script available. Skipping.")
         return
     if not config_attr:
+        if strict:
+            raise ValueError(f"{module_name}: cannot determine CSV config attr")
         _warn(f"[pretune] {module_name}: cannot determine CSV config attr. Skipping.")
         return
 
@@ -252,9 +231,7 @@ def run_pretune(
         write_tune_file = tune_file
 
     _log(
-        f"[pretune] {module_name}: "
-        f"script={os.path.relpath(tune_script, repo_dir)}, "
-        f"tune_file={tune_file}"
+        f"[pretune] {module_name}: " f"search={tune_script}, " f"tune_file={tune_file}"
     )
 
     # ── 1. Build tune .so (setup.py path only) ────────────────────────────
@@ -264,6 +241,8 @@ def run_pretune(
             logger.info(f"[pretune] building {module_name}")
             build_one_module(tune_args)
         else:
+            if strict:
+                raise ValueError(f"{module_name}: no tune build sources")
             logger.warning(
                 f"[pretune] get_args_of_build({module_name!r}) returned no srcs. "
                 "Tune .so may already exist or module is unknown."
@@ -280,13 +259,15 @@ def run_pretune(
 
     try:
         # ── 3. Run tuner ───────────────────────────────────────────────────
-        env = {
-            **os.environ,
-            "PYTHONPATH": f"{repo_dir}{os.pathsep}{os.environ.get('PYTHONPATH', '')}",
-        }
+        env = BuildContext.load().child_environment()
+        # A file target remains accepted for programmatic callers supplying an
+        # external tuner; registered built-in searches always use package modules.
+        invocation = (
+            [tune_script] if tune_script.endswith(".py") else ["-m", tune_script]
+        )
         cmd = [
             sys.executable,
-            tune_script,
+            *invocation,
             "--untune_file",
             untune_csv,
             "--tune_file",
@@ -298,6 +279,8 @@ def run_pretune(
         _log(f"[pretune] running: {' '.join(cmd)}")
         result = subprocess.run(cmd, env=env, check=False)
         if result.returncode != 0:
+            if strict:
+                raise subprocess.CalledProcessError(result.returncode, cmd)
             _warn(
                 f"[pretune] tuner exited {result.returncode} for {module_name}. "
                 "Inference module will still be rebuilt with whatever was written."
@@ -333,6 +316,8 @@ def run_pretune(
                 third_party=inf_args["third_party"],
             )
     else:
+        if strict:
+            raise ValueError(f"{inf_module}: no inference build sources")
         _warn(
             f"[pretune] get_args_of_build({inf_module!r}) returned no srcs. "
             "Inference module not rebuilt."
@@ -346,6 +331,8 @@ def run_pretune_modules(
     build_one_module,
     csrc_dir: str,
     repo_dir: str,
+    *,
+    strict: bool = False,
 ) -> None:
     """
     Parse PRETUNE_MODULES and dispatch run_pretune() for each requested module.
@@ -354,8 +341,14 @@ def run_pretune_modules(
       "all"                                          → every supported _tune module in config
       "module_gemm_a8w8_blockscale_tune"             → single module
       "module_gemm_a8w8_tune,module_gemm_a8w8_blockscale_tune"  → comma list
+
+    strict=True makes an explicitly requested build fail if a tuner cannot run
+    or fails. Successful legacy CSV tuning still does not create a qualified
+    Trial or DispatchManifest.
     """
     modules = _parse_module_list(pretune_env, cfg)
+    if strict and not modules:
+        raise ValueError("PRETUNE_MODULES did not select any tuner")
     logger.info(f"[pretune] PRETUNE_MODULES → {len(modules)} modules to tune")
 
     seen_keys: set = set()
@@ -371,9 +364,17 @@ def run_pretune_modules(
         seen_keys.add(key)
         try:
             run_pretune(
-                mod, cfg, core, csrc_dir, repo_dir, build_one_module=build_one_module
+                mod,
+                cfg,
+                core,
+                csrc_dir,
+                repo_dir,
+                build_one_module=build_one_module,
+                strict=strict,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
+            if strict:
+                raise
             logger.warning(
                 f"[pretune] {mod} failed: {exc}. Continuing with remaining modules."
             )
@@ -382,18 +383,16 @@ def run_pretune_modules(
 def _main() -> None:
     import argparse
 
-    # Auto-detect repo root from this file's location: utility/pretune.py → repo root
-    _this_dir = os.path.dirname(os.path.abspath(__file__))
-    _default_repo_dir = os.path.dirname(os.path.dirname(_this_dir))
+    context = BuildContext.load()
 
     parser = argparse.ArgumentParser(
         description=(
             "Tune GEMM shapes for the live GPU on an already-installed aiter.\n\n"
             "Examples:\n"
-            "  python3 aiter/utility/pretune.py module_gemm_a8w8_blockscale_tune\n"
-            "  python3 aiter/utility/pretune.py module_gemm_a8w8_tune,module_gemm_a8w8_blockscale_tune\n"
-            "  python3 aiter/utility/pretune.py all\n"
-            "  python3 aiter/utility/pretune.py --list"
+            "  python3 -m aiter.utility.pretune module_gemm_a8w8_blockscale_tune\n"
+            "  python3 -m aiter.utility.pretune module_gemm_a8w8_tune,module_gemm_a8w8_blockscale_tune\n"
+            "  python3 -m aiter.utility.pretune all\n"
+            "  python3 -m aiter.utility.pretune --list"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -415,14 +414,20 @@ def _main() -> None:
     )
     parser.add_argument(
         "--repo_dir",
-        default=_default_repo_dir,
-        help="Path to aiter repo root (auto-detected by default).",
+        default=None,
+        help="Explicit selected package root; must match the imported AITER package.",
     )
     args = parser.parse_args()
 
-    repo_dir = os.path.abspath(args.repo_dir)
-    csrc_dir = os.path.join(repo_dir, "csrc")
-    cfg_path = os.path.join(repo_dir, "aiter", "jit", "optCompilerConfig.json")
+    if args.repo_dir is not None:
+        requested = Path(args.repo_dir).resolve() / "aiter"
+        if requested != context.package:
+            raise ValueError(
+                "--repo_dir must match the selected AITER package; select another installation through its Python environment"
+            )
+    repo_dir = str(context.package.parent)
+    csrc_dir = str(context.resource("native"))
+    cfg_path = context.package / "jit/optCompilerConfig.json"
 
     with open(cfg_path, "r", encoding="utf-8") as f:
         cfg = json.load(f)
@@ -448,8 +453,7 @@ def _main() -> None:
         print(f"[pretune] tuning all {len(modules)} supported tune modules")
 
     # Deferred import: core requires torch, not available during CI metadata phase
-    sys.path.insert(0, os.path.join(repo_dir, "aiter"))
-    from jit import core
+    from aiter.jit import core
 
     seen_keys: set = set()
     for mod in modules:

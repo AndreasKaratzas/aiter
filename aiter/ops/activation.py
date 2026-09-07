@@ -46,7 +46,19 @@ def silu_and_mul_quant(
     group_size: int,
     limit: float = 0.0,
     shuffle_scale: bool = False,
-) -> None: ...
+) -> None:
+    """Fuse SiLU, multiplication, and per-group FP8 or MXFP4 quantization.
+
+    Activation, multiplication, and group maxima use FP32 intermediates; there
+    is no intermediate FP16/BF16 output rounding. MXFP4 scales round upward to
+    a power of two after dividing each group's absolute maximum by six, with
+    an absolute-maximum floor of ``1e-10``. Packed E2M1 values use those scales.
+
+    A positive ``limit`` clamps the gate's upper bound and both bounds of the
+    up branch. The clamped gate is represented in the input dtype before SiLU;
+    the clamped up branch remains FP32. With no limit, both branches convert
+    directly from the input dtype to FP32.
+    """
 
 
 @compile_ops("module_activation", develop=True)

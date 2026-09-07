@@ -121,7 +121,7 @@ The heuristic-fallback path no longer hardcodes launcher symbol names.
 the caller resolves it through `opus_a16w16_tune_dispatch_gfx950<>` (the
 same table that powers `opus_gemm_a16w16_tune`). The kids the heuristic
 can return are listed in `HEURISTIC_DEFAULT_KIDS` in
-`csrc/opus_gemm/opus_gemm_common.py`; `gen_instances.py` asserts they
+`aiter/codegen/gemm/opus/instances.py`; `gen_instances.py` asserts they
 are all in the subset-compile set `S` before writing
 `compiled_kids.json`.
 
@@ -162,19 +162,19 @@ to the global tuned CSV.
 
 ```bash
 # Tune only opus, single shape (or pass --input_file to sweep a CSV):
-python3 gradlib/gemm_tuner.py --libtype opus \
+python3 -m aiter.tuning gemm.a16w16 --libtype opus \
     --input_file aiter/configs/bf16_untuned_gemm.csv
 
 # Or tune all backends in one pass; gradlib picks the winning libtype
 # per shape:
-python3 gradlib/gemm_tuner.py --libtype all \
+python3 -m aiter.tuning gemm.a16w16 --libtype all \
     --input_file aiter/configs/bf16_untuned_gemm.csv
 
 # Output path follows gradlib's existing --tuned_file / GTUNE_TUNED CLI;
 # default is aiter/configs/bf16_tuned_gemm.csv. To write to a sandbox
 # during testing:
 GTUNE_TUNED=/tmp/test_tuned.csv \
-    python3 gradlib/gemm_tuner.py --libtype opus --input_file ...
+    python3 -m aiter.tuning gemm.a16w16 --libtype opus --input_file ...
 ```
 
 gradlib stamps every opus row with `libtype='opus'` so the opus runtime
@@ -203,7 +203,7 @@ sidecar-cached and don't trigger a rebuild.
 ### 3.2 Debug-only: `opus_gemm_tune.py` (single shape / kid)
 
 ```bash
-python3 csrc/opus_gemm/opus_gemm_tune.py \
+python3 -m aiter.tuning gemm.opus \
     -m 128 -n 2880 -k 4096 --dtype bf16 --outdtype bf16
 # default -o is /tmp/opus_debug_tuned.csv (NOT aiter/configs/)
 ```
@@ -216,7 +216,7 @@ which is discouraged -- use gradlib for that.
 Verify winners with the end-to-end test:
 
 ```bash
-python3 op_tests/test_opus_a16w16_gemm.py -m 128 -n 256 -k 1024 -b 1
+python3 tests/operators/opus/test_opus_a16w16_gemm.py -m 128 -n 256 -k 1024 -b 1
 # expected: allclose passed
 ```
 
@@ -290,16 +290,16 @@ the gptoss untuned set).
 
 | Test | Purpose | Pass criterion |
 |---|---|---|
-| `op_tests/test_opus_a16w16_gemm.py` | End-to-end test of `gemm_a16w16_opus` (shape-driven API); supports single-shape smoke and CSV sweep | `allclose` passes on all shapes |
+| `tests/operators/opus/test_opus_a16w16_gemm.py` | End-to-end test of `gemm_a16w16_opus` (shape-driven API); supports single-shape smoke and CSV sweep | `allclose` passes on all shapes |
 
 Examples:
 
 ```bash
 # single-shape smoke
-python3 op_tests/test_opus_a16w16_gemm.py -m 128 -n 256 -k 1024 -b 1
+python3 tests/operators/opus/test_opus_a16w16_gemm.py -m 128 -n 256 -k 1024 -b 1
 
 # CSV sweep (each row is one (M, N, K, batch) shape)
-python3 op_tests/test_opus_a16w16_gemm.py --csv /path/to/shapes.csv
+python3 tests/operators/opus/test_opus_a16w16_gemm.py --csv /path/to/shapes.csv
 ```
 
 ---
@@ -360,7 +360,7 @@ The `<fp32_t>` specialization is analogous, using
 through `<fp32_t>` (splitk kid is forced; non-splitk kid happens to be
 the same in the fp32 lookup table).
 
-### 7.2 Kernel inventory (see [opus_gemm_common.py](../../../csrc/opus_gemm/opus_gemm_common.py))
+### 7.2 Kernel inventory (see [opus_gemm_common.py](../../../aiter/codegen/gemm/opus/instances.py))
 
 Two a16w16-class pipelines are compiled today:
 
@@ -383,7 +383,7 @@ Two a16w16-class pipelines are compiled today:
   pay no bias-add overhead.
 
 Representative instances (full table lives in
-[opus_gemm_common.py](../../../csrc/opus_gemm/opus_gemm_common.py)):
+[opus_gemm_common.py](../../../aiter/codegen/gemm/opus/instances.py)):
 
 | kid | Pipeline | Tile (B_M, B_N, B_K) | WG/CU | Notes |
 |-----|----------|-----|-------|-------|
@@ -411,7 +411,7 @@ kid through the same tune lookup that powers `opus_gemm_a16w16_tune`:
 | `M > 128`, misaligned | 200 / 1200 | splitk `(64, 64, 64)` WG=2 | splitk tolerates arbitrary N (per-element tail store) |
 
 These 8 kids form `HEURISTIC_DEFAULT_KIDS` in
-`csrc/opus_gemm/opus_gemm_common.py`; `gen_instances.py` asserts they
+`aiter/codegen/gemm/opus/instances.py`; `gen_instances.py` asserts they
 are all in the subset-compile set `S` before writing
 `compiled_kids.json`, so heuristic fallback is guaranteed never to
 return an unbakeable kid.
@@ -452,7 +452,7 @@ entries entirely (launcher `TORCH_CHECK`s `Y.dtype() == BFloat16`).
 1. `aiter.ops.opus.gemm_op_a16w16` triggers `compile_ops("module_deepgemm_opus")`.
 2. [aiter/jit/optCompilerConfig.json](../../jit/optCompilerConfig.json)
    invokes
-   `csrc/opus_gemm/gen_instances.py --working_path {blob_dir} --tune_files aiter/configs/bf16_tuned_gemm.csv:aiter/configs/model_configs/*_bf16_tuned_gemm.csv`
+   `aiter/codegen/gemm/opus/generate.py --working_path {blob_dir} --tune_files aiter/configs/bf16_tuned_gemm.csv:aiter/configs/model_configs/*_bf16_tuned_gemm.csv`
 3. `gen_instances.py` computes the subset-compile set
    `S = (CSV opus rows' solidx) ∪ (sidecar contents) ∪ HEURISTIC_DEFAULT_KIDS ∪ a8w8_kids`,
    asserts `HEURISTIC_DEFAULT_KIDS ⊆ S`, then writes:
@@ -587,7 +587,7 @@ dsv3+gptoss bf16 benchmark is unchanged across rounds 6+7
 (geomean +0.37% per shape, well within measurement noise; total
 +0.27% sum of best-kernel us).
 
-Functional regression: `op_tests/test_opus_a16w16_gemm.py` end-to-end
+Functional regression: `tests/operators/opus/test_opus_a16w16_gemm.py` end-to-end
 shape sweep still passes (`allclose` on every shape).
 
 **Per-TU breakdown** (single-TU `-ftime-report` wall):
@@ -762,7 +762,7 @@ wall on this kernel.
      `<hip/hip_fp8.h>`. Used by `all_instances_host.cu`,
      `opus_gemm.cu`, `opus_gemm_pybind.cu`.
 
-3. **`csrc/opus_gemm/gen_instances.py`** — restructured around three
+3. **`aiter/codegen/gemm/opus/generate.py`** — restructured around three
    file shapes:
    * `impl/{name}.cuh` (one per kid): Traits aliases + launcher body.
      Three guard combinations: skip torch headers when the host pass
@@ -805,7 +805,7 @@ wall on this kernel.
      (`opus_gemm`, `opus_gemm_a16w16_tune`) take `aiter_tensor_t`,
      use `AiterDtype` enum (`AITER_DTYPE_bf16` / `_fp32` / `_fp8`)
      instead of `at::ScalarType::*` / `torch_fp8`, return `void`.
-   * **`csrc/opus_gemm/gen_instances.py`** -- the codegen-emitted
+   * **`aiter/codegen/gemm/opus/generate.py`** -- the codegen-emitted
      launcher signatures use `aiter_tensor_t&`, the bias validator
      calls `AITER_CHECK` + `bt.is_contiguous() / dtype() / dim() /
      size()` (POD accessors that `aiter_tensor_t` provides
@@ -1052,15 +1052,15 @@ design notes.
 | [aiter/configs/bf16_tuned_gemm.csv](../../configs/bf16_tuned_gemm.csv) | Global tuned BF16 GEMM CSV. Opus rows live here (`libtype=='opus'`) alongside asm / triton / skinny / flydsl / torch / hipblaslt rows. |
 | [aiter/configs/model_configs/](../../configs/model_configs/) | Per-model tuned BF16 GEMM CSVs (gptoss / dsv4 / glm5 / kimik2 / qwen / ...). Same schema; same `libtype` filter. |
 | [aiter/ops/deepgemm.py](../deepgemm.py) | CK backend (`deepgemm_ck` + `deepgemm()` forwarder). Also hosts the `opus_gemm_a16w16_tune` deprecation shim. |
-| [csrc/opus_gemm/opus_gemm_common.py](../../../csrc/opus_gemm/opus_gemm_common.py) | Kernel instance metadata + shared host helpers: `SPLITK_KIDS / NON_SPLITK_KIDS / BIAS_AWARE_KIDS / HEURISTIC_DEFAULT_KIDS`, `candidate_kids_for_shape()`, `candidate_splitK()`, `kid_rejects_shape() / kid_rejects_bias()`, `_ensure_kids_compiled()` |
-| [csrc/opus_gemm/opus_gemm_tune.py](../../../csrc/opus_gemm/opus_gemm_tune.py) | **Debug-only** single-shape tuner; default `-o /tmp/opus_debug_tuned.csv`. Production tuning uses gradlib. |
-| [gradlib/gradlib/GemmTuner.py](../../../gradlib/gradlib/GemmTuner.py) | Production tuner; `--libtype opus` adds opus to the candidate sweep alongside other backends. |
-| [csrc/opus_gemm/gen_instances.py](../../../csrc/opus_gemm/gen_instances.py) | JIT codegen with subset-compile; `--tune_files` (glob) drives both the (M,N,K) lookup table and the compile set `S`. Writes `compiled_kids.json` sidecar. |
+| [aiter/codegen/gemm/opus/instances.py](../../../aiter/codegen/gemm/opus/instances.py) | Kernel instance metadata + shared host helpers: `SPLITK_KIDS / NON_SPLITK_KIDS / BIAS_AWARE_KIDS / HEURISTIC_DEFAULT_KIDS`, `candidate_kids_for_shape()`, `candidate_splitK()`, `kid_rejects_shape() / kid_rejects_bias()`, `_ensure_kids_compiled()` |
+| [aiter/tuning/search/gemm/opus.py](../../../aiter/tuning/search/gemm/opus.py) | **Debug-only** single-shape tuner; default `-o /tmp/opus_debug_tuned.csv`. Production tuning uses gradlib. |
+| [aiter/tuning/search/gemm/hipblaslt.py](../../../aiter/tuning/search/gemm/hipblaslt.py) | Production tuner; `--libtype opus` adds opus to the candidate sweep alongside other backends. |
+| [aiter/codegen/gemm/opus/generate.py](../../../aiter/codegen/gemm/opus/generate.py) | JIT codegen with subset-compile; `--tune_files` (glob) drives both the (M,N,K) lookup table and the compile set `S`. Writes `compiled_kids.json` sidecar. |
 | [csrc/opus_gemm/opus_gemm.cu](../../../csrc/opus_gemm/opus_gemm.cu) | Pybind entries (`opus_gemm`, `opus_gemm_a16w16_tune`) + per-arch router |
 | [csrc/opus_gemm/include/gfx950/opus_gemm_arch_gfx950.cuh](../../../csrc/opus_gemm/include/gfx950/opus_gemm_arch_gfx950.cuh) | gfx950 dispatch: (M,N,K) lookup + heuristic-kid fallback |
 | [csrc/opus_gemm/include/gfx950/opus_gemm_heuristic_dispatch_gfx950.cuh](../../../csrc/opus_gemm/include/gfx950/opus_gemm_heuristic_dispatch_gfx950.cuh) | `opus_a16w16_heuristic_kid_gfx950(M,N,K) -> int` (single source: integer kid only, no launcher symbol names) |
 | [csrc/opus_gemm/include/gfx950/](../../../csrc/opus_gemm/include/gfx950/) | Kernel source (a16w16, flatmm, flatmm_splitk, persistent) for gfx950 |
-| [op_tests/test_opus_a16w16_gemm.py](../../../op_tests/test_opus_a16w16_gemm.py) | End-to-end `gemm_a16w16_opus` (single-shape + CSV sweep) |
+| [tests/operators/opus/test_opus_a16w16_gemm.py](../../../tests/operators/opus/test_opus_a16w16_gemm.py) | End-to-end `gemm_a16w16_opus` (single-shape + CSV sweep) |
 
 ---
 

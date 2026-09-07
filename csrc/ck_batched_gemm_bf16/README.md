@@ -11,7 +11,7 @@
 
 3. Start tuning:
 Run the following cmd to start tuning, please wait a few minutes as it will build batched_gemm_bf16_tune via jit:
-`python3 csrc/ck_batched_gemm_bf16/batched_gemm_bf16_tune.py -i aiter/configs/bf16_untuned_batched_gemm.csv -o aiter/configs/bf16_tuned_batched_gemm.csv`
+`python3 -m aiter.tuning gemm.batched_bf16 -i aiter/configs/bf16_untuned_batched_gemm.csv -o aiter/configs/bf16_tuned_batched_gemm.csv`
 You can find the results of the tuning in `aiter/configs/bf16_tuned_batched_gemm.csv`, like this:
     |**gfx**  |**cu_num**|**B**|**M**|**N**|**K**|**kernelId**|**splitK**|**us**|**kernelName**|**tflops**|**bw**|**errRatio**|
     |---------|----------|-----|-----|-----|-----|------------|----------|------|--------------|----------|------|------------|
@@ -20,9 +20,9 @@ You can find the results of the tuning in `aiter/configs/bf16_tuned_batched_gemm
     `gfx` identifies the GPU architecture (e.g. `gfx942`, `gfx950`). `cu_num` is the number of compute units and distinguishes partitioned or binned variants of the same architecture (e.g. MI308X vs MI300X both use `gfx942`).
 
 4. Build tuned kernels and test:
-Test the performance, modify the test instance in `op_tests/test_batched_gemm_bf16.py` and run it, please wait a few minutes as it will build batched_gemm_bf16 tuned kernels in `aiter/configs/bf16_tuned_batched_gemm.csv` via jit:
-`python3 op_tests/test_batched_gemm_bf16.py`
-If you have built batched_gemm_bf16 kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 op_tests/test_batched_gemm_bf16.py`. It will rebuild kernels from `AITER_CONFIG_BF16_BATCHED_GEMM`, the default one will be results merged from `aiter/configs/bf16_tuned_batched_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_bf16_tuned_batched_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/bf16_tuned_batched_gemm.csv`.
+Test the performance, modify the test instance in `tests/operators/hip/test_batched_gemm_bf16.py` and run it, please wait a few minutes as it will build batched_gemm_bf16 tuned kernels in `aiter/configs/bf16_tuned_batched_gemm.csv` via jit:
+`python3 tests/operators/hip/test_batched_gemm_bf16.py`
+If you have built batched_gemm_bf16 kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 tests/operators/hip/test_batched_gemm_bf16.py`. It will rebuild kernels from `AITER_CONFIG_BF16_BATCHED_GEMM`, the default one will be results merged from `aiter/configs/bf16_tuned_batched_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_bf16_tuned_batched_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/bf16_tuned_batched_gemm.csv`.
 
 ## More Options
 
@@ -116,11 +116,11 @@ If you have built batched_gemm_bf16 kernels before tuning new GEMM shapes, pleas
 **Examples**:
 ```bash
 # benchmark tuned kernels from specified tuned config
-python3 csrc/ck_batched_gemm_bf16/batched_gemm_bf16_tune.py \
+python3 -m aiter.tuning gemm.batched_bf16 \
   --run_config aiter/configs/bf16_tuned_batched_gemm.csv
 
 # benchmark default kernels using shapes from -i
-python3 csrc/ck_batched_gemm_bf16/batched_gemm_bf16_tune.py \
+python3 -m aiter.tuning gemm.batched_bf16 \
   -i aiter/configs/bf16_untuned_batched_gemm.csv --run_config
 ```
 

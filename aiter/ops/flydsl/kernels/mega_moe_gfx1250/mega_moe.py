@@ -10,9 +10,9 @@ import flydsl.expr as fx
 import torch
 
 from aiter import ActivationType, QuantType, dtypes
-from aiter.fused_moe import fused_moe
 from aiter.jit.utils.chip_info import get_gfx
 from aiter.ops.flydsl.moe_common import GateMode
+from aiter.ops.moe.dispatch import fused_moe
 
 from .combine import _make_combine_fused_reduce, _make_combine_fused_sync
 from .config import _WAVE_SIZE, _select_dispatch_config

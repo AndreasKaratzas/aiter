@@ -1,8 +1,7 @@
-import concurrent.futures
-import os
 from collections import namedtuple
 
-from csrc.cpp_itfs.pa.pa_v1 import compile
+from aiter.aot.runner import compile_many
+from aiter.ops._native.pa.pa_v1 import compile
 
 PAConfig = namedtuple(
     "PAConfig",
@@ -22,7 +21,7 @@ PAConfig = namedtuple(
 
 
 def process_config(config):
-    return compile(
+    compile(
         config.gqa_ratio,
         config.head_size,
         config.npar_loops,
@@ -101,10 +100,7 @@ def main():
                                 )
                             )
 
-    with concurrent.futures.ProcessPoolExecutor(
-        os.environ.get("MAX_JOBS", os.cpu_count())
-    ) as executor:
-        executor.map(process_config, configs)
+    compile_many(process_config, configs)
 
 
 if __name__ == "__main__":

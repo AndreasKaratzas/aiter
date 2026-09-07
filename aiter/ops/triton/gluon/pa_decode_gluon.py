@@ -13,7 +13,7 @@ from aiter.ops.triton.utils._triton import arch_info
 
 CXX_PS_REDUCE_AVAILABLE = True
 try:
-    from csrc.cpp_itfs.pa.pa_ps import (
+    from aiter.ops._native.pa.pa_ps import (
         launch_pa_decode_ps_reduce as launch_pa_decode_ps_reduce_cxx,
     )
 except Exception:  # noqa: BLE001

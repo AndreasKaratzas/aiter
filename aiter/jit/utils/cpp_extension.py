@@ -19,12 +19,13 @@ import sysconfig
 import warnings
 
 import setuptools
-from _cpp_extension_versioner import ExtensionVersioner
-from file_baton import FileBaton
-from hipify import hipify_python
-from hipify.hipify_python import GeneratedFileCleaner
 from packaging.version import Version
 from setuptools.command.build_ext import build_ext
+
+from aiter.jit.utils._cpp_extension_versioner import ExtensionVersioner
+from aiter.jit.utils.file_baton import FileBaton
+from aiter.jit.utils.hipify import hipify_python
+from aiter.jit.utils.hipify.hipify_python import GeneratedFileCleaner
 
 IS_WINDOWS = sys.platform == "win32"
 IS_LINUX = sys.platform.startswith("linux")

@@ -15,7 +15,7 @@ the same (cu_num, M, N, K, ...) keys. We filter by `libtype == 'opus'`
 here, so the opus runtime dispatch only returns a tuned winner when one
 of those CSVs has an opus row matching the shape.
 
-Schema (matches gradlib/GemmTuner.py output):
+Schema (matches aiter/tuning/search/gemm/hipblaslt.py output):
 
   gfx, cu_num, M, N, K, bias, dtype, outdtype, scaleAB, bpreshuffle,
   libtype, solidx, splitK, us, kernelName, err_ratio, tflops, bw
@@ -34,7 +34,7 @@ Configuration:
   (Removed in this rewrite: AITER_OPUS_A16W16_TUNED_CSV,
    AITER_OPUS_A16W16_UNTUNED_CSV, AITER_OPUS_LOG_UNTUNED, and the
    autolog feature. Untuned-shape collection is no longer supported;
-   use gradlib/gemm_tuner.py --libtype opus to tune shapes offline.)
+   use python -m aiter.tuning gemm.a16w16 --libtype opus to tune shapes offline.)
 """
 
 from __future__ import annotations
@@ -184,7 +184,7 @@ def _key_from_runtime(
 
 
 # Mono-tile kid → (B_M, B_N, B_K). Must stay in lock-step with
-# csrc/opus_gemm/opus_gemm_common.py:_MONO_TILE_TILES; the runtime guard
+# aiter/codegen/gemm/opus/instances.py:_MONO_TILE_TILES; the runtime guard
 # below uses it to validate (N, K) alignment for CSV-picked mono kids,
 # since tuned_gemm.get_padded_m pads the lookup key by M only and can
 # surface a kid whose B_N / B_K does not divide the actual N / K.

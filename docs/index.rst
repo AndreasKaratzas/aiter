@@ -1,165 +1,150 @@
-.. AITER documentation master file
-
-AITER Documentation
+AITER documentation
 ===================
 
-**AITER** (AMD Inference and Training Enhanced Repository) is AMD's high-performance AI operator library for ROCm, providing optimized kernels for inference and training workloads.
+.. raw:: html
 
-.. image:: https://img.shields.io/badge/ROCm-Compatible-red
-   :target: https://rocm.docs.amd.com/
-   :alt: ROCm Compatible
+   <p class="hero-kicker">GPU operations for ROCm</p>
+   <p class="hero-lead">A guide from application calls to GPU kernels.</p>
 
-.. image:: https://img.shields.io/github/license/ROCm/aiter
-   :target: https://github.com/ROCm/aiter/blob/main/LICENSE
-   :alt: License
+AITER supplies the GPU operations inside inference systems: matrix multiplication, attention, normalization, quantization, expert routing and communication. PyTorch, vLLM and SGLang are consumers of the library. Your application owns the model, buffers and streams.
 
-Why AITER?
-----------
+.. raw:: html
 
-* **High Performance**: Optimized kernels using Triton, Composable Kernel (CK), and hand-written assembly
-* **Comprehensive**: Supports both inference and training workloads
-* **Flexible**: C++ and Python APIs for easy integration
-* **AMD Optimized**: Built specifically for AMD GPUs and the ROCm platform
+   <div class="start-grid">
+     <a class="start-card" href="quickstart.html"><strong>Run your first operation</strong><span>Install a matching environment, prepare RMSNorm, and check the result.</span><small>Start with a working example →</small></a>
+     <a class="start-card" href="understand/model.html"><strong>Understand the architecture</strong><span>See how operations, providers, plans and native kernels fit together.</span><small>Follow the software model →</small></a>
+     <a class="start-card" href="use/frameworks.html"><strong>Follow a framework call</strong><span>Trace vLLM and SGLang through AITER to the operation that actually runs.</span><small>Read the integration paths →</small></a>
+     <a class="start-card" href="deliver/ci.html"><strong>Test and deliver a change</strong><span>Choose a profile, inspect its evidence, and understand wheels and images.</span><small>Open the delivery guide →</small></a>
+   </div>
 
-Quick Start
------------
+One lifecycle, explicit responsibilities
+----------------------------------------
 
-Installation
-^^^^^^^^^^^^
+.. mermaid::
+   :caption: The prepared execution lifecycle
 
-.. code-block:: bash
+   flowchart TD
+       A[Describe the operation] --> B[Prepare a provider]
+       B --> C[Retain an execution plan]
+       C --> D[Enqueue on your stream]
 
-   pip install aiter  # Coming soon!
+Preparation may compile when you allow it. Execution reuses the chosen code and validates your buffers. Existing specialized operator interfaces remain available; their state and compilation rules are described separately from the prepared interface.
 
-   # For now, install from source:
-   git clone --recursive https://github.com/ROCm/aiter.git
-   cd aiter
-   python3 setup.py develop
+Choose a reading path
+---------------------
 
-Quick Example
-^^^^^^^^^^^^^
+* **New to AITER:** :doc:`installation` → :doc:`quickstart` → :doc:`architecture`.
+* **Integrating a framework:** :doc:`use/frameworks` → :doc:`api/operators` → :doc:`deliver/containers`.
+* **Developing a kernel or backend:** :doc:`tutorials/add_new_op` → :doc:`extend/codegen` → :doc:`extend/testing`.
+* **Reviewing the redesign:** :doc:`understand/model` → :doc:`project/rollout` → :doc:`project/evidence`.
 
-.. code-block:: python
-
-   import aiter
-   import torch
-
-   # Example: Flash Attention
-   # TODO: Add actual example code
-
-Core Features
--------------
-
-Attention Kernels
-^^^^^^^^^^^^^^^^^
-
-* **Multi-Head Attention (MHA)**: Standard attention with optimized implementations
-* **Multi-Latent Attention (MLA)**: DeepSeek-style latent attention
-* **Paged Attention**: Efficient KV-cache management for serving
-
-GEMM Operations
-^^^^^^^^^^^^^^^
-
-* **Mixed Precision GEMM**: FP16, BF16, FP8, INT4 support
-* **Tuned GEMM**: Pre-tuned configurations for common shapes
-* **Fused Operations**: GEMM with activation fusion
-
-Mixture of Experts (MoE)
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* **Fused MoE**: Optimized expert routing and computation
-* **Multiple Routing**: Support for various routing strategies
-* **Quantized Experts**: FP8 and INT4 expert weights
-
-Normalization
-^^^^^^^^^^^^^
-
-* **RMSNorm**: Root mean square normalization
-* **LayerNorm**: Standard layer normalization
-* **Fused Variants**: Combined with other operations
-
-Other Operators
-^^^^^^^^^^^^^^^
-
-* **RoPE**: Rotary position embeddings
-* **Quantization**: BF16/FP16 → FP8/INT4 conversion
-* **Element-wise**: Optimized basic operations
-* **Communication**: AllReduce and collective operations via Triton/Iris
-
-GPU Support
------------
-
-AITER supports AMD GPUs with the following architectures:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 20 30 30
-
-   * - Architecture
-     - gfx Target
-     - Example GPUs
-     - ROCm Version
-   * - CDNA 2
-     - gfx90a
-     - MI210, MI250, MI250X
-     - ROCm 5.0+
-   * - CDNA 3
-     - gfx942
-     - MI300A, MI300X
-     - ROCm 6.0+
-   * - CDNA 3.5
-     - gfx950
-     - MI350X (upcoming)
-     - ROCm 6.3+
-
-Quick Links
------------
-
-* 🚀 :doc:`quickstart` - Get started in 5 minutes
-* 📖 :doc:`tutorials/add_new_op` - **How to add a new operator** (step-by-step)
-* 🔧 :doc:`api/attention` - Flash Attention API
-* 💡 :doc:`tutorials/basic_usage` - Basic usage examples
-
-Table of Contents
------------------
+The site renders the same guides maintained beside the code. A capability description tells you what an implementation accepts; qualification records tell you what was tested. The :doc:`project/evidence` page keeps those two statements separate.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
+   :hidden:
+   :caption: Start here
 
    installation
    quickstart
-   tutorials/index
+   architecture
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API Reference
+   :hidden:
+   :caption: Use AITER
 
-   api/attention
-   api/gemm
-   api/moe
-   api/normalization
+   use/runtime
+   use/examples
+   use/frameworks
    api/operators
+   api/gemm
+   api/attention
+   use/native
+   use/rust
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Advanced Topics
+   :hidden:
+   :caption: Understand and extend
 
-   performance/benchmarks
-   performance/profiling
-   advanced/triton_kernels
-   advanced/ck_integration
+   understand/model
+   understand/policy
+   tutorials/index
+   extend/operator-layout
+   extend/development-helpers
+   extend/codegen
+   extend/kernel-resources
+   extend/kernel-manager
+   extend/dependencies
+   extend/build
+   extend/compilers
+   extend/flydsl
+   extend/native-cache
+   extend/tuning
+   extend/search
+   extend/triton-search
+   extend/triton
+   extend/benchmarks
+   extend/vllm-benchmarks
+   extend/traces
+   extend/testing
+   extend/test-fixtures
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Development
+   :hidden:
+   :caption: Test and deliver
 
-   contributing
-   changelog
+   delivery
+   deliver/ci
+   deliver/qualification
+   deliver/framework-tests
+   deliver/vllm-nightly
+   deliver/vllm-tests
+   deliver/vllm-upstream
+   deliver/vllm-operators
+   deliver/vllm-e2e
+   deliver/pipelines
+   deliver/workflows
+   deliver/scripts
+   deliver/containers
+   deliver/images-common
+   deliver/images-pytorch
+   deliver/images-vllm
+   deliver/images-sglang
+   deliver/releases
+   deliver/release-process
+   deliver/wheel-builders
+   deliver/channels
+   deliver/unreleased
+   deliver/release-template
 
-Indices and tables
-==================
+.. toctree::
+   :hidden:
+   :caption: Specialist guides
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   specialist/tuning-pipeline
+   specialist/communication
+   specialist/nonroot
+   specialist/code-objects
+   specialist/inspection-helpers
+
+.. toctree::
+   :hidden:
+   :caption: Project and evidence
+
+   project/rollout
+   project/evidence
+   project/migration
+   project/native-migration
+   project/precision
+   project/ck-moe-layout
+   project/assembly
+   project/tuning-migration
+   project/website
+   project/deploy
+   project/documentation-coverage
+
+.. toctree::
+   :hidden:
+   :caption: Historical material
+
+   history/may-2026
+   history/kernel-selection-notes

@@ -1,94 +1,37 @@
-# Build and Run the Aiter Container as a Non-root User
+# Run a container without root privileges
 
+Start with a wheel and image whose Python, ROCm, Torch and GPU target match your workload. The [container guide](../docker/README.md) explains the common image and framework-specific consumers. A floating `latest` tag does not identify the environment that produced a qualification result.
 
-## Build a container with Aiter installed and add a non-root user using the Dockerfile provided below:
+Running the application as a non-root user has two practical requirements: access to the GPU device nodes, and a writable place for permitted compilation caches. It does not require reinstalling AITER into the source tree.
 
-```
-ARG BASE_DOCKER="rocm/pytorch:latest"
-FROM $BASE_DOCKER
-RUN pip install pandas zmq einops && \
-    pip install numpy==1.26.2
-# FlyDSL is a required dependency and is installed automatically by `setup.py develop` below.
-# Create a new user
-RUN useradd -m newuser
-# Switch to the new user
-USER newuser
-# Set the working directory
-WORKDIR /home/newuser
-RUN rm -rf aiter && \
-    git clone --recursive https://github.com/ROCm/aiter.git && \
-    cd aiter && \
-    python3 setup.py develop
+## Match the host's device groups
+
+Inspect the device permissions on the host:
+
+```bash
+ls -l /dev/kfd /dev/dri/renderD*
+id
 ```
 
-## Build the container image:
+Pass the numeric group IDs that own those devices to Docker with `--group-add`. Group names inside an image need not match the host names. Run with your intended UID and GID, pass `/dev/kfd` and `/dev/dri`, and mount an application-owned cache directory if the workload permits compilation.
 
-```
-docker build --no-cache -t rocm-aiter:test -f Dockerfile.aiter .
-```
- 
+For example, after setting `AITER_IMAGE` to the reviewed image digest and `KFD_GROUP` and `RENDER_GROUP` to the observed numeric group IDs:
 
-## Run the container:
-
-This command runs a Docker container interactively with access to GPU devices, adding the current user's render and video group IDs to ensure proper permissions for accessing /dev/dri and /dev/kfd.
-
-
-```
-docker run -it --device=/dev/dri --device=/dev/kfd  --group-add $(getent group render | cut -d: -f3) --group-add $(getent group video | cut -d: -f3) rocm-aiter:test /bin/bash
-```
- 
-
-## Check the permission to GPU access in the container:
-
-
-```
-newuser@0d2817135822:~$ rocminfo
-ROCk module version 6.12.12 is loaded
-=====================
-HSA System Attributes
-=====================
-Runtime Version:         1.15
-Runtime Ext Version:     1.7
-System Timestamp Freq.:  1000.000000MHz
-Sig. Max Wait Duration:  18446744073709551615 (0xFFFFFFFFFFFFFFFF) (timestamp count)
-Machine Model:           LARGE
-System Endianness:       LITTLE
-Mwaitx:                  DISABLED
-XNACK enabled:           NO
-DMAbuf Support:          YES
-VMM Support:             YES
-==========
-HSA Agents
-==========
-*******
-Agent 1
-*******
-  Name:                    INTEL(R) XEON(R) PLATINUM 8568Y+
-  Uuid:                    CPU-XX
-  Marketing Name:          INTEL(R) XEON(R) PLATINUM 8568Y+
-  Vendor Name:             CPU
-  Feature:                 None specified
-......
+```bash
+mkdir -p /tmp/aiter-user-cache
+docker run --rm -it \
+  --user "$(id -u):$(id -g)" \
+  --device=/dev/kfd --device=/dev/dri \
+  --group-add "$KFD_GROUP" --group-add "$RENDER_GROUP" \
+  --mount type=bind,source=/tmp/aiter-user-cache,target=/cache \
+  --env XDG_CACHE_HOME=/cache \
+  "$AITER_IMAGE" bash
 ```
 
-## Run the aiter tests to check the permission:
+Inside the container, verify `id`, device permissions and `rocminfo`, then run the small operator check appropriate to the image's qualification profile. Device visibility alone does not prove numerical correctness or artifact compatibility.
 
-```
-newuser@0d2817135822:~/aiter$ python3 op_tests/test_gemm_a8w8_blockscale.py
-[aiter] WARNING: NUMA balancing is enabled, which may cause errors. It is recommended to disable NUMA balancing by running "sudo sh -c 'echo 0 > /proc/sys/kernel/numa_balancing'" for more details: https://rocm.docs.amd.com/en/latest/how-to/system-optimization/mi300x.html#disable-numa-auto-balancing
-[aiter] start build [module_aiter_enum] under /home/newuser/aiter/aiter/jit/build/module_aiter_enum
-Successfully preprocessed all matching files.
-[aiter] finish build [module_aiter_enum], cost 19.54064721s
-[aiter]
-calling test_gemm(dtype                        = torch.bfloat16,
-                  m                            = 16,
-                  n                            = 1536,
-                  k                            = 7168)
-/opt/conda/envs/py_3.12/lib/python3.12/site-packages/redis/connection.py:77: UserWarning: redis-py works best with hiredis. Please consider installing
-  warnings.warn(msg)
-[W801 06:34:09.405641462 collection.cpp:1098] Warning: ROCTracer produced duplicate flow start: 1 (function operator())
-[aiter] shape is M:16, N:1536, K:7168, found padded_M: 16, N:1536, K:7168 is tuned on cu_num = 304 in CKGEMM , kernel name is a8w8_blockscale_1x128x128_256x16x64x256_16x16_16x16_16x16x1_16x16x1_1x16x1x16_4_1x1_intrawave_v1!
-[aiter] start build [module_gemm_a8w8_blockscale] under /home/newuser/aiter/aiter/jit/build/module_gemm_a8w8_blockscale
-Successfully preprocessed all matching files.
-......
-```
+## Keep runtime and development roles explicit
+
+A development image may include a compiler and permit new kernel builds. A runtime consumer that requires prebuilt code must use the corresponding artifact policy and qualified image. An unwritable cache should not be fixed by making the installed package writable; use an application-owned cache or choose the matching prebuilt artifact.
+
+The documentation build does not execute Docker. Actual image qualification and its evidence are owned by the [delivery pipeline](../ci/README.md).

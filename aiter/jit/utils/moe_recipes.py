@@ -51,7 +51,7 @@ def _build_moe_variant(
     md_name = "_".join(parts)
     blob_gen_cmd = [
         (
-            f"{aiter_csrc_dir}/ck_gemm_moe_2stages_codegen/gen_instances.py "
+            f"-m aiter.codegen moe.ck_two_stage "
             f"-a {a_dtype} -b {b_dtype} -c {c_dtype} -q {quant_type} "
             f"-act {activation} -m {mul_routed_weight_stage}{flags} -w {{}}"
         )

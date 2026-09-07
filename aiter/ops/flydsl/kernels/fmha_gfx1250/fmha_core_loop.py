@@ -11,7 +11,7 @@ as the qk_hdim==192 A/B fallback under ``AITER_ENABLE_EXPERIMENTAL=1``.
 
 Frozen on purpose: the schedule is hand-interleaved WMMA/LDS/TDM tuned
 against a reference ISA listing, and it is NOT covered by
-``op_tests/test_mha_flydsl.py``. Edits here silently move the A/B baseline
+``tests/operators/flydsl/test_mha_flydsl.py``. Edits here silently move the A/B baseline
 the new kernel is measured against. Put new work in
 ``fmha_fwd_prefill_a16w16_m32x8.py`` instead.
 =============================================================================

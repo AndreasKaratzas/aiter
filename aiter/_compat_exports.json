@@ -1,0 +1,2370 @@
+{
+  "AITER_CONFIGS": [
+    "aiter.jit.core",
+    "AITER_CONFIGS"
+  ],
+  "AITER_CSRC_DIR": [
+    "aiter.jit.core",
+    "AITER_CSRC_DIR"
+  ],
+  "AITER_LOG_TUNED_CONFIG": [
+    "aiter.jit.core",
+    "AITER_LOG_TUNED_CONFIG"
+  ],
+  "AITER_META_DIR": [
+    "aiter.jit.core",
+    "AITER_META_DIR"
+  ],
+  "ASM_SPLITK_MAX_GRID": [
+    "aiter.ops.gemm_op_a16w16",
+    "ASM_SPLITK_MAX_GRID"
+  ],
+  "ActivationType": [
+    "aiter.ops.moe_op",
+    "ActivationType"
+  ],
+  "Any": [
+    "aiter.ops.mha",
+    "Any"
+  ],
+  "CK_DIR": [
+    "aiter.ops.mha",
+    "CK_DIR"
+  ],
+  "E2M3": [
+    "aiter.ops.gemm_op_a6w6",
+    "E2M3"
+  ],
+  "ENABLE_CK": [
+    "aiter.ops.mha",
+    "ENABLE_CK"
+  ],
+  "Enum": [
+    "aiter.ops.attention.native",
+    "Enum"
+  ],
+  "F": [
+    "torch.nn.functional",
+    null
+  ],
+  "FUSED_AR_MHC_MD_NAME": [
+    "aiter.ops.custom_all_reduce",
+    "FUSED_AR_MHC_MD_NAME"
+  ],
+  "FUSED_QKNORM_IDXRQKNORM_SUPPORTS_FP8_INDEX_Q": [
+    "aiter.ops.fused_qknorm_idxrqknorm",
+    "FUSED_QKNORM_IDXRQKNORM_SUPPORTS_FP8_INDEX_Q"
+  ],
+  "FUSED_QKNORM_IDXRQKNORM_SUPPORTS_PACKED_SHUFFLE": [
+    "aiter.ops.fused_qknorm_idxrqknorm",
+    "FUSED_QKNORM_IDXRQKNORM_SUPPORTS_PACKED_SHUFFLE"
+  ],
+  "FlashAttnFunc": [
+    "aiter.ops.mha",
+    "FlashAttnFunc"
+  ],
+  "FlashAttnVarlenFunc": [
+    "aiter.ops.mha",
+    "FlashAttnVarlenFunc"
+  ],
+  "GFX1250_MD_NAME": [
+    "aiter.ops.custom_all_reduce",
+    "GFX1250_MD_NAME"
+  ],
+  "Generator": [
+    "aiter.ops.sample",
+    "Generator"
+  ],
+  "GroupNorm": [
+    "aiter.ops.groupnorm",
+    "GroupNorm"
+  ],
+  "LLMM1": [
+    "aiter.ops.custom",
+    "LLMM1"
+  ],
+  "Library": [
+    "aiter.ops.gemm_op_a8w8",
+    "Library"
+  ],
+  "MD_NAME": [
+    "aiter.ops.fused_split_gdr_update",
+    "MD_NAME"
+  ],
+  "MD_NAME_V4": [
+    "aiter.ops.attention.native",
+    "MD_NAME_V4"
+  ],
+  "MXFP8_OUT_SCALE_BLOCK": [
+    "aiter.ops.gemm_op_a4w4",
+    "MXFP8_OUT_SCALE_BLOCK"
+  ],
+  "MX_DEFAULT_ROUND_MODE": [
+    "aiter.ops.quant",
+    "MX_DEFAULT_ROUND_MODE"
+  ],
+  "MlaVersion": [
+    "aiter.ops.attention.native",
+    "MlaVersion"
+  ],
+  "MxDtypeInt": [
+    "aiter.ops.quant",
+    "MxDtypeInt"
+  ],
+  "MxScaleRoundModeInt": [
+    "aiter.ops.quant",
+    "MxScaleRoundModeInt"
+  ],
+  "QuantType": [
+    "aiter.ops.fused_qk_rmsnorm_group_quant",
+    "QuantType"
+  ],
+  "RoPE": [
+    "aiter.ops.rope",
+    "RoPE"
+  ],
+  "RoPE2D": [
+    "aiter.ops.rope",
+    "RoPE2D"
+  ],
+  "RoPECached": [
+    "aiter.ops.rope",
+    "RoPECached"
+  ],
+  "RoPETHD": [
+    "aiter.ops.rope",
+    "RoPETHD"
+  ],
+  "RoundModeLike": [
+    "aiter.ops.quant",
+    "RoundModeLike"
+  ],
+  "SCALE_LAYOUTS": [
+    "aiter.ops.inverse_rope_group_quant",
+    "SCALE_LAYOUTS"
+  ],
+  "TYPE_CHECKING": [
+    "aiter.ops.quant",
+    "TYPE_CHECKING"
+  ],
+  "Tensor": [
+    "aiter.ops.fused_split_gdr_update",
+    "Tensor"
+  ],
+  "Union": [
+    "aiter.ops.quant",
+    "Union"
+  ],
+  "add": [
+    "aiter.ops.aiter_operator",
+    "add"
+  ],
+  "add_": [
+    "aiter.ops.aiter_operator",
+    "add_"
+  ],
+  "add_rmsnorm": [
+    "aiter.ops.rmsnorm",
+    "add_rmsnorm"
+  ],
+  "add_rmsnorm_quant": [
+    "aiter.ops.rmsnorm",
+    "add_rmsnorm_quant"
+  ],
+  "aiter_lib": [
+    "aiter.ops.gemm_op_a8w8",
+    "aiter_lib"
+  ],
+  "all_gather_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "all_gather_gfx1250"
+  ],
+  "all_gather_reg": [
+    "aiter.ops.custom_all_reduce",
+    "all_gather_reg"
+  ],
+  "all_gather_unreg": [
+    "aiter.ops.custom_all_reduce",
+    "all_gather_unreg"
+  ],
+  "all_reduce": [
+    "aiter.ops.custom_all_reduce",
+    "all_reduce"
+  ],
+  "all_reduce_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "all_reduce_gfx1250"
+  ],
+  "allocate_data_buffer": [
+    "aiter.ops.custom_all_reduce",
+    "allocate_data_buffer"
+  ],
+  "allocate_meta_buffer": [
+    "aiter.ops.custom_all_reduce",
+    "allocate_meta_buffer"
+  ],
+  "autograd": [
+    "torch.autograd",
+    null
+  ],
+  "batched_gemm_a8w8": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "batched_gemm_a8w8"
+  ],
+  "batched_gemm_a8w8_CK": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "batched_gemm_a8w8_CK"
+  ],
+  "batched_gemm_a8w8_mxscale": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "batched_gemm_a8w8_mxscale"
+  ],
+  "batched_gemm_a8w8_mxscale_bpreshuffle": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "batched_gemm_a8w8_mxscale_bpreshuffle"
+  ],
+  "batched_gemm_a8w8_tune": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "batched_gemm_a8w8_tune"
+  ],
+  "batched_gemm_bf16": [
+    "aiter.ops.batched_gemm_op_bf16",
+    "batched_gemm_bf16"
+  ],
+  "batched_gemm_bf16_CK": [
+    "aiter.ops.batched_gemm_op_bf16",
+    "batched_gemm_bf16_CK"
+  ],
+  "batched_gemm_bf16_tune": [
+    "aiter.ops.batched_gemm_op_bf16",
+    "batched_gemm_bf16_tune"
+  ],
+  "batched_rotary_embedding": [
+    "aiter.ops.pos_encoding",
+    "batched_rotary_embedding"
+  ],
+  "biased_grouped_topk": [
+    "aiter.ops.topk",
+    "biased_grouped_topk"
+  ],
+  "biased_grouped_topk_hip": [
+    "aiter.ops.topk",
+    "biased_grouped_topk_hip"
+  ],
+  "biased_grouped_topk_torch": [
+    "aiter.ops.topk",
+    "biased_grouped_topk_torch"
+  ],
+  "binary_add_build_args": [
+    "aiter.ops.aiter_operator",
+    "binary_add_build_args"
+  ],
+  "binary_div_build_args": [
+    "aiter.ops.aiter_operator",
+    "binary_div_build_args"
+  ],
+  "binary_inp_fake_shape": [
+    "aiter.ops.aiter_operator",
+    "binary_inp_fake_shape"
+  ],
+  "binary_mul_build_args": [
+    "aiter.ops.aiter_operator",
+    "binary_mul_build_args"
+  ],
+  "binary_out_fake_shape": [
+    "aiter.ops.aiter_operator",
+    "binary_out_fake_shape"
+  ],
+  "binary_search": [
+    "aiter.ops.trans_ragged_layout",
+    "binary_search"
+  ],
+  "binary_sub_build_args": [
+    "aiter.ops.aiter_operator",
+    "binary_sub_build_args"
+  ],
+  "bmm_a8w8_mxscale_opus": [
+    "aiter.ops.opus",
+    "bmm_a8w8_mxscale_opus"
+  ],
+  "can_impl_fmha_v3_bwd": [
+    "aiter.ops.mha",
+    "can_impl_fmha_v3_bwd"
+  ],
+  "causal_conv1d_update": [
+    "aiter.ops.causal_conv1d_update",
+    "causal_conv1d_update"
+  ],
+  "ck_moe_stage1": [
+    "aiter.ops.moe_op",
+    "ck_moe_stage1"
+  ],
+  "ck_moe_stage1_fwd": [
+    "aiter.ops.moe_op",
+    "ck_moe_stage1_fwd"
+  ],
+  "ck_moe_stage2": [
+    "aiter.ops.moe_op",
+    "ck_moe_stage2"
+  ],
+  "ck_moe_stage2_fwd": [
+    "aiter.ops.moe_op",
+    "ck_moe_stage2_fwd"
+  ],
+  "clear_gemm_a6w6_config_cache": [
+    "aiter.ops.gemm_op_a6w6",
+    "clear_gemm_a6w6_config_cache"
+  ],
+  "cmdGenFunc": [
+    "aiter.ops.aiter_operator",
+    "cmdGenFunc"
+  ],
+  "cmdGenFunc_ck_moe_stage": [
+    "aiter.ops.moe_op",
+    "cmdGenFunc_ck_moe_stage"
+  ],
+  "cmdGenFunc_ck_moe_stage2": [
+    "aiter.ops.moe_op",
+    "cmdGenFunc_ck_moe_stage2"
+  ],
+  "cmdGenFunc_mha_batch_prefill": [
+    "aiter.ops.mha",
+    "cmdGenFunc_mha_batch_prefill"
+  ],
+  "cmdGenFunc_mha_bwd": [
+    "aiter.ops.mha",
+    "cmdGenFunc_mha_bwd"
+  ],
+  "cmdGenFunc_mha_fwd": [
+    "aiter.ops.mha",
+    "cmdGenFunc_mha_fwd"
+  ],
+  "cmdGenFunc_mha_varlen_bwd": [
+    "aiter.ops.mha",
+    "cmdGenFunc_mha_varlen_bwd"
+  ],
+  "cmdGenFunc_mha_varlen_fwd": [
+    "aiter.ops.mha",
+    "cmdGenFunc_mha_varlen_fwd"
+  ],
+  "common_mha_bwd_fake_tensors": [
+    "aiter.ops.mha",
+    "common_mha_bwd_fake_tensors"
+  ],
+  "common_mha_fwd_fake_tensors": [
+    "aiter.ops.mha",
+    "common_mha_fwd_fake_tensors"
+  ],
+  "compile_ops": [
+    "aiter.ops.fused_split_gdr_update",
+    "compile_ops"
+  ],
+  "compose_mha_fwd_variant_suffix_and_filter": [
+    "aiter.ops.mha",
+    "compose_mha_fwd_variant_suffix_and_filter"
+  ],
+  "compute_batched_gemm_SplitK": [
+    "aiter.ops.batched_gemm_op_bf16",
+    "compute_batched_gemm_SplitK"
+  ],
+  "compute_gemm_SplitK": [
+    "aiter.ops.gemm_op_a4w4",
+    "compute_gemm_SplitK"
+  ],
+  "concat_and_cache_mla": [
+    "aiter.ops.cache",
+    "concat_and_cache_mla"
+  ],
+  "concat_and_cache_mla_seg": [
+    "aiter.ops.cache",
+    "concat_and_cache_mla_seg"
+  ],
+  "copy_blocks": [
+    "aiter.ops.cache",
+    "copy_blocks"
+  ],
+  "core": [
+    "aiter.jit.core",
+    null
+  ],
+  "cp_gather_indexer_k_quant_cache": [
+    "aiter.ops.cache",
+    "cp_gather_indexer_k_quant_cache"
+  ],
+  "decode_update_mla_metadata_v1": [
+    "aiter.ops.attention.native",
+    "decode_update_mla_metadata_v1"
+  ],
+  "decode_update_mla_metadata_v1_kernel": [
+    "aiter.ops.attention.native",
+    "decode_update_mla_metadata_v1_kernel"
+  ],
+  "deepgemm": [
+    "aiter.ops.deepgemm",
+    "deepgemm"
+  ],
+  "deepgemm_ck": [
+    "aiter.ops.deepgemm",
+    "deepgemm_ck"
+  ],
+  "dequant_mxfp6_torch": [
+    "aiter.ops.gemm_op_a6w6",
+    "dequant_mxfp6_torch"
+  ],
+  "destroy_dist_env": [
+    "aiter.ops.communication",
+    "destroy_dist_env"
+  ],
+  "destroy_distributed_environment": [
+    "aiter.ops.communication",
+    "destroy_distributed_environment"
+  ],
+  "destroy_model_parallel": [
+    "aiter.ops.communication",
+    "destroy_model_parallel"
+  ],
+  "direct_register_custom_op": [
+    "aiter.ops.gradlib",
+    "direct_register_custom_op"
+  ],
+  "dispose": [
+    "aiter.ops.custom_all_reduce",
+    "dispose"
+  ],
+  "dispose_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "dispose_gfx1250"
+  ],
+  "dist": [
+    "torch.distributed",
+    null
+  ],
+  "div": [
+    "aiter.ops.aiter_operator",
+    "div"
+  ],
+  "div_": [
+    "aiter.ops.aiter_operator",
+    "div_"
+  ],
+  "dtype2str_dict": [
+    "aiter.ops.moe_op",
+    "dtype2str_dict"
+  ],
+  "dtypes": [
+    "aiter.utility.dtypes",
+    null
+  ],
+  "dynamic_per_group_scaled_quant": [
+    "aiter.ops.quant",
+    "dynamic_per_group_scaled_quant"
+  ],
+  "dynamic_per_group_scaled_quant_fp4": [
+    "aiter.ops.quant",
+    "dynamic_per_group_scaled_quant_fp4"
+  ],
+  "dynamic_per_tensor_quant": [
+    "aiter.ops.quant",
+    "dynamic_per_tensor_quant"
+  ],
+  "dynamic_per_token_scaled_quant": [
+    "aiter.ops.quant",
+    "dynamic_per_token_scaled_quant"
+  ],
+  "empty": [
+    "aiter.ops.rope",
+    "empty"
+  ],
+  "empty_like": [
+    "aiter.ops.rope",
+    "empty_like"
+  ],
+  "end_sync_latency_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "end_sync_latency_gfx1250"
+  ],
+  "ensure_model_parallel_initialized": [
+    "aiter.ops.communication",
+    "ensure_model_parallel_initialized"
+  ],
+  "exponential": [
+    "aiter.ops.sample",
+    "exponential"
+  ],
+  "flash_attn_fp8_pertensor_func": [
+    "aiter.ops.mha",
+    "flash_attn_fp8_pertensor_func"
+  ],
+  "flash_attn_func": [
+    "aiter.ops.mha",
+    "flash_attn_func"
+  ],
+  "flash_attn_varlen_fp8_pertensor_func": [
+    "aiter.ops.mha",
+    "flash_attn_varlen_fp8_pertensor_func"
+  ],
+  "flash_attn_varlen_func": [
+    "aiter.ops.mha",
+    "flash_attn_varlen_func"
+  ],
+  "flatmm_a8w8_blockscale_ASM": [
+    "aiter.ops.gemm_op_a8w8",
+    "flatmm_a8w8_blockscale_ASM"
+  ],
+  "flatmm_a8w8_blockscale_asm": [
+    "aiter.ops.gemm_op_a8w8",
+    "flatmm_a8w8_blockscale_asm"
+  ],
+  "flydsl_dcp_topk_merge": [
+    "aiter.ops.topk",
+    "flydsl_dcp_topk_merge"
+  ],
+  "flydsl_top_k_per_row_decode": [
+    "aiter.ops.topk",
+    "flydsl_top_k_per_row_decode"
+  ],
+  "fmha_fwd_bf16_opus_fwd": [
+    "aiter.ops.mha",
+    "fmha_fwd_bf16_opus_fwd"
+  ],
+  "fmha_fwd_bf16_opus_varlen_fwd": [
+    "aiter.ops.mha",
+    "fmha_fwd_bf16_opus_varlen_fwd"
+  ],
+  "fmha_fwd_mxfp8_asm": [
+    "aiter.ops.mha",
+    "fmha_fwd_mxfp8_asm"
+  ],
+  "fmha_fwd_with_sink_asm": [
+    "aiter.ops.mha",
+    "fmha_fwd_with_sink_asm"
+  ],
+  "fmha_fwd_with_sink_varlen_asm": [
+    "aiter.ops.mha",
+    "fmha_fwd_with_sink_varlen_asm"
+  ],
+  "fmha_v3_bwd": [
+    "aiter.ops.mha",
+    "fmha_v3_bwd"
+  ],
+  "fmha_v3_fwd": [
+    "aiter.ops.mha",
+    "fmha_v3_fwd"
+  ],
+  "fmha_v3_varlen_bwd": [
+    "aiter.ops.mha",
+    "fmha_v3_varlen_bwd"
+  ],
+  "fmha_v3_varlen_fwd": [
+    "aiter.ops.mha",
+    "fmha_v3_varlen_fwd"
+  ],
+  "fmoe": [
+    "aiter.ops.moe_op",
+    "fmoe"
+  ],
+  "fmoe_fp8_blockscale_g1u1": [
+    "aiter.ops.moe_op",
+    "fmoe_fp8_blockscale_g1u1"
+  ],
+  "fmoe_g1u1": [
+    "aiter.ops.moe_op",
+    "fmoe_g1u1"
+  ],
+  "fmoe_g1u1_a16": [
+    "aiter.ops.moe_op",
+    "fmoe_g1u1_a16"
+  ],
+  "fmoe_g1u1_tkw1": [
+    "aiter.ops.moe_op",
+    "fmoe_g1u1_tkw1"
+  ],
+  "fmoe_int8_g1u0": [
+    "aiter.ops.moe_op",
+    "fmoe_int8_g1u0"
+  ],
+  "fmoe_int8_g1u0_a16": [
+    "aiter.ops.moe_op",
+    "fmoe_int8_g1u0_a16"
+  ],
+  "fp4_utils": [
+    "aiter.utility.fp4_utils",
+    null
+  ],
+  "free_meta_buffer": [
+    "aiter.ops.custom_all_reduce",
+    "free_meta_buffer"
+  ],
+  "functools": [
+    "functools",
+    null
+  ],
+  "fused_add_rms_norm_cu": [
+    "aiter.ops.rmsnorm",
+    "fused_add_rms_norm_cu"
+  ],
+  "fused_add_rms_norm_opus": [
+    "aiter.ops.rmsnorm",
+    "fused_add_rms_norm_opus"
+  ],
+  "fused_allreduce_mhc_post_one_stage": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_mhc_post_one_stage"
+  ],
+  "fused_allreduce_mhc_post_only": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_mhc_post_only"
+  ],
+  "fused_allreduce_mhc_post_split": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_mhc_post_split"
+  ],
+  "fused_allreduce_rmsnorm": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_rmsnorm"
+  ],
+  "fused_allreduce_rmsnorm_mxfp4_quant": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_rmsnorm_mxfp4_quant"
+  ],
+  "fused_allreduce_rmsnorm_pad": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_rmsnorm_pad"
+  ],
+  "fused_allreduce_rmsnorm_quant": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_rmsnorm_quant"
+  ],
+  "fused_allreduce_rmsnorm_quant_per_group": [
+    "aiter.ops.custom_all_reduce",
+    "fused_allreduce_rmsnorm_quant_per_group"
+  ],
+  "fused_dynamic_mx_quant_moe_sort": [
+    "aiter.ops.quant",
+    "fused_dynamic_mx_quant_moe_sort"
+  ],
+  "fused_dynamic_mx_quant_moe_sort_hip": [
+    "aiter.ops.quant",
+    "fused_dynamic_mx_quant_moe_sort_hip"
+  ],
+  "fused_dynamic_mxfp4_quant_moe_sort": [
+    "aiter.ops.quant",
+    "fused_dynamic_mxfp4_quant_moe_sort"
+  ],
+  "fused_dynamic_mxfp8_quant_moe_sort": [
+    "aiter.ops.quant",
+    "fused_dynamic_mxfp8_quant_moe_sort"
+  ],
+  "fused_kv_norm_rope_group_quant": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_kv_norm_rope_group_quant"
+  ],
+  "fused_qk_norm_mrope_3d_cache_pts_quant_shuffle": [
+    "aiter.ops.fused_qk_norm_mrope_cache_quant",
+    "fused_qk_norm_mrope_3d_cache_pts_quant_shuffle"
+  ],
+  "fused_qk_norm_rope_1way": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_1way"
+  ],
+  "fused_qk_norm_rope_1way_fp8_perhead_quant": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_1way_fp8_perhead_quant"
+  ],
+  "fused_qk_norm_rope_2way": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_2way"
+  ],
+  "fused_qk_norm_rope_2way_fp8_perhead_quant": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_2way_fp8_perhead_quant"
+  ],
+  "fused_qk_norm_rope_cache_block_quant_shuffle": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_cache_block_quant_shuffle"
+  ],
+  "fused_qk_norm_rope_cache_pts_quant_shuffle": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_cache_pts_quant_shuffle"
+  ],
+  "fused_qk_norm_rope_cache_quant_shuffle": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_cache_quant_shuffle"
+  ],
+  "fused_qk_norm_rope_group_quant": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "fused_qk_norm_rope_group_quant"
+  ],
+  "fused_qk_rmsnorm": [
+    "aiter.ops.fused_qk_rmsnorm_group_quant",
+    "fused_qk_rmsnorm"
+  ],
+  "fused_qk_rmsnorm_group_quant": [
+    "aiter.ops.fused_qk_rmsnorm_group_quant",
+    "fused_qk_rmsnorm_group_quant"
+  ],
+  "fused_qk_rmsnorm_per_token_quant": [
+    "aiter.ops.fused_qk_rmsnorm_group_quant",
+    "fused_qk_rmsnorm_per_token_quant"
+  ],
+  "fused_qk_rope_concat_and_cache_mla": [
+    "aiter.ops.cache",
+    "fused_qk_rope_concat_and_cache_mla"
+  ],
+  "fused_qk_rope_concat_and_cache_mla_seg": [
+    "aiter.ops.cache",
+    "fused_qk_rope_concat_and_cache_mla_seg"
+  ],
+  "fused_qknorm_allreduce": [
+    "aiter.ops.custom_all_reduce",
+    "fused_qknorm_allreduce"
+  ],
+  "fused_qknorm_allreduce_rope": [
+    "aiter.ops.custom_all_reduce",
+    "fused_qknorm_allreduce_rope"
+  ],
+  "fused_qknorm_idxrqknorm": [
+    "aiter.ops.fused_qknorm_idxrqknorm",
+    "fused_qknorm_idxrqknorm"
+  ],
+  "fused_split_gdr_update": [
+    "aiter.ops.fused_split_gdr_update",
+    "fused_split_gdr_update"
+  ],
+  "gdr_decode_packed_bf16": [
+    "aiter.ops.gdr_decode_packed_bf16",
+    "gdr_decode_packed_bf16"
+  ],
+  "gelu_and_mul": [
+    "aiter.ops.activation",
+    "gelu_and_mul"
+  ],
+  "gelu_and_mul_bias": [
+    "aiter.ops.activation",
+    "gelu_and_mul_bias"
+  ],
+  "gelu_fast": [
+    "aiter.ops.activation",
+    "gelu_fast"
+  ],
+  "gelu_tanh_and_mul": [
+    "aiter.ops.activation",
+    "gelu_tanh_and_mul"
+  ],
+  "gemm_a16w16_asm": [
+    "aiter.ops.gemm_op_a16w16",
+    "gemm_a16w16_asm"
+  ],
+  "gemm_a16w16_opus": [
+    "aiter.ops.opus",
+    "gemm_a16w16_opus"
+  ],
+  "gemm_a4w4": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4"
+  ],
+  "gemm_a4w4_asm": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4_asm"
+  ],
+  "gemm_a4w4_blockscale": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4_blockscale"
+  ],
+  "gemm_a4w4_blockscale_tune": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4_blockscale_tune"
+  ],
+  "gemm_a4w4_fake": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4_fake"
+  ],
+  "gemm_a4w4o8": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4o8"
+  ],
+  "gemm_a4w4o8_fake": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_a4w4o8_fake"
+  ],
+  "gemm_a6w6": [
+    "aiter.ops.gemm_op_a6w6",
+    "gemm_a6w6"
+  ],
+  "gemm_a6w6_asm": [
+    "aiter.ops.gemm_op_a6w6",
+    "gemm_a6w6_asm"
+  ],
+  "gemm_a8w4_mxfp8": [
+    "aiter.ops.gemm_op_a8w4",
+    "gemm_a8w4_mxfp8"
+  ],
+  "gemm_a8w8": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8"
+  ],
+  "gemm_a8w8_ASM": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_ASM"
+  ],
+  "gemm_a8w8_CK": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_CK"
+  ],
+  "gemm_a8w8_asm": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_asm"
+  ],
+  "gemm_a8w8_blockscale": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle_asm": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle_asm"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle_ck": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle_ck"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle_cktile": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle_cktile"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle_cktile_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle_cktile_tune"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle_fake": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle_fake"
+  ],
+  "gemm_a8w8_blockscale_bpreshuffle_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_bpreshuffle_tune"
+  ],
+  "gemm_a8w8_blockscale_ck": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_ck"
+  ],
+  "gemm_a8w8_blockscale_cktile": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_cktile"
+  ],
+  "gemm_a8w8_blockscale_cktile_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_cktile_tune"
+  ],
+  "gemm_a8w8_blockscale_fake": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_fake"
+  ],
+  "gemm_a8w8_blockscale_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_blockscale_tune"
+  ],
+  "gemm_a8w8_bpreshuffle": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle"
+  ],
+  "gemm_a8w8_bpreshuffle_ck": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle_ck"
+  ],
+  "gemm_a8w8_bpreshuffle_cktile": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle_cktile"
+  ],
+  "gemm_a8w8_bpreshuffle_cktile_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle_cktile_tune"
+  ],
+  "gemm_a8w8_bpreshuffle_fake": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle_fake"
+  ],
+  "gemm_a8w8_bpreshuffle_flydsl": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle_flydsl"
+  ],
+  "gemm_a8w8_bpreshuffle_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_bpreshuffle_tune"
+  ],
+  "gemm_a8w8_ck": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_ck"
+  ],
+  "gemm_a8w8_fake": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_fake"
+  ],
+  "gemm_a8w8_mxfp8": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_mxfp8"
+  ],
+  "gemm_a8w8_mxfp8_128_bpreshuffle_flydsl": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_mxfp8_128_bpreshuffle_flydsl"
+  ],
+  "gemm_a8w8_tune": [
+    "aiter.ops.gemm_op_a8w8",
+    "gemm_a8w8_tune"
+  ],
+  "gemm_mxfp4_asm": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_mxfp4_asm"
+  ],
+  "gemm_nvfp4_asm": [
+    "aiter.ops.gemm_op_a4w4",
+    "gemm_nvfp4_asm"
+  ],
+  "gen_batched_gemm_a8w8_fake_tensors": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "gen_batched_gemm_a8w8_fake_tensors"
+  ],
+  "gen_batched_gemm_a8w8_tune_fake_tensors": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "gen_batched_gemm_a8w8_tune_fake_tensors"
+  ],
+  "gen_batched_gemm_bf16_tune_fake_tensor": [
+    "aiter.ops.batched_gemm_op_bf16",
+    "gen_batched_gemm_bf16_tune_fake_tensor"
+  ],
+  "gen_fmha_fwd_bf16_opus_fwd_fake": [
+    "aiter.ops.mha",
+    "gen_fmha_fwd_bf16_opus_fwd_fake"
+  ],
+  "gen_fmha_v3_bwd_fake_tensors": [
+    "aiter.ops.mha",
+    "gen_fmha_v3_bwd_fake_tensors"
+  ],
+  "gen_fmha_v3_fwd_fake_tensors": [
+    "aiter.ops.mha",
+    "gen_fmha_v3_fwd_fake_tensors"
+  ],
+  "gen_fmha_v3_varlen_bwd_fake_tensor": [
+    "aiter.ops.mha",
+    "gen_fmha_v3_varlen_bwd_fake_tensor"
+  ],
+  "gen_fmha_v3_varlen_fwd_fake_tensor": [
+    "aiter.ops.mha",
+    "gen_fmha_v3_varlen_fwd_fake_tensor"
+  ],
+  "gen_gemm_a4w4_blockscale_fake_tensors": [
+    "aiter.ops.gemm_op_a4w4",
+    "gen_gemm_a4w4_blockscale_fake_tensors"
+  ],
+  "gen_gemm_a8w8_blockscale_ck_fake_tensors": [
+    "aiter.ops.gemm_op_a8w8",
+    "gen_gemm_a8w8_blockscale_ck_fake_tensors"
+  ],
+  "gen_gemm_a8w8_blockscale_tune_fake_tensors": [
+    "aiter.ops.gemm_op_a8w8",
+    "gen_gemm_a8w8_blockscale_tune_fake_tensors"
+  ],
+  "gen_gemm_a8w8_bpreshuffle_ck_fake_tensors": [
+    "aiter.ops.gemm_op_a8w8",
+    "gen_gemm_a8w8_bpreshuffle_ck_fake_tensors"
+  ],
+  "gen_gemm_a8w8_bpreshuffle_cktile_fake_tensors": [
+    "aiter.ops.gemm_op_a8w8",
+    "gen_gemm_a8w8_bpreshuffle_cktile_fake_tensors"
+  ],
+  "gen_gemm_a8w8_ck_fake_tensors": [
+    "aiter.ops.gemm_op_a8w8",
+    "gen_gemm_a8w8_ck_fake_tensors"
+  ],
+  "gen_gemm_a8w8_tune_fake_tensors": [
+    "aiter.ops.gemm_op_a8w8",
+    "gen_gemm_a8w8_tune_fake_tensors"
+  ],
+  "gen_hipb_mm_fake_tensor": [
+    "aiter.ops.gradlib",
+    "gen_hipb_mm_fake_tensor"
+  ],
+  "gen_layer_norm_fake_tensors": [
+    "aiter.ops.norm",
+    "gen_layer_norm_fake_tensors"
+  ],
+  "gen_mha_bwd_fake_tensors": [
+    "aiter.ops.mha",
+    "gen_mha_bwd_fake_tensors"
+  ],
+  "gen_mha_fwd_fake_tensors": [
+    "aiter.ops.mha",
+    "gen_mha_fwd_fake_tensors"
+  ],
+  "gen_mha_fwd_native_splitkv_fake_tensors": [
+    "aiter.ops.mha",
+    "gen_mha_fwd_native_splitkv_fake_tensors"
+  ],
+  "gen_mha_varlen_bwd_fake_tensors": [
+    "aiter.ops.mha",
+    "gen_mha_varlen_bwd_fake_tensors"
+  ],
+  "gen_mha_varlen_bwd_fake_tensors_common": [
+    "aiter.ops.mha",
+    "gen_mha_varlen_bwd_fake_tensors_common"
+  ],
+  "gen_mha_varlen_fwd_fake_tensor": [
+    "aiter.ops.mha",
+    "gen_mha_varlen_fwd_fake_tensor"
+  ],
+  "gen_moe_fused_gate_fake_tensor": [
+    "aiter.ops.topk",
+    "gen_moe_fused_gate_fake_tensor"
+  ],
+  "gen_pa_fwd_asm": [
+    "aiter.ops.attention.native",
+    "gen_pa_fwd_asm"
+  ],
+  "gen_pa_fwd_native_fake": [
+    "aiter.ops.attention.native",
+    "gen_pa_fwd_native_fake"
+  ],
+  "gen_pa_ps_fwd_asm": [
+    "aiter.ops.attention.native",
+    "gen_pa_ps_fwd_asm"
+  ],
+  "gen_rocb_mm_fake_tensor": [
+    "aiter.ops.gradlib",
+    "gen_rocb_mm_fake_tensor"
+  ],
+  "getHipblasltKernelName": [
+    "aiter.ops.gradlib",
+    "getHipblasltKernelName"
+  ],
+  "get_CKBatchedGEMM_config": [
+    "aiter.ops.batched_gemm_op_bf16",
+    "get_CKBatchedGEMM_config"
+  ],
+  "get_CKGEMM_config": [
+    "aiter.ops.gemm_op_a8w8",
+    "get_CKGEMM_config"
+  ],
+  "get_GEMM_A6W6_config": [
+    "aiter.ops.gemm_op_a6w6",
+    "get_GEMM_A6W6_config"
+  ],
+  "get_GEMM_config": [
+    "aiter.ops.gemm_op_a4w4",
+    "get_GEMM_config"
+  ],
+  "get_GEMM_config_with_quant_type": [
+    "aiter.ops.gemm_op_a8w8",
+    "get_GEMM_config_with_quant_type"
+  ],
+  "get_cu_num": [
+    "aiter.ops.mhc",
+    "get_cu_num"
+  ],
+  "get_dtype_fp8": [
+    "aiter.ops.inverse_rope_group_quant",
+    "get_dtype_fp8"
+  ],
+  "get_dtype_max": [
+    "aiter.ops.rmsnorm",
+    "get_dtype_max"
+  ],
+  "get_gfx": [
+    "aiter.ops.mha",
+    "get_gfx"
+  ],
+  "get_gfx_runtime": [
+    "aiter.ops.mhc",
+    "get_gfx_runtime"
+  ],
+  "get_graph_buffer_count": [
+    "aiter.ops.custom_all_reduce",
+    "get_graph_buffer_count"
+  ],
+  "get_graph_buffer_count_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "get_graph_buffer_count_gfx1250"
+  ],
+  "get_graph_buffer_ipc_meta": [
+    "aiter.ops.custom_all_reduce",
+    "get_graph_buffer_ipc_meta"
+  ],
+  "get_graph_buffer_ptrs_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "get_graph_buffer_ptrs_gfx1250"
+  ],
+  "get_hip_quant": [
+    "aiter.ops.quant",
+    "get_hip_quant"
+  ],
+  "get_meta_buffer_ipc_handle": [
+    "aiter.ops.custom_all_reduce",
+    "get_meta_buffer_ipc_handle"
+  ],
+  "get_mha_varlen_prebuild_variants_by_names": [
+    "aiter.ops.mha",
+    "get_mha_varlen_prebuild_variants_by_names"
+  ],
+  "get_mhc_fused_post_pre_config": [
+    "aiter.ops.mhc",
+    "get_mhc_fused_post_pre_config"
+  ],
+  "get_mhc_pre_splitk": [
+    "aiter.ops.mhc",
+    "get_mhc_pre_splitk"
+  ],
+  "get_mhc_pre_splitk_large_m": [
+    "aiter.ops.mhc",
+    "get_mhc_pre_splitk_large_m"
+  ],
+  "get_mla_decode_fwd_max_splits": [
+    "aiter.ops.attention.native",
+    "get_mla_decode_fwd_max_splits"
+  ],
+  "get_mla_decode_fwd_occupancy": [
+    "aiter.ops.attention.native",
+    "get_mla_decode_fwd_occupancy"
+  ],
+  "get_mla_metadata_info_v1": [
+    "aiter.ops.attention.native",
+    "get_mla_metadata_info_v1"
+  ],
+  "get_mla_metadata_v1": [
+    "aiter.ops.attention.native",
+    "get_mla_metadata_v1"
+  ],
+  "get_moe_stage_module": [
+    "aiter.ops.moe_op",
+    "get_moe_stage_module"
+  ],
+  "get_pa_metadata_info_v1": [
+    "aiter.ops.attention.native",
+    "get_pa_metadata_info_v1"
+  ],
+  "get_pa_metadata_v1": [
+    "aiter.ops.attention.native",
+    "get_pa_metadata_v1"
+  ],
+  "get_padded_m": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "get_padded_m"
+  ],
+  "get_ps_metadata_info_v1": [
+    "aiter.ops.attention.native",
+    "get_ps_metadata_info_v1"
+  ],
+  "get_ps_metadata_v1": [
+    "aiter.ops.attention.native",
+    "get_ps_metadata_v1"
+  ],
+  "get_semaphore_workspace": [
+    "aiter.ops.gemm_op_a16w16",
+    "get_semaphore_workspace"
+  ],
+  "get_topk_mb_workspace": [
+    "aiter.ops.topk",
+    "get_topk_mb_workspace"
+  ],
+  "get_topk_scratch_workspace": [
+    "aiter.ops.topk",
+    "get_topk_scratch_workspace"
+  ],
+  "get_torch_act": [
+    "aiter.ops.quant",
+    "get_torch_act"
+  ],
+  "get_torch_quant": [
+    "aiter.ops.quant",
+    "get_torch_quant"
+  ],
+  "get_tp_group": [
+    "aiter.ops.communication",
+    "get_tp_group"
+  ],
+  "get_triton_quant": [
+    "aiter.ops.quant",
+    "get_triton_quant"
+  ],
+  "get_zero_bias_buf": [
+    "aiter.ops.gemm_op_a8w8",
+    "get_zero_bias_buf"
+  ],
+  "get_zero_bias_buf_keyed": [
+    "aiter.ops.gemm_op_a8w8",
+    "get_zero_bias_buf_keyed"
+  ],
+  "gfx950_a8w8_blockscale_ASM": [
+    "aiter.ops.gemm_op_a8w8",
+    "gfx950_a8w8_blockscale_ASM"
+  ],
+  "greedy_sample": [
+    "aiter.ops.sample",
+    "greedy_sample"
+  ],
+  "grouped_topk": [
+    "aiter.ops.topk",
+    "grouped_topk"
+  ],
+  "grouped_topk_torch": [
+    "aiter.ops.topk",
+    "grouped_topk_torch"
+  ],
+  "groupnorm_run": [
+    "aiter.ops.groupnorm",
+    "groupnorm_run"
+  ],
+  "hipb_create_extension": [
+    "aiter.ops.gradlib",
+    "hipb_create_extension"
+  ],
+  "hipb_destroy_extension": [
+    "aiter.ops.gradlib",
+    "hipb_destroy_extension"
+  ],
+  "hipb_findallsols": [
+    "aiter.ops.gradlib",
+    "hipb_findallsols"
+  ],
+  "hipb_mm": [
+    "aiter.ops.gradlib",
+    "hipb_mm"
+  ],
+  "hk_mla_v32_decode_fwd": [
+    "aiter.ops.attention.native",
+    "hk_mla_v32_decode_fwd"
+  ],
+  "hk_mla_v32_decode_fwd_mi3xx": [
+    "aiter.ops.attention.native",
+    "hk_mla_v32_decode_fwd_mi3xx"
+  ],
+  "hk_mla_v40_decode_fwd": [
+    "aiter.ops.attention.native",
+    "hk_mla_v40_decode_fwd"
+  ],
+  "hk_mla_v40_decode_fwd_mi3xx": [
+    "aiter.ops.attention.native",
+    "hk_mla_v40_decode_fwd_mi3xx"
+  ],
+  "indexer_k_quant_and_cache": [
+    "aiter.ops.cache",
+    "indexer_k_quant_and_cache"
+  ],
+  "indexer_qk_rope_quant_and_cache": [
+    "aiter.ops.cache",
+    "indexer_qk_rope_quant_and_cache"
+  ],
+  "init_custom_ar": [
+    "aiter.ops.custom_all_reduce",
+    "init_custom_ar"
+  ],
+  "init_custom_ar_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "init_custom_ar_gfx1250"
+  ],
+  "init_custom_ar_gfx1250_ipc": [
+    "aiter.ops.custom_all_reduce",
+    "init_custom_ar_gfx1250_ipc"
+  ],
+  "init_custom_qr": [
+    "aiter.ops.quick_all_reduce",
+    "init_custom_qr"
+  ],
+  "init_dist_env": [
+    "aiter.ops.communication",
+    "init_dist_env"
+  ],
+  "init_distributed_environment": [
+    "aiter.ops.communication",
+    "init_distributed_environment"
+  ],
+  "inverse_rope_group_quant": [
+    "aiter.ops.inverse_rope_group_quant",
+    "inverse_rope_group_quant"
+  ],
+  "is_experimental_enabled": [
+    "aiter.ops.mha",
+    "is_experimental_enabled"
+  ],
+  "jit": [
+    "aiter.jit",
+    null
+  ],
+  "launch_fused_allreduce_mhc_post_only": [
+    "aiter.ops.custom_all_reduce",
+    "launch_fused_allreduce_mhc_post_only"
+  ],
+  "launch_fused_allreduce_mhc_post_split": [
+    "aiter.ops.custom_all_reduce",
+    "launch_fused_allreduce_mhc_post_split"
+  ],
+  "layer_norm": [
+    "aiter.ops.norm",
+    "layer_norm"
+  ],
+  "layernorm2d_fwd": [
+    "aiter.ops.norm",
+    "layernorm2d_fwd"
+  ],
+  "layernorm2d_fwd_with_add": [
+    "aiter.ops.norm",
+    "layernorm2d_fwd_with_add"
+  ],
+  "layernorm2d_fwd_with_add_smoothquant": [
+    "aiter.ops.norm",
+    "layernorm2d_fwd_with_add_smoothquant"
+  ],
+  "layernorm2d_fwd_with_smoothquant": [
+    "aiter.ops.norm",
+    "layernorm2d_fwd_with_smoothquant"
+  ],
+  "lookup_mxscale_bmm_config": [
+    "aiter.ops.batched_gemm_op_a8w8",
+    "lookup_mxscale_bmm_config"
+  ],
+  "math": [
+    "math",
+    null
+  ],
+  "maybe_contiguous": [
+    "aiter.ops.mha",
+    "maybe_contiguous"
+  ],
+  "meta_size": [
+    "aiter.ops.custom_all_reduce",
+    "meta_size"
+  ],
+  "meta_size_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "meta_size_gfx1250"
+  ],
+  "mha_batch_prefill": [
+    "aiter.ops.mha",
+    "mha_batch_prefill"
+  ],
+  "mha_batch_prefill_fake_tensors": [
+    "aiter.ops.mha",
+    "mha_batch_prefill_fake_tensors"
+  ],
+  "mha_batch_prefill_func": [
+    "aiter.ops.mha",
+    "mha_batch_prefill_func"
+  ],
+  "mha_bwd": [
+    "aiter.ops.mha",
+    "mha_bwd"
+  ],
+  "mha_fwd": [
+    "aiter.ops.mha",
+    "mha_fwd"
+  ],
+  "mha_fwd_native_splitkv": [
+    "aiter.ops.mha",
+    "mha_fwd_native_splitkv"
+  ],
+  "mha_varlen_bwd": [
+    "aiter.ops.mha",
+    "mha_varlen_bwd"
+  ],
+  "mha_varlen_fwd": [
+    "aiter.ops.mha",
+    "mha_varlen_fwd"
+  ],
+  "mhc_fused_post_pre": [
+    "aiter.ops.mhc",
+    "mhc_fused_post_pre"
+  ],
+  "mhc_fused_post_pre_fake": [
+    "aiter.ops.mhc",
+    "mhc_fused_post_pre_fake"
+  ],
+  "mhc_fused_post_pre_gemm_sqrsum": [
+    "aiter.ops.mhc",
+    "mhc_fused_post_pre_gemm_sqrsum"
+  ],
+  "mhc_fused_post_pre_large_m": [
+    "aiter.ops.mhc",
+    "mhc_fused_post_pre_large_m"
+  ],
+  "mhc_post": [
+    "aiter.ops.mhc",
+    "mhc_post"
+  ],
+  "mhc_pre": [
+    "aiter.ops.mhc",
+    "mhc_pre"
+  ],
+  "mhc_pre_big_fuse": [
+    "aiter.ops.mhc",
+    "mhc_pre_big_fuse"
+  ],
+  "mhc_pre_big_fuse_rmsnorm": [
+    "aiter.ops.mhc",
+    "mhc_pre_big_fuse_rmsnorm"
+  ],
+  "mhc_pre_fake": [
+    "aiter.ops.mhc",
+    "mhc_pre_fake"
+  ],
+  "mhc_pre_gemm_sqrsum": [
+    "aiter.ops.mhc",
+    "mhc_pre_gemm_sqrsum"
+  ],
+  "minimax_qk_norm_rope": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "minimax_qk_norm_rope"
+  ],
+  "mixed_sample": [
+    "aiter.ops.sample",
+    "mixed_sample"
+  ],
+  "mixed_sample_outer_exponential": [
+    "aiter.ops.sample",
+    "mixed_sample_outer_exponential"
+  ],
+  "mla": [
+    "aiter.ops.attention.mla",
+    null
+  ],
+  "mla_decode_fwd_opus_stage1": [
+    "aiter.ops.attention.native",
+    "mla_decode_fwd_opus_stage1"
+  ],
+  "mla_decode_stage1_asm_fwd": [
+    "aiter.ops.attention.native",
+    "mla_decode_stage1_asm_fwd"
+  ],
+  "mla_decode_stage1_opus_fwd_ds32": [
+    "aiter.ops.attention.native",
+    "mla_decode_stage1_opus_fwd_ds32"
+  ],
+  "mla_decode_v4_asm": [
+    "aiter.ops.attention.native",
+    "mla_decode_v4_asm"
+  ],
+  "mla_prefill_asm_fwd": [
+    "aiter.ops.attention.native",
+    "mla_prefill_asm_fwd"
+  ],
+  "mla_prefill_ps_asm_fwd": [
+    "aiter.ops.attention.native",
+    "mla_prefill_ps_asm_fwd"
+  ],
+  "mla_reduce_v1": [
+    "aiter.ops.attention.native",
+    "mla_reduce_v1"
+  ],
+  "mla_sparse_prefill_fp8_asm": [
+    "aiter.ops.mla_sparse_prefill",
+    "mla_sparse_prefill_fp8_asm"
+  ],
+  "mla_sparse_prefill_fp8_asm_fwd": [
+    "aiter.ops.mla_sparse_prefill",
+    "mla_sparse_prefill_fp8_asm_fwd"
+  ],
+  "moe_align_block_size": [
+    "aiter.ops.moe_op",
+    "moe_align_block_size"
+  ],
+  "moe_cktile2stages_gemm1": [
+    "aiter.ops.moe_op",
+    "moe_cktile2stages_gemm1"
+  ],
+  "moe_cktile2stages_gemm1_ck": [
+    "aiter.ops.moe_op",
+    "moe_cktile2stages_gemm1_ck"
+  ],
+  "moe_cktile2stages_gemm2": [
+    "aiter.ops.moe_op",
+    "moe_cktile2stages_gemm2"
+  ],
+  "moe_cktile2stages_gemm2_ck": [
+    "aiter.ops.moe_op",
+    "moe_cktile2stages_gemm2_ck"
+  ],
+  "moe_fused_gate": [
+    "aiter.ops.topk",
+    "moe_fused_gate"
+  ],
+  "moe_smooth_per_token_scaled_quant": [
+    "aiter.ops.quant",
+    "moe_smooth_per_token_scaled_quant"
+  ],
+  "moe_smooth_per_token_scaled_quant_v1": [
+    "aiter.ops.quant",
+    "moe_smooth_per_token_scaled_quant_v1"
+  ],
+  "moe_smooth_per_token_scaled_quant_v2": [
+    "aiter.ops.quant",
+    "moe_smooth_per_token_scaled_quant_v2"
+  ],
+  "moe_smoothquant_fwd": [
+    "aiter.ops.quant",
+    "moe_smoothquant_fwd"
+  ],
+  "moe_sorting_fwd": [
+    "aiter.ops.moe_sorting",
+    "moe_sorting_fwd"
+  ],
+  "moe_sorting_opus_fwd": [
+    "aiter.ops.moe_sorting_opus",
+    "moe_sorting_opus_fwd"
+  ],
+  "moe_sorting_opus_get_workspace_size": [
+    "aiter.ops.moe_sorting_opus",
+    "moe_sorting_opus_get_workspace_size"
+  ],
+  "moe_stage1_g1u1": [
+    "aiter.ops.moe_op",
+    "moe_stage1_g1u1"
+  ],
+  "moe_sum": [
+    "aiter.ops.moe_op",
+    "moe_sum"
+  ],
+  "mul": [
+    "aiter.ops.aiter_operator",
+    "mul"
+  ],
+  "mul_": [
+    "aiter.ops.aiter_operator",
+    "mul_"
+  ],
+  "mxfp4_moe_quant": [
+    "aiter.ops.moe_mxfp4_aux",
+    "mxfp4_moe_quant"
+  ],
+  "mxfp4_moe_scatter_reduce": [
+    "aiter.ops.moe_mxfp4_aux",
+    "mxfp4_moe_scatter_reduce"
+  ],
+  "mxfp4_moe_scatter_reduce_q": [
+    "aiter.ops.moe_mxfp4_aux",
+    "mxfp4_moe_scatter_reduce_q"
+  ],
+  "mxfp4_moe_sort": [
+    "aiter.ops.moe_mxfp4_aux",
+    "mxfp4_moe_sort"
+  ],
+  "mxfp4_moe_sort_fwd": [
+    "aiter.ops.quant",
+    "mxfp4_moe_sort_fwd"
+  ],
+  "mxfp4_moe_sort_hip": [
+    "aiter.ops.quant",
+    "mxfp4_moe_sort_hip"
+  ],
+  "mxfp4_moe_sort_quant": [
+    "aiter.ops.moe_mxfp4_aux",
+    "mxfp4_moe_sort_quant"
+  ],
+  "mxfp4_moe_sort_scales": [
+    "aiter.ops.moe_mxfp4_aux",
+    "mxfp4_moe_sort_scales"
+  ],
+  "mxfp6_gemm_pack_size": [
+    "aiter.ops.gemm_op_a6w6",
+    "mxfp6_gemm_pack_size"
+  ],
+  "np": [
+    "numpy",
+    null
+  ],
+  "ops": [
+    "aiter.ops",
+    null
+  ],
+  "opus_gemm_a16w16_tune": [
+    "aiter.ops.opus",
+    "opus_gemm_a16w16_tune"
+  ],
+  "opus_gemm_a8w8_blockscale_bpreshuffle_tune": [
+    "aiter.ops.opus",
+    "opus_gemm_a8w8_blockscale_bpreshuffle_tune"
+  ],
+  "opus_gemm_workspace_init": [
+    "aiter.ops.opus",
+    "opus_gemm_workspace_init"
+  ],
+  "opus_gemm_workspace_release": [
+    "aiter.ops.opus",
+    "opus_gemm_workspace_release"
+  ],
+  "opus_gemm_workspace_release_all": [
+    "aiter.ops.opus",
+    "opus_gemm_workspace_release_all"
+  ],
+  "p2p_bw_test_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "p2p_bw_test_gfx1250"
+  ],
+  "pa_decode_bf16_asm": [
+    "aiter.ops.attention.native",
+    "pa_decode_bf16_asm"
+  ],
+  "pa_decode_gluon": [
+    "aiter.ops.attention.native",
+    "pa_decode_gluon"
+  ],
+  "pa_fwd_asm": [
+    "aiter.ops.attention.native",
+    "pa_fwd_asm"
+  ],
+  "pa_fwd_naive": [
+    "aiter.ops.attention.native",
+    "pa_fwd_naive"
+  ],
+  "pa_persistent_fwd": [
+    "aiter.ops.attention.native",
+    "pa_persistent_fwd"
+  ],
+  "pa_ps_fwd_asm": [
+    "aiter.ops.attention.native",
+    "pa_ps_fwd_asm"
+  ],
+  "pa_reduce_v1": [
+    "aiter.ops.attention.native",
+    "pa_reduce_v1"
+  ],
+  "pa_sparse_block_score_decode": [
+    "aiter.ops.msa_attention",
+    "pa_sparse_block_score_decode"
+  ],
+  "pa_sparse_block_score_decode_core": [
+    "aiter.ops.msa_attention",
+    "pa_sparse_block_score_decode_core"
+  ],
+  "pa_sparse_block_score_prefill": [
+    "aiter.ops.msa_attention",
+    "pa_sparse_block_score_prefill"
+  ],
+  "pa_sparse_block_score_prefill_core": [
+    "aiter.ops.msa_attention",
+    "pa_sparse_block_score_prefill_core"
+  ],
+  "pa_sparse_block_topk": [
+    "aiter.ops.msa_attention",
+    "pa_sparse_block_topk"
+  ],
+  "pa_sparse_block_topk_core": [
+    "aiter.ops.msa_attention",
+    "pa_sparse_block_topk_core"
+  ],
+  "pa_sparse_prefill_fp8_gfx1250_opus_fwd": [
+    "aiter.ops.pa_sparse_prefill_opus",
+    "pa_sparse_prefill_fp8_gfx1250_opus_fwd"
+  ],
+  "pa_sparse_prefill_fp8_gfx950_opus_fwd": [
+    "aiter.ops.pa_sparse_prefill_opus",
+    "pa_sparse_prefill_fp8_gfx950_opus_fwd"
+  ],
+  "pa_sparse_prefill_fp8_opus": [
+    "aiter.ops.pa_sparse_prefill_opus",
+    "pa_sparse_prefill_fp8_opus"
+  ],
+  "pa_sparse_prefill_gfx1250_opus_fwd": [
+    "aiter.ops.pa_sparse_prefill_opus",
+    "pa_sparse_prefill_gfx1250_opus_fwd"
+  ],
+  "pa_sparse_prefill_gfx950_opus_fwd": [
+    "aiter.ops.pa_sparse_prefill_opus",
+    "pa_sparse_prefill_gfx950_opus_fwd"
+  ],
+  "pa_sparse_prefill_opus": [
+    "aiter.ops.pa_sparse_prefill_opus",
+    "pa_sparse_prefill_opus"
+  ],
+  "pack_big": [
+    "aiter.ops.gemm_op_a6w6",
+    "pack_big"
+  ],
+  "pack_big_torch": [
+    "aiter.ops.gemm_op_a6w6",
+    "pack_big_torch"
+  ],
+  "pack_scale": [
+    "aiter.ops.gemm_op_a6w6",
+    "pack_scale"
+  ],
+  "pack_scale_torch": [
+    "aiter.ops.gemm_op_a6w6",
+    "pack_scale_torch"
+  ],
+  "paged_attention_common": [
+    "aiter.ops.attention.native",
+    "paged_attention_common"
+  ],
+  "paged_attention_ragged": [
+    "aiter.ops.attention.native",
+    "paged_attention_ragged"
+  ],
+  "paged_attention_ragged_core": [
+    "aiter.ops.attention.native",
+    "paged_attention_ragged_core"
+  ],
+  "paged_attention_rocm": [
+    "aiter.ops.attention.native",
+    "paged_attention_rocm"
+  ],
+  "paged_attention_rocm_core": [
+    "aiter.ops.attention.native",
+    "paged_attention_rocm_core"
+  ],
+  "paged_attention_v1": [
+    "aiter.ops.attention.native",
+    "paged_attention_v1"
+  ],
+  "paged_attention_v1_core": [
+    "aiter.ops.attention.native",
+    "paged_attention_v1_core"
+  ],
+  "partial": [
+    "aiter.ops.aiter_operator",
+    "partial"
+  ],
+  "partial_transpose": [
+    "aiter.ops.quant",
+    "partial_transpose"
+  ],
+  "pd": [
+    "pandas",
+    null
+  ],
+  "per_1x32_f4_quant": [
+    "aiter.ops.quant",
+    "per_1x32_f4_quant"
+  ],
+  "per_1x32_f4_quant_for_dot_scaled": [
+    "aiter.ops.quant",
+    "per_1x32_f4_quant_for_dot_scaled"
+  ],
+  "per_1x32_f4_quant_hip": [
+    "aiter.ops.quant",
+    "per_1x32_f4_quant_hip"
+  ],
+  "per_1x32_f4_quant_triton": [
+    "aiter.ops.quant",
+    "per_1x32_f4_quant_triton"
+  ],
+  "per_1x32_f8_scale_f8_quant": [
+    "aiter.ops.quant",
+    "per_1x32_f8_scale_f8_quant"
+  ],
+  "per_1x32_i4_quant": [
+    "aiter.ops.quant",
+    "per_1x32_i4_quant"
+  ],
+  "per_1x32_mx_quant_hip": [
+    "aiter.ops.quant",
+    "per_1x32_mx_quant_hip"
+  ],
+  "per_block_quant_wrapper": [
+    "aiter.ops.quant",
+    "per_block_quant_wrapper"
+  ],
+  "per_group_quant_hip": [
+    "aiter.ops.quant",
+    "per_group_quant_hip"
+  ],
+  "per_tensor_quant": [
+    "aiter.ops.quant",
+    "per_tensor_quant"
+  ],
+  "per_tensor_quant_hip": [
+    "aiter.ops.quant",
+    "per_tensor_quant_hip"
+  ],
+  "per_tensor_quant_triton": [
+    "aiter.ops.quant",
+    "per_tensor_quant_triton"
+  ],
+  "per_token_quant_hip": [
+    "aiter.ops.quant",
+    "per_token_quant_hip"
+  ],
+  "per_token_quant_triton": [
+    "aiter.ops.quant",
+    "per_token_quant_triton"
+  ],
+  "pertoken_quant": [
+    "aiter.ops.quant",
+    "pertoken_quant"
+  ],
+  "qr_all_reduce": [
+    "aiter.ops.quick_all_reduce",
+    "qr_all_reduce"
+  ],
+  "qr_all_reduce_rmsnorm": [
+    "aiter.ops.quick_all_reduce",
+    "qr_all_reduce_rmsnorm"
+  ],
+  "qr_destroy": [
+    "aiter.ops.quick_all_reduce",
+    "qr_destroy"
+  ],
+  "qr_get_handle": [
+    "aiter.ops.quick_all_reduce",
+    "qr_get_handle"
+  ],
+  "qr_max_size": [
+    "aiter.ops.quick_all_reduce",
+    "qr_max_size"
+  ],
+  "qr_open_handles": [
+    "aiter.ops.quick_all_reduce",
+    "qr_open_handles"
+  ],
+  "quant_mxfp4": [
+    "aiter.ops.quant",
+    "quant_mxfp4"
+  ],
+  "quant_mxfp4_hip": [
+    "aiter.ops.quant",
+    "quant_mxfp4_hip"
+  ],
+  "quant_mxfp6": [
+    "aiter.ops.gemm_op_a6w6",
+    "quant_mxfp6"
+  ],
+  "quant_mxfp6_gemm": [
+    "aiter.ops.gemm_op_a6w6",
+    "quant_mxfp6_gemm"
+  ],
+  "quant_mxfp6_gemm_hip_out": [
+    "aiter.ops.gemm_op_a6w6",
+    "quant_mxfp6_gemm_hip_out"
+  ],
+  "quant_mxfp6_gemm_out": [
+    "aiter.ops.gemm_op_a6w6",
+    "quant_mxfp6_gemm_out"
+  ],
+  "quant_mxfp6_torch": [
+    "aiter.ops.gemm_op_a6w6",
+    "quant_mxfp6_torch"
+  ],
+  "ragged_layout_trans": [
+    "aiter.ops.trans_ragged_layout",
+    "ragged_layout_trans"
+  ],
+  "random_sample": [
+    "aiter.ops.sample",
+    "random_sample"
+  ],
+  "random_sample_outer_exponential": [
+    "aiter.ops.sample",
+    "random_sample_outer_exponential"
+  ],
+  "reduce_scatter": [
+    "aiter.ops.custom_all_reduce",
+    "reduce_scatter"
+  ],
+  "reduce_scatter_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "reduce_scatter_gfx1250"
+  ],
+  "register_graph_buffers": [
+    "aiter.ops.custom_all_reduce",
+    "register_graph_buffers"
+  ],
+  "register_graph_buffers_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "register_graph_buffers_gfx1250"
+  ],
+  "register_input_buffer": [
+    "aiter.ops.custom_all_reduce",
+    "register_input_buffer"
+  ],
+  "register_input_buffer_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "register_input_buffer_gfx1250"
+  ],
+  "register_input_buffer_gfx1250_ipc": [
+    "aiter.ops.custom_all_reduce",
+    "register_input_buffer_gfx1250_ipc"
+  ],
+  "register_output_buffer": [
+    "aiter.ops.custom_all_reduce",
+    "register_output_buffer"
+  ],
+  "register_output_buffer_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "register_output_buffer_gfx1250"
+  ],
+  "register_output_buffer_gfx1250_ipc": [
+    "aiter.ops.custom_all_reduce",
+    "register_output_buffer_gfx1250_ipc"
+  ],
+  "reshape_and_cache": [
+    "aiter.ops.cache",
+    "reshape_and_cache"
+  ],
+  "reshape_and_cache_flash": [
+    "aiter.ops.cache",
+    "reshape_and_cache_flash"
+  ],
+  "reshape_and_cache_with_block_quant": [
+    "aiter.ops.cache",
+    "reshape_and_cache_with_block_quant"
+  ],
+  "reshape_and_cache_with_block_quant_for_asm_pa": [
+    "aiter.ops.cache",
+    "reshape_and_cache_with_block_quant_for_asm_pa"
+  ],
+  "reshape_and_cache_with_pertoken_quant": [
+    "aiter.ops.cache",
+    "reshape_and_cache_with_pertoken_quant"
+  ],
+  "rms_norm": [
+    "aiter.ops.rmsnorm",
+    "rms_norm"
+  ],
+  "rms_norm_cu": [
+    "aiter.ops.rmsnorm",
+    "rms_norm_cu"
+  ],
+  "rms_norm_opus": [
+    "aiter.ops.rmsnorm",
+    "rms_norm_opus"
+  ],
+  "rmsnorm": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm"
+  ],
+  "rmsnorm2d_fwd": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd"
+  ],
+  "rmsnorm2d_fwd_opus": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_opus"
+  ],
+  "rmsnorm2d_fwd_with_add": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_add"
+  ],
+  "rmsnorm2d_fwd_with_add_dynamicquant": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_add_dynamicquant"
+  ],
+  "rmsnorm2d_fwd_with_add_dynamicquant_opus": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_add_dynamicquant_opus"
+  ],
+  "rmsnorm2d_fwd_with_add_opus": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_add_opus"
+  ],
+  "rmsnorm2d_fwd_with_add_smoothquant": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_add_smoothquant"
+  ],
+  "rmsnorm2d_fwd_with_add_smoothquant_opus": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_add_smoothquant_opus"
+  ],
+  "rmsnorm2d_fwd_with_dynamicquant": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_dynamicquant"
+  ],
+  "rmsnorm2d_fwd_with_dynamicquant_opus": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_dynamicquant_opus"
+  ],
+  "rmsnorm2d_fwd_with_smoothquant": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_smoothquant"
+  ],
+  "rmsnorm2d_fwd_with_smoothquant_opus": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm2d_fwd_with_smoothquant_opus"
+  ],
+  "rmsnorm_quant": [
+    "aiter.ops.rmsnorm",
+    "rmsnorm_quant"
+  ],
+  "rmsnorm_rope_rotate_activation_fp4quant_kvcache": [
+    "aiter.ops.quant",
+    "rmsnorm_rope_rotate_activation_fp4quant_kvcache"
+  ],
+  "rocb_create_extension": [
+    "aiter.ops.gradlib",
+    "rocb_create_extension"
+  ],
+  "rocb_destroy_extension": [
+    "aiter.ops.gradlib",
+    "rocb_destroy_extension"
+  ],
+  "rocb_findallsols": [
+    "aiter.ops.gradlib",
+    "rocb_findallsols"
+  ],
+  "rocb_mm": [
+    "aiter.ops.gradlib",
+    "rocb_mm"
+  ],
+  "rope_2c_bwd": [
+    "aiter.ops.rope",
+    "rope_2c_bwd"
+  ],
+  "rope_2c_bwd_impl": [
+    "aiter.ops.rope",
+    "rope_2c_bwd_impl"
+  ],
+  "rope_2c_fwd": [
+    "aiter.ops.rope",
+    "rope_2c_fwd"
+  ],
+  "rope_2c_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_2c_fwd_impl"
+  ],
+  "rope_2c_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_2c_fwd_inplace"
+  ],
+  "rope_2d_bwd": [
+    "aiter.ops.rope",
+    "rope_2d_bwd"
+  ],
+  "rope_2d_bwd_impl": [
+    "aiter.ops.rope",
+    "rope_2d_bwd_impl"
+  ],
+  "rope_2d_fwd": [
+    "aiter.ops.rope",
+    "rope_2d_fwd"
+  ],
+  "rope_2d_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_2d_fwd_impl"
+  ],
+  "rope_2d_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_2d_fwd_inplace"
+  ],
+  "rope_bwd": [
+    "aiter.ops.rope",
+    "rope_bwd"
+  ],
+  "rope_bwd_impl": [
+    "aiter.ops.rope",
+    "rope_bwd_impl"
+  ],
+  "rope_cached_2c_bwd": [
+    "aiter.ops.rope",
+    "rope_cached_2c_bwd"
+  ],
+  "rope_cached_2c_bwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_2c_bwd_impl"
+  ],
+  "rope_cached_2c_fwd": [
+    "aiter.ops.rope",
+    "rope_cached_2c_fwd"
+  ],
+  "rope_cached_2c_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_2c_fwd_impl"
+  ],
+  "rope_cached_2c_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_cached_2c_fwd_inplace"
+  ],
+  "rope_cached_bwd": [
+    "aiter.ops.rope",
+    "rope_cached_bwd"
+  ],
+  "rope_cached_bwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_bwd_impl"
+  ],
+  "rope_cached_fwd": [
+    "aiter.ops.rope",
+    "rope_cached_fwd"
+  ],
+  "rope_cached_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_fwd_impl"
+  ],
+  "rope_cached_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_cached_fwd_inplace"
+  ],
+  "rope_cached_positions_2c_fwd": [
+    "aiter.ops.rope",
+    "rope_cached_positions_2c_fwd"
+  ],
+  "rope_cached_positions_2c_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_positions_2c_fwd_impl"
+  ],
+  "rope_cached_positions_2c_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_cached_positions_2c_fwd_inplace"
+  ],
+  "rope_cached_positions_fwd": [
+    "aiter.ops.rope",
+    "rope_cached_positions_fwd"
+  ],
+  "rope_cached_positions_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_positions_fwd_impl"
+  ],
+  "rope_cached_positions_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_cached_positions_fwd_inplace"
+  ],
+  "rope_cached_positions_offsets_2c_fwd": [
+    "aiter.ops.rope",
+    "rope_cached_positions_offsets_2c_fwd"
+  ],
+  "rope_cached_positions_offsets_2c_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_positions_offsets_2c_fwd_impl"
+  ],
+  "rope_cached_positions_offsets_2c_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_cached_positions_offsets_2c_fwd_inplace"
+  ],
+  "rope_cached_positions_offsets_fwd": [
+    "aiter.ops.rope",
+    "rope_cached_positions_offsets_fwd"
+  ],
+  "rope_cached_positions_offsets_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_cached_positions_offsets_fwd_impl"
+  ],
+  "rope_cached_positions_offsets_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_cached_positions_offsets_fwd_inplace"
+  ],
+  "rope_fwd": [
+    "aiter.ops.rope",
+    "rope_fwd"
+  ],
+  "rope_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_fwd_impl"
+  ],
+  "rope_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_fwd_inplace"
+  ],
+  "rope_rotate_activation": [
+    "aiter.ops.quant",
+    "rope_rotate_activation"
+  ],
+  "rope_thd_bwd": [
+    "aiter.ops.rope",
+    "rope_thd_bwd"
+  ],
+  "rope_thd_bwd_impl": [
+    "aiter.ops.rope",
+    "rope_thd_bwd_impl"
+  ],
+  "rope_thd_fwd": [
+    "aiter.ops.rope",
+    "rope_thd_fwd"
+  ],
+  "rope_thd_fwd_impl": [
+    "aiter.ops.rope",
+    "rope_thd_fwd_impl"
+  ],
+  "rope_thd_fwd_inplace": [
+    "aiter.ops.rope",
+    "rope_thd_fwd_inplace"
+  ],
+  "rotary_embedding_fwd": [
+    "aiter.ops.pos_encoding",
+    "rotary_embedding_fwd"
+  ],
+  "rotate_activation": [
+    "aiter.ops.quant",
+    "rotate_activation"
+  ],
+  "scale_shape": [
+    "aiter.ops.inverse_rope_group_quant",
+    "scale_shape"
+  ],
+  "scaled_silu_and_mul": [
+    "aiter.ops.activation",
+    "scaled_silu_and_mul"
+  ],
+  "set_custom_all_reduce": [
+    "aiter.ops.communication",
+    "set_custom_all_reduce"
+  ],
+  "sigmoid": [
+    "aiter.ops.aiter_operator",
+    "sigmoid"
+  ],
+  "silu_and_mul": [
+    "aiter.ops.activation",
+    "silu_and_mul"
+  ],
+  "silu_and_mul_bias": [
+    "aiter.ops.activation",
+    "silu_and_mul_bias"
+  ],
+  "silu_and_mul_quant": [
+    "aiter.ops.activation",
+    "silu_and_mul_quant"
+  ],
+  "situv2_and_mul_quant": [
+    "aiter.ops.activation",
+    "situv2_and_mul_quant"
+  ],
+  "smooth_per_token_scaled_quant": [
+    "aiter.ops.quant",
+    "smooth_per_token_scaled_quant"
+  ],
+  "smoothquant_fwd": [
+    "aiter.ops.quant",
+    "smoothquant_fwd"
+  ],
+  "start_sync_latency_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "start_sync_latency_gfx1250"
+  ],
+  "static_per_tensor_quant": [
+    "aiter.ops.quant",
+    "static_per_tensor_quant"
+  ],
+  "str2dtype_dict": [
+    "aiter.ops.moe_op",
+    "str2dtype_dict"
+  ],
+  "sub": [
+    "aiter.ops.aiter_operator",
+    "sub"
+  ],
+  "sub_": [
+    "aiter.ops.aiter_operator",
+    "sub_"
+  ],
+  "swap_blocks": [
+    "aiter.ops.cache",
+    "swap_blocks"
+  ],
+  "swiglu_and_mul": [
+    "aiter.ops.activation",
+    "swiglu_and_mul"
+  ],
+  "swiglu_and_mul_bias": [
+    "aiter.ops.activation",
+    "swiglu_and_mul_bias"
+  ],
+  "tanh": [
+    "aiter.ops.aiter_operator",
+    "tanh"
+  ],
+  "tl": [
+    "triton.language",
+    null
+  ],
+  "top_k_per_row_decode": [
+    "aiter.ops.topk",
+    "top_k_per_row_decode"
+  ],
+  "top_k_per_row_decode_fast": [
+    "aiter.ops.topk",
+    "top_k_per_row_decode_fast"
+  ],
+  "top_k_per_row_prefill": [
+    "aiter.ops.topk",
+    "top_k_per_row_prefill"
+  ],
+  "top_k_per_row_prefill_fast": [
+    "aiter.ops.topk",
+    "top_k_per_row_prefill_fast"
+  ],
+  "topk_gating": [
+    "aiter.ops.topk",
+    "topk_gating"
+  ],
+  "topk_gating_fwd": [
+    "aiter.ops.topk",
+    "topk_gating_fwd"
+  ],
+  "topk_mb_workspace_size": [
+    "aiter.ops.topk",
+    "topk_mb_workspace_size"
+  ],
+  "topk_ob_workspace_size": [
+    "aiter.ops.topk",
+    "topk_ob_workspace_size"
+  ],
+  "topk_plain": [
+    "aiter.ops.topk_plain",
+    "topk_plain"
+  ],
+  "topk_sigmoid": [
+    "aiter.ops.moe_op",
+    "topk_sigmoid"
+  ],
+  "topk_softmax": [
+    "aiter.ops.moe_op",
+    "topk_softmax"
+  ],
+  "topk_softmax_asm": [
+    "aiter.ops.moe_op",
+    "topk_softmax_asm"
+  ],
+  "topk_softplus": [
+    "aiter.ops.topk",
+    "topk_softplus"
+  ],
+  "topk_use_mulblocks": [
+    "aiter.ops.topk",
+    "topk_use_mulblocks"
+  ],
+  "torch_compile_guard": [
+    "aiter.ops.mhc",
+    "torch_compile_guard"
+  ],
+  "triton": [
+    "triton",
+    null
+  ],
+  "two_sync_latency_gfx1250": [
+    "aiter.ops.custom_all_reduce",
+    "two_sync_latency_gfx1250"
+  ],
+  "unary_out_fake_shape": [
+    "aiter.ops.aiter_operator",
+    "unary_out_fake_shape"
+  ],
+  "unpack_mxfp8_out_scale": [
+    "aiter.ops.gemm_op_a4w4",
+    "unpack_mxfp8_out_scale"
+  ],
+  "utility": [
+    "aiter.utility",
+    null
+  ],
+  "v_1way_per_head_fp8_quant": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "v_1way_per_head_fp8_quant"
+  ],
+  "v_2way_per_head_fp8_quant": [
+    "aiter.ops.fused_qk_norm_rope_cache_quant",
+    "v_2way_per_head_fp8_quant"
+  ],
+  "vsa_sparse_attention": [
+    "aiter.ops.vsa_sparse_attention",
+    "vsa_sparse_attention"
+  ],
+  "wvSplitKQ": [
+    "aiter.ops.custom",
+    "wvSplitKQ"
+  ],
+  "wvSpltK": [
+    "aiter.ops.custom",
+    "wvSpltK"
+  ],
+  "wv_splitk_small_fp16_bf16": [
+    "aiter.ops.custom",
+    "wv_splitk_small_fp16_bf16"
+  ]
+}

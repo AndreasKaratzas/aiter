@@ -1,0 +1,571 @@
+{
+  "vllm-bridge": {
+    "description": "Installed vLLM RMSNorm bridge calls the selected AITER implementation.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/normalization/test_rmsnorm.py::test_vllm_rmsnorm_bridge"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 12,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1"
+    }
+  },
+  "vllm-mxfp4": {
+    "description": "Real vLLM dequantize-and-multiply bridge on gfx950 MXFP4 bytes; no model qualification.",
+    "components": [
+      "vllm",
+      "quantization"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_mxfp4.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 900,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1"
+    }
+  },
+  "vllm-multimodal": {
+    "description": "Pinned Qwen vision-language model grounds red/blue images while observed AITER vision and decoder attention run.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/multimodal/test_image_grounding.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-speculative": {
+    "description": "Pinned Llama model verifies real GPU ngram proposals against identical greedy decoding and observed AITER attention.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/generation/speculative_decoding/test_ngram.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-import": {
+    "description": "Import the installed public vLLM engine and AITER operator surface before numerical workloads.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "subject": "candidate",
+    "targets": [
+      "tests/frameworks/vllm/imports/test_imports.py"
+    ],
+    "gpus": 0,
+    "architectures": [],
+    "timeout_seconds": 900,
+    "minimum_cases": 1,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "2"
+    }
+  },
+  "vllm-fp8": {
+    "description": "FP8 quantization and blockscale projection through the actual installed vLLM to AITER bridge.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fp8.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 1800,
+    "minimum_cases": 10,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "2",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-fused-quantization": {
+    "description": "Fused normalization and activation quantization through the actual installed vLLM to AITER bridge.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fused.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 1800,
+    "minimum_cases": 12,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "2",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-position": {
+    "description": "Rotary position embeddings through the actual installed vLLM to AITER bridge.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/position/test_rotary.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 1800,
+    "minimum_cases": 8,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "2",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-routing": {
+    "description": "Expert routing through the actual installed vLLM to AITER bridge.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/moe/test_routing.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 1800,
+    "minimum_cases": 12,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "2",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-experts": {
+    "description": "Expert execution through the actual installed vLLM to AITER bridge.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/moe/test_experts.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 10,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "8",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-attention": {
+    "description": "Variable-length prefill attention through the actual installed vLLM to AITER bridge.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/attention/test_prefill.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 7,
+    "environment": {
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "MAX_JOBS": "8",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-batching": {
+    "description": "Pinned Llama single versus batched generation equivalence with observed AITER execution.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/generation/batching/test_batch_equivalence.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-prefix-cache": {
+    "description": "Pinned Llama reusable prefix execution retains token equivalence and observed cache reuse.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/attention/prefix_cache/test_reuse.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-cuda-graph": {
+    "description": "Pinned Llama captured decode observes actual graph replay and AITER kernel contents.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/execution/cuda_graph/test_decode.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-tensor-parallel": {
+    "description": "Pinned Llama generation across two GPU ranks checks output and rank participation.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/distributed/tensor_parallel/test_tp2.py"
+    ],
+    "gpus": 2,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-online-fp8": {
+    "description": "Pinned Llama online per-channel FP8 generation exercises the actual AITER linear implementation and compares controlled greedy output.",
+    "components": [
+      "vllm",
+      "quantization"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/quantization/test_online_fp8.py::test_online_per_channel_fp8_generates_with_aiter_linear"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-entrypoints": {
+    "description": "Real OpenAI completion/chat streaming and error recovery with per-worker AITER evidence.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/entrypoints/test_openai_server.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-lm-eval": {
+    "description": "Pinned Qwen3 GSM8K32-question exact-answer daily regression, AITER enabled and observed.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/evaluation/test_gsm8k.py::test_gsm8k_daily_32"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-qwen3-reference": {
+    "description": "Dense Qwen3 greedy tokens and all prompt likelihoods against independent Transformers eager attention.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/language/test_qwen3.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-chunked-prefill": {
+    "description": "Actual bounded V1 scheduler chunks preserve unchunked target tokens.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/execution/scheduling/test_chunked_prefill.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-lm-eval-extended": {
+    "description": "Held-out128-question pinned GSM8K regression, disjoint from daily calibration slice.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/evaluation/test_gsm8k.py::test_gsm8k_extended_128"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-multimodal-order": {
+    "description": "Real Qwen vision outputs remain attached to reordered and reused image inputs.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/multimodal/test_image_order.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-fp8-quality": {
+    "description": "All-token online per-channel FP8 likelihood drift against BF16 with real FP8 parameter and AITER GEMM observations.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/quantization/test_likelihood.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-speculative-mixed": {
+    "description": "Mixed-prompt speculative acceptance/rejection preserves all target token sequences.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/generation/speculative_decoding/test_mixed_batch.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  }
+}

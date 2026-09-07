@@ -1,176 +1,46 @@
-Installation
-============
+Install a matching build
+==========================
 
-Requirements
-------------
+The distribution is named ``amd-aiter``; the Python import is ``aiter``. Select the ROCm, Python, Torch and DSL environment required by your application and the wheel's support record. Package names and GPU family names alone do not establish binary compatibility.
 
-System Requirements
-^^^^^^^^^^^^^^^^^^^
+This site documents the ``akaratza_aiter_implementation`` branch in ``AndreasKaratzas/aiter``. Select that branch to use the prepared interfaces, package layout and CI commands shown here.
 
-* **Operating System**: Linux (Ubuntu 20.04+, RHEL 8+, or SLES 15+)
-* **Python**: 3.8 or later
-* **ROCm**: 5.7 or later (6.0+ recommended)
-* **GPU**: AMD GPU with gfx90a, gfx942, or gfx950 architecture
-
-Software Dependencies
-^^^^^^^^^^^^^^^^^^^^^
-
-* PyTorch 2.0+ with ROCm support
-* ROCm libraries (hipBLAS, rocBLAS, MIOpen)
-* Optional: Triton for Triton-based kernels
-
-Installation Methods
---------------------
-
-Method 1: From PyPI (Recommended)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. note::
-   PyPI package is coming soon!
+Develop from source
+---------------------
 
 .. code-block:: bash
 
-   pip install amd-aiter
-
-Method 2: From Source
-^^^^^^^^^^^^^^^^^^^^^
-
-Basic Installation
-""""""""""""""""""
-
-.. code-block:: bash
-
-   # Clone the repository
-   git clone --recursive https://github.com/ROCm/aiter.git
+   git clone --recursive --branch akaratza_aiter_implementation https://github.com/AndreasKaratzas/aiter.git
    cd aiter
+   python -m pip install -e .
+   python -m aiter doctor --gpu
 
-   # Install in development mode
-   python3 setup.py develop
+For an existing clone, run ``git submodule update --init --recursive`` to obtain its pinned native dependencies. Native compilation needs the matching ROCm compiler. Package metadata and ``python -m aiter doctor`` without ``--gpu`` do not initialize Torch or a device.
 
-Development Mode (JIT)
-""""""""""""""""""""""
+Install a qualified wheel
+---------------------------
 
-Kernels are compiled on first use:
-
-.. code-block:: bash
-
-   python3 setup.py develop
-
-Precompiled Installation
-""""""""""""""""""""""""
-
-Precompile kernels at install time:
+Download the wheel for the exact approved environment and verify its recorded SHA-256 digest. Install into that environment without replacing its Torch and other protected dependencies:
 
 .. code-block:: bash
 
-   PREBUILD_KERNELS=2 GPU_ARCHS="gfx942" python3 setup.py install
+   python -m pip install --no-deps /path/to/approved/amd_aiter-VERSION.whl
+   python -m aiter doctor --gpu
 
-Environment Variables
-^^^^^^^^^^^^^^^^^^^^^
+``VERSION`` represents the complete downloaded wheel filename, including its Python and platform tags. It is not a published version or a literal install command. Do not infer a package index or container tag from this example; the qualified release record provides the artifact locations.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 60 20
-
-   * - Variable
-     - Description
-     - Default
-   * - ``GPU_ARCHS``
-     - Target GPU architecture(s), semicolon-separated. Use ``native`` to auto-detect.
-     - ``native``
-   * - ``PREBUILD_KERNELS``
-     - ``0`` = JIT only, ``1`` = core kernels, ``2`` = inference kernels, ``3`` = MHA only
-     - ``0``
-   * - ``MAX_JOBS``
-     - Max parallel compilation threads
-     - Auto-calculated
-
-Example Configurations
-""""""""""""""""""""""
-
-.. code-block:: bash
-
-   # For MI300X with full precompilation
-   PREBUILD_KERNELS=2 GPU_ARCHS="gfx942" python3 setup.py install
-
-   # For MI250X + MI300X multi-arch
-   GPU_ARCHS="gfx90a;gfx942" python3 setup.py install
-
-   # Auto-detect current GPU
-   GPU_ARCHS="native" python3 setup.py install
-
-Method 3: Docker
-^^^^^^^^^^^^^^^^
-
-.. code-block:: bash
-
-   # Coming soon
-   docker pull amd/aiter:latest
-   docker run --device=/dev/kfd --device=/dev/dri amd/aiter:latest
-
-Verifying Installation
------------------------
-
-.. code-block:: python
-
-   import aiter
-   import torch
-
-   # Check ROCm availability
-   print(f"PyTorch version: {torch.__version__}")
-   print(f"ROCm available: {torch.cuda.is_available()}")
-   print(f"ROCm version: {torch.version.hip if hasattr(torch.version, 'hip') else 'N/A'}")
-
-   # Verify AITER can import key operators
-   from aiter import flash_attn_with_kvcache, rmsnorm
-   print("AITER operators loaded successfully!")
-
-Optional: Triton Communication Support
----------------------------------------
-
-For Triton-based communication primitives:
-
-.. code-block:: bash
-
-   pip install -r requirements-triton-comms.txt
-
-See :doc:`tutorials/triton_comms` for more details.
-
-Troubleshooting
+Build a wheel
 ---------------
 
-ROCm Not Found
-^^^^^^^^^^^^^^
-
-If ROCm is not detected:
-
 .. code-block:: bash
 
-   export ROCM_PATH=/opt/rocm
-   export PATH=$ROCM_PATH/bin:$PATH
+   python -m pip wheel --no-deps --no-build-isolation . --wheel-dir /tmp/aiter-wheels
 
-Compilation Errors
-^^^^^^^^^^^^^^^^^^
+The :doc:`build guide </extend/build>` explains explicit build dependencies, native SDK bundling, prebuild selections, target architectures and source distributions. The build stages its output outside the runtime source package. Metadata queries do not install GPU dependencies or rewrite source version markers.
 
-For compilation issues:
+Compilation policy
+--------------------
 
-1. Ensure ROCm is properly installed: ``rocm-smi``
-2. Check Python version: ``python3 --version``
-3. Verify GPU architecture: ``rocminfo | grep gfx``
+A bundled prepared HIP/CK provider can run with ``ExecutionPolicy(allow_compile=False)``. Triton/Gluon preparation needs its compiler environment. Historical wrappers may still JIT a variant that is absent from an AOT wheel; that behavior must be declared in the consumer profile. See the :doc:`container guide </deliver/containers>` for wheel copying and base-image inheritance.
 
-Import Errors
-^^^^^^^^^^^^^
-
-If you get import errors:
-
-.. code-block:: bash
-
-   # Ensure ROCm libraries are in library path
-   export LD_LIBRARY_PATH=$ROCM_PATH/lib:$LD_LIBRARY_PATH
-
-Next Steps
-----------
-
-* :doc:`quickstart` - Get started with your first AITER program
-* :doc:`tutorials/index` - Learn through examples
-* :doc:`api/attention` - Explore the API reference
+Optional Iris communication dependencies are declared in ``requirements/runtime/iris.txt``. They are needed only for those communication implementations.

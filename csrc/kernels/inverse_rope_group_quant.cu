@@ -1016,7 +1016,7 @@ void inverse_rope_group_quant(
         // Why 32 and why fours: see kScaleN32K4 in the header. This one has to
         // be a check rather than a comment because at any other group size the
         // bytes still land where the layout formula says -- the shape checks and
-        // the op_tests unshuffle both pass, and only the GEMM notices, by
+        // the operators unshuffle both pass, and only the GEMM notices, by
         // reading four different K steps' scales as one step's.
         AITER_CHECK(quant_group_size == 32,
                     "n32k4 scale is only defined for quant_group_size == 32 "

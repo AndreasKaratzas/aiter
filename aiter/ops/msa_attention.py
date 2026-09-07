@@ -5,7 +5,7 @@
 
 import torch
 
-from csrc.cpp_itfs.torch_utils import direct_register_custom_op
+from aiter.ops._native.torch_utils import direct_register_custom_op
 
 from .msa_block_select import (
     pa_sparse_block_score_decode as pa_sparse_block_score_decode_core,

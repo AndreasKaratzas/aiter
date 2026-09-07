@@ -1,0 +1,24 @@
+{
+  "sglang-bridge": {
+    "description": "Installed SGLang RMSNorm bridge calls the selected AITER implementation.",
+    "components": [
+      "sglang"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/sglang/test_rmsnorm.py::test_sglang_rmsnorm_bridge"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 900,
+    "minimum_cases": 2,
+    "environment": {
+      "SGLANG_USE_AITER": "1",
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1"
+    }
+  }
+}

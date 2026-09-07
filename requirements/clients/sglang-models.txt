@@ -1,0 +1,4 @@
+# Additions to the upstream SGLang model-test image.
+tabulate
+mistral-common
+lm-eval[api]

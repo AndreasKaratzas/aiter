@@ -69,7 +69,7 @@ def _mxscale_kid_m_align() -> dict[int, int]:
     dispatched at unaligned M by this file while the tuner never tuned it there,
     which cost ~9% at the wo_a decode shapes.
     """
-    from csrc.opus_gemm.opus_gemm_common import a8w8_mxscale_bmm_kernel_lists
+    from aiter.codegen.gemm.opus.instances import a8w8_mxscale_bmm_kernel_lists
 
     return {
         int(kid): int(inst.m_align)

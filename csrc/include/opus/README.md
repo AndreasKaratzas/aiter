@@ -181,7 +181,7 @@ Check [this repo](https://github.com/carlushuang/gcnasm/tree/master/matrix_core_
 
 ## Tests and examples
 
-See [`op_tests/opus/`](../../op_tests/opus/) for unit tests and working examples that serve as both a test suite and reference code.
+See [`tests/operators/opus/`](../../tests/operators/opus/) for unit tests and working examples that serve as both a test suite and reference code.
 
 ## Best Practice to Reduce HIP Kernel Compile Times
 

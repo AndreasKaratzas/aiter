@@ -44,13 +44,14 @@
 //   and raises RuntimeError automatically -- no per-kernel Python changes.
 //
 #pragma once
+#include "aiter_hip_common.h"
 #include <string>
 #include <utility>
 
 // ---------------------------------------------------------------------------
 // AITER_CTYPES_ERROR_DEF -- place once at file scope in ONE translation unit
 // per shared object (.so) that is called via ctypes.
-// Requires: aiter_hip_common.h included first (provides AITER_C_ITFS).
+// The shared HIP definitions above provide AITER_C_ITFS and exception state.
 // Defines:
 //   - thread_local g_aiter_last_error  (TLS error storage)
 //   - extern "C" aiter_ctypes_abi_version (returns ABI version number)

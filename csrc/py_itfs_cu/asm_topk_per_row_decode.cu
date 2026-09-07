@@ -36,7 +36,7 @@ AITER_C_ITFS void top_k_per_row_decode_fast(
 
     static AiterAsmKernel impl_topk_decode(
         "_ZN5aiter10DecodeTopKL19topk_per_row_decodeILi1024ELb0ELi4EEEvPKfPKiPiiii",
-        "/topk_per_row_decode/asm_top_k_per_row_decode.co");
+        "topk_per_row_decode/asm_top_k_per_row_decode.co");
 
     constexpr int kNumThreadsPerBlock = 1024;
     AITER_CHECK(numRows >> 31 == 0, "numRows too large: ", numRows);

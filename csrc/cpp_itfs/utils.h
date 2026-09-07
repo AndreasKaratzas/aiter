@@ -35,11 +35,24 @@ __inline__ void init_lru_cache(std::unique_ptr<LRUCache<K, V>>& lru_cache){
 static std::filesystem::path aiter_root_dir;
 
 __inline__ void init_root_dir(){
-    char* AITER_ROOT_DIR = std::getenv("AITER_ROOT_DIR");
-    if (!AITER_ROOT_DIR){
-        AITER_ROOT_DIR = std::getenv("HOME");
+    const char* explicit_cache = std::getenv("AITER_AOT_CACHE_DIR");
+    const char* legacy_root = std::getenv("AITER_ROOT_DIR");
+    const char* jit = std::getenv("AITER_JIT_DIR");
+    const char* xdg = std::getenv("XDG_CACHE_HOME");
+    const char* home = std::getenv("HOME");
+    if (explicit_cache && *explicit_cache) {
+        aiter_root_dir = explicit_cache;
+    } else if (legacy_root && *legacy_root) {
+        aiter_root_dir = legacy_root;
+    } else if (jit && *jit) {
+        aiter_root_dir = std::filesystem::path(jit) / "aot";
+    } else if (xdg && *xdg) {
+        aiter_root_dir = std::filesystem::path(xdg) / "aiter" / "jit" / "aot";
+    } else if (home && *home) {
+        aiter_root_dir = std::filesystem::path(home) / ".cache" / "aiter" / "jit" / "aot";
+    } else {
+        throw std::runtime_error("AITER native bridge needs an explicit cache or HOME");
     }
-    aiter_root_dir=std::filesystem::path(AITER_ROOT_DIR)/".aiter";
 }
 
 __inline__ std::filesystem::path get_root_dir(){

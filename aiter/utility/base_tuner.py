@@ -599,16 +599,9 @@ class TunerCommon:
         # Enable AITER_REBUILD (level 2: rm .so only, keep build cache for faster rebuild)
         # and clear module caches so operators rebuild with new config
         from aiter.jit import core as jit_core
+        from aiter.jit.composition import get_service
 
-        old_rebuild = jit_core.AITER_REBUILD
-        jit_core.AITER_REBUILD = 2
-        jit_core.get_module.cache_clear()
-        # Reset rebuilded_list so all modules get rebuilt on next call
-        jit_core.rebuilded_list = ["module_aiter_enum"]
-        # Clear loaded modules dict (use getattr to avoid Python name mangling of __ prefix in class methods)
-        mds = getattr(jit_core, "__mds", None)
-        if mds is not None:
-            mds.clear()
+        old_rebuild = get_service().set_rebuild(2, invalidate=True)
         # Clear get_config_file lru_cache so it re-reads the env var
         jit_core.AITER_CONFIGS.get_config_file.cache_clear()
         return old_val, old_rebuild
@@ -622,9 +615,9 @@ class TunerCommon:
         else:
             os.environ[env_name] = old_val
         try:
-            from aiter.jit import core as jit_core
+            from aiter.jit.composition import get_service
 
-            jit_core.AITER_REBUILD = old_rebuild
+            get_service().set_rebuild(old_rebuild)
         except ImportError:
             pass
 

@@ -637,7 +637,7 @@ rare. 6× catches the long tail without flagging healthy fp16 ordering
 noise.
 
 If a new kernel needs the Winograd bump, mark it `is_winograd=True` in
-`op_tests/triton_tests/conv/_helpers.py` (`METHOD_REGISTRY`); the
+`tests/operators/triton/conv/_helpers.py` (`METHOD_REGISTRY`); the
 `_get_tolerances` dispatch picks the right tolerance automatically.
 
 ---
@@ -709,7 +709,7 @@ since conv has more shape degrees of freedom than GEMM's M/N/K.
 
 ## 10. Method registry
 
-`op_tests/triton_tests/conv/_helpers.py` (`METHOD_REGISTRY`) is the **single source of truth**
+`tests/operators/triton/conv/_helpers.py` (`METHOD_REGISTRY`) is the **single source of truth**
 for kernel dispatch in the test harness. Adding a new method takes one entry:
 
 ```python
@@ -757,14 +757,14 @@ Concretely, to add (say) a `winograd_f6x3` variant:
    strong ref to the source tensor in the cached value. Do not cache ordinary
    input activations: they are normally unique per invocation and retaining
    their packed buffers increases memory use without producing cache hits.
-5. **Register** in `op_tests/triton_tests/conv/_helpers.py` (`METHOD_REGISTRY`). Set
+5. **Register** in `tests/operators/triton/conv/_helpers.py` (`METHOD_REGISTRY`). Set
    `is_winograd=True` if the kernel uses Winograd-style transforms
    (you'll need the 6× tolerance bump). If the kernel uses a different
    Winograd tile (e.g. F(6,3)), also add a new `variant=` branch in
    `_helpers._winograd_tolerances` and route to it from
    `_helpers._get_tolerances` — F(4,3)'s 6× bump
    is calibrated specifically for that tile size. Also add the kernel to
-   `op_tests/op_benchmarks/triton/bench_conv2d.py`'s `METHODS` dict so
+   `benchmarks/operators/triton/bench_conv2d.py`'s `METHODS` dict so
    `--method <new_name>` works.
 6. **Optionally route** from `_select_3x3_method` if the new kernel
    should be auto-selected. Update the heuristic comment block with the
@@ -773,11 +773,11 @@ Concretely, to add (say) a `winograd_f6x3` variant:
    branch in `_resolve_route` (the single source of truth for dispatch),
    plus the matching branch in `_route_and_run`. The bench's `which_kernel`
    labels then follow automatically.
-7. **Run the suite** — `pytest op_tests/triton_tests/conv/` parametrizes the
+7. **Run the suite** — `pytest tests/operators/triton/conv/` parametrizes the
    edge, fuzz, no-bias, and activation families over every entry in
    `METHOD_REGISTRY`, so the new method gets correctness coverage
    automatically. Bench it via
-   `python -m op_tests.op_benchmarks.triton.bench_conv2d --method <new_name> ...`.
+   `python -m benchmarks.operators.triton.bench_conv2d --method <new_name> ...`.
 
 ---
 

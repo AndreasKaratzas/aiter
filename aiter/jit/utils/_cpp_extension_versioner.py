@@ -3,29 +3,48 @@
 
 # mypy: allow-untyped-defs
 import collections
+import hashlib
+import json
+import os
 
 Entry = collections.namedtuple("Entry", "version, hash")
 
 
+def _identity(value):
+    if isinstance(value, bytes):
+        return ["bytes", value.hex()]
+    if isinstance(value, dict):
+        if not all(isinstance(key, str) for key in value):
+            raise TypeError("build argument mappings require string keys")
+        return ["mapping", [[key, _identity(value[key])] for key in sorted(value)]]
+    if isinstance(value, (tuple, list)):
+        return ["sequence", [_identity(item) for item in value]]
+    if value is None or type(value) in (str, int, bool):
+        return [type(value).__name__, value]
+    if isinstance(value, os.PathLike):
+        return ["path", os.fspath(value)]
+    raise TypeError(f"unsupported build argument type: {type(value).__name__}")
+
+
 def update_hash(seed, value):
-    # Good old boost::hash_combine
-    # https://www.boost.org/doc/libs/1_35_0/doc/html/boost/hash_combine_id241013.html
-    return seed ^ (hash(value) + 0x9E3779B9 + (seed << 6) + (seed >> 2))
+    # Deterministic across interpreters; typed framing keeps argument boundaries.
+    payload = json.dumps(
+        [str(seed), _identity(value)], separators=(",", ":"), ensure_ascii=True
+    ).encode()
+    return int.from_bytes(hashlib.sha256(payload).digest(), "big")
 
 
 def hash_source_files(hash_value, source_files):
     for filename in source_files:
+        hash_value = update_hash(hash_value, os.fspath(filename))
         with open(filename, "rb") as file:
             hash_value = update_hash(hash_value, file.read())
     return hash_value
 
 
 def hash_build_arguments(hash_value, build_arguments):
-    for group in build_arguments:
-        if group:
-            for argument in group:
-                hash_value = update_hash(hash_value, argument)
-    return hash_value
+    # Include mapping values and flag order, not just per-source dictionary keys.
+    return update_hash(hash_value, build_arguments)
 
 
 class ExtensionVersioner:

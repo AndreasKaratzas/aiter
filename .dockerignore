@@ -1,0 +1,15 @@
+# Image composition consumes the verified wheel and developer-facing files only.
+**
+!docker/
+!docker/**
+!dist/
+!dist/*.whl
+!dist/*.whl.receipt.json
+!ci/
+!ci/**
+!tests/
+!tests/**
+!include/
+!include/**
+**/__pycache__/
+**/*.pyc

@@ -1,0 +1,2 @@
+# CPU-only import smoke; the caller selects the PyTorch CPU index.
+torch

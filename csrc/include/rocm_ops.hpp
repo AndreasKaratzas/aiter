@@ -736,19 +736,6 @@ namespace py = pybind11;
           "wvSplitKQ(Tensor in_a, Tensor in_b, Tensor! out_c, Tensor scale_a, Tensor scale_b, " \
           "int CuCount) -> ()");
 
-#define GEMM_A16W16_ASM_PYBIND                   \
-    m.def("gemm_a16w16_asm",                     \
-          &gemm_a16w16_asm,                      \
-          "Asm gemm a16w16",                     \
-          py::arg("A"),                          \
-          py::arg("B"),                          \
-          py::arg("out"),                        \
-          py::arg("semaphore"),                  \
-          py::arg("bias")        = std::nullopt, \
-          py::arg("splitK")      = std::nullopt, \
-          py::arg("kernelName")  = std::nullopt, \
-          py::arg("bpreshuffle") = false);
-
 #define GEMM_A4W4_BLOCKSCALE_PYBIND  \
     m.def("gemm_a4w4_blockscale",    \
           &gemm_a4w4_blockscale,     \

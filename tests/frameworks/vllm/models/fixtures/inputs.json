@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "multimodal": {
+    "prompt": "What is the main color in this image? Answer with one color word only.",
+    "image_size": [224, 224],
+    "images": [
+      {"name": "red", "rgb": [255, 0, 0]},
+      {"name": "blue", "rgb": [0, 0, 255]}
+    ],
+    "max_tokens": 12
+  },
+  "speculative": {
+    "instruction": "Continue the repeating sequence exactly, without explanation:\n",
+    "sequence": "red blue green yellow orange\n",
+    "repetitions": 12,
+    "max_tokens": 64,
+    "configuration": {
+      "method": "ngram_gpu",
+      "prompt_lookup_max": 3,
+      "prompt_lookup_min": 2,
+      "num_speculative_tokens": 3
+    }
+  }
+}

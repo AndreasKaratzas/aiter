@@ -23,6 +23,6 @@ self-hosted-runner:
 config-variables: null
 
 paths:
-  .github/workflows/flash_attention_integration.yaml:
+  .github/workflows/client-flash-attention.yaml:
     ignore:
       - 'constant expression "false" in condition'

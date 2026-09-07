@@ -1,0 +1,33 @@
+{
+  "sglang": {
+    "description": "Product checks followed by the installed SGLang bridge.",
+    "client": "sglang",
+    "groups": [
+      "host",
+      "normalization",
+      "triton-normalization",
+      "blockscale-gemm",
+      "prepared-runtime",
+      "sglang-bridge",
+      "native-sdk",
+      "compatibility"
+    ],
+    "mandatory_groups": [
+      "host"
+    ]
+  },
+  "sglang-image": {
+    "description": "Installed SGLang RMSNorm bridge and compiler-free prepared native providers.",
+    "client": "sglang",
+    "groups": [
+      "normalization",
+      "sglang-bridge",
+      "wheel-native"
+    ],
+    "mandatory_groups": [
+      "normalization",
+      "sglang-bridge",
+      "wheel-native"
+    ]
+  }
+}

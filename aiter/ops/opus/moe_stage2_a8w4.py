@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import torch
 from torch import Tensor
 
-from csrc.opus_moe.opus_moe_common import (
+from aiter.codegen.moe.opus.instances import (
     OPUS_A8W4_GFX950_DECODE_KERNEL_CONTRACT,
     OPUS_A8W4_OUT_MODE_BF16,
     OPUS_A8W4_OUT_MODE_FP8,

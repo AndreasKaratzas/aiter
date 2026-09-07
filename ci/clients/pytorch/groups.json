@@ -1,0 +1,24 @@
+{
+  "normalization": {
+    "description": "Native AITER RMSNorm through the Torch API, with dtype and residual coverage.",
+    "components": [
+      "normalization",
+      "pytorch"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/pytorch/test_rmsnorm.py::test_pytorch_rmsnorm"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 900,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1"
+    }
+  }
+}

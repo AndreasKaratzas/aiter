@@ -24,8 +24,8 @@ echo "  1. Contact the maintainers for access to test data"
 echo "  2. Or generate your own test data using the provided tools"
 echo ""
 echo "Files that were moved to external storage:"
-echo "  - op_tests/test_jenga_vsa/*.pt (PyTorch tensors)"
-echo "  - op_tests/dump_data/*.pt (Debug data)"
+echo "  - tests/operators/hip/test_jenga_vsa/*.pt (PyTorch tensors)"
+echo "  - tests/operators/hip/dump_data/*.pt (Debug data)"
 echo "  - Large benchmark CSV files"
 echo ""
 echo "For most development work, these files are not required."
@@ -49,9 +49,9 @@ exit 1
 #     echo "  ✓ Downloaded to $local_path"
 # }
 
-# download_file "test_jenga_vsa/jenga_query_normal.pt" "$REPO_ROOT/op_tests/test_jenga_vsa/jenga_query_normal.pt"
-# download_file "test_jenga_vsa/jenga_value.pt" "$REPO_ROOT/op_tests/test_jenga_vsa/jenga_value.pt"
-# download_file "test_jenga_vsa/jenga_key.pt" "$REPO_ROOT/op_tests/test_jenga_vsa/jenga_key.pt"
+# download_file "test_jenga_vsa/jenga_query_normal.pt" "$REPO_ROOT/tests/operators/hip/test_jenga_vsa/jenga_query_normal.pt"
+# download_file "test_jenga_vsa/jenga_value.pt" "$REPO_ROOT/tests/operators/hip/test_jenga_vsa/jenga_value.pt"
+# download_file "test_jenga_vsa/jenga_key.pt" "$REPO_ROOT/tests/operators/hip/test_jenga_vsa/jenga_key.pt"
 
 # echo "Done!"
 # exit 0

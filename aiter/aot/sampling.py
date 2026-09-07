@@ -1,14 +1,13 @@
-import concurrent.futures
-import os
 from collections import namedtuple
 
-from csrc.cpp_itfs.sampling.top_k_renorm_probs import (
+from aiter.aot.runner import compile_many
+from aiter.ops._native.sampling.top_k_renorm_probs import (
     compile as top_k_renorm_probs_compile,
 )
-from csrc.cpp_itfs.sampling.top_k_top_p_sampling_from_probs import (
+from aiter.ops._native.sampling.top_k_top_p_sampling_from_probs import (
     compile as top_k_top_p_sampling_from_probs_compile,
 )
-from csrc.cpp_itfs.sampling.top_p_sampling_from_probs import (
+from aiter.ops._native.sampling.top_p_sampling_from_probs import (
     compile as top_p_sampling_from_probs_compile,
 )
 
@@ -29,23 +28,21 @@ TopKTopPSamplingConfig = namedtuple(
 
 
 def process_top_k_renorm_config(config):
-    return top_k_renorm_probs_compile(config.vec_size)
+    top_k_renorm_probs_compile()
 
 
 def process_top_p_sampling_config(config):
-    return top_p_sampling_from_probs_compile(config.vec_size, config.deterministic)
+    top_p_sampling_from_probs_compile(config.vec_size, config.deterministic)
 
 
 def process_top_k_top_p_sampling_config(config):
-    return top_k_top_p_sampling_from_probs_compile(
-        config.vec_size, config.deterministic
-    )
+    top_k_top_p_sampling_from_probs_compile(config.vec_size, config.deterministic)
 
 
 def main():
     # Generate configs for top_k_renorm_probs
     top_k_renorm_configs = []
-    for vec_size in range(1, 5):
+    for vec_size in (1,):
         top_k_renorm_configs.append(
             TopKRenormConfig(
                 vec_size=vec_size,
@@ -77,13 +74,9 @@ def main():
                 )
             )
 
-    max_jobs = int(os.environ.get("MAX_JOBS", os.cpu_count() or 16))
-
-    # Process all configs in parallel
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_jobs) as executor:
-        executor.map(process_top_k_renorm_config, top_k_renorm_configs)
-        executor.map(process_top_p_sampling_config, top_p_sampling_configs)
-        executor.map(process_top_k_top_p_sampling_config, top_k_top_p_sampling_configs)
+    compile_many(process_top_k_renorm_config, top_k_renorm_configs)
+    compile_many(process_top_p_sampling_config, top_p_sampling_configs)
+    compile_many(process_top_k_top_p_sampling_config, top_k_top_p_sampling_configs)
 
 
 if __name__ == "__main__":

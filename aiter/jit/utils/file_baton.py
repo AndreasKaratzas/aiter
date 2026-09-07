@@ -11,6 +11,27 @@ import time
 logger = logging.getLogger("aiter")
 
 
+def run_with_baton(baton, main_func, final_func=None, wait_func=None):
+    """Serialize one build, retry a dead owner, and preserve callback results.
+
+    A normal release lets the optional waiter callback inspect the owner's
+    output. A stale lock requires another acquisition and a fresh build.
+    Cleanup failures propagate, but never leave the owned lock behind.
+    """
+    while True:
+        if baton.try_acquire():
+            try:
+                return main_func()
+            finally:
+                try:
+                    if final_func is not None:
+                        final_func()
+                finally:
+                    baton.release()
+        if baton.wait():
+            return wait_func() if wait_func is not None else None
+
+
 class FileBaton:
     """A primitive, file-based synchronization utility.
 

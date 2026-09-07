@@ -2,7 +2,7 @@
 
 Multi-backend bf16 GEMM tuner. Searches across asm, opus, flydsl, triton, skinny, and torch backends by default. hipblaslt can be included with `--with-hipblaslt`.
 
-For hipblaslt-only tuning, use `gradlib/gradlib/gemm_tuner.py` instead.
+For hipblaslt-only tuning, use `python -m aiter.tuning gemm.hipblaslt` instead.
 
 1. Install aiter:
 `cd $aiter_path`
@@ -29,16 +29,16 @@ There are two entry points:
 
 ```bash
 # Tune non-hipblaslt backends (default, no subprocess wrapper needed):
-python3 csrc/gemm_a16w16/gemm_a16w16_tune.py \
+python3 -m aiter.tuning gemm.a16w16 \
   --input_file aiter/configs/bf16_untuned_gemm.csv
 
 # Tune all backends including hipblaslt (use subprocess wrapper):
-python3 csrc/gemm_a16w16/gemm_tuner.py \
+python3 -m aiter.tuning gemm.a16w16_retry \
   --input_file aiter/configs/bf16_untuned_gemm.csv \
   --with-hipblaslt
 
 # Tune a specific backend only:
-python3 csrc/gemm_a16w16/gemm_a16w16_tune.py \
+python3 -m aiter.tuning gemm.a16w16 \
   --input_file aiter/configs/bf16_untuned_gemm.csv \
   --libtype asm
 ```
@@ -50,7 +50,7 @@ Results are written to `aiter/configs/bf16_tuned_gemm.csv`:
 
 4. Build tuned kernels and test:
 ```bash
-python3 op_tests/test_gemm.py
+python3 operators/test_gemm.py
 ```
 If you have built kernels before tuning, add `AITER_REBUILD=1` to rebuild with new configs.
 
@@ -93,11 +93,11 @@ If you have built kernels before tuning, add `AITER_REBUILD=1` to rebuild with n
 Run production-operator benchmark only (no tuning).
 ```bash
 # Benchmark tuned kernels:
-python3 csrc/gemm_a16w16/gemm_a16w16_tune.py \
+python3 -m aiter.tuning gemm.a16w16 \
   --run_config aiter/configs/bf16_tuned_gemm.csv
 
 # Benchmark default kernels:
-python3 csrc/gemm_a16w16/gemm_a16w16_tune.py \
+python3 -m aiter.tuning gemm.a16w16 \
   -i aiter/configs/bf16_untuned_gemm.csv --run_config
 ```
 

@@ -1,225 +1,47 @@
-# AITER Documentation
+# Read and maintain the website
 
-This directory contains the source files for AITER's documentation, built with [Sphinx](https://www.sphinx-doc.org/).
+The website brings the architecture, runtime, kernel development and delivery guides into one searchable place. Most pages render the Markdown maintained beside the code. Editing those guides updates the website; there is no second copy to keep in sync.
 
-## Quick Start
+## Build and read locally
 
-### Build Locally
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Build HTML documentation
-make html
-
-# Open in browser
-open _build/html/index.html  # macOS
-xdg-open _build/html/index.html  # Linux
-```
-
-### Live Preview (Recommended)
+Run these commands from the repository root with Python 3.11 or newer. The documentation environment does not need AITER, Torch or a GPU.
 
 ```bash
-# Install sphinx-autobuild
-pip install sphinx-autobuild
-
-# Start live server (auto-rebuilds on changes)
-make livehtml
-
-# Open http://127.0.0.1:8000 in your browser
+python -m venv /tmp/aiter-docs-env
+/tmp/aiter-docs-env/bin/python -m pip install -r requirements/docs/build.txt
+/tmp/aiter-docs-env/bin/python -m docs.website build --output /tmp/aiter-site
+python -m http.server --bind 127.0.0.1 --directory /tmp/aiter-site 8000
 ```
 
-## Documentation Structure
+Open `http://localhost:8000`. Search runs locally. Diagrams render without a CDN; use **Expand** to read a large diagram, zoom inside it, or download its SVG. Press Escape to close the expanded view.
 
-```
-docs/
-├── conf.py              # Sphinx configuration
-├── index.rst            # Homepage
-├── installation.rst     # Installation guide
-├── quickstart.rst       # Quick start tutorial
-├── api/                 # API reference
-│   ├── attention.rst    # Attention operations
-│   ├── gemm.rst         # GEMM operations
-│   ├── operators.rst    # Core operators
-│   └── ...
-├── tutorials/           # Tutorials
-│   ├── index.rst
-│   ├── basic_usage.rst
-│   ├── attention_tutorial.rst
-│   └── ...
-├── _static/             # Static files (images, CSS, JS)
-└── _build/              # Built documentation (generated)
-```
+The builder starts fresh, treats Sphinx warnings as errors and checks every local link and HTML anchor. It replaces only a previous output directory created by this builder. A failed build leaves the previous site available.
 
-## Writing Documentation
-
-### Adding a New Page
-
-1. Create a new `.rst` file in the appropriate directory
-2. Add it to the `toctree` in `index.rst` or relevant section index
-3. Build and verify: `make html`
-
-### reStructuredText Syntax
-
-#### Headers
-
-```rst
-Page Title
-==========
-
-Section
--------
-
-Subsection
-^^^^^^^^^^
-```
-
-#### Code Blocks
-
-```rst
-.. code-block:: python
-
-   import aiter
-   output = aiter.flash_attn_func(q, k, v)
-```
-
-#### Links
-
-```rst
-:doc:`installation`              # Link to another document
-:ref:`my-label`                  # Link to a label
-`External Link <https://...>`_   # External URL
-```
-
-#### API Documentation
-
-```rst
-.. autofunction:: aiter.flash_attn_func
-.. autoclass:: aiter.FlashAttention
-   :members:
-```
-
-### Style Guide
-
-- **Headings**: Use sentence case (not title case)
-- **Code**: Use inline code for function names: ``` ``aiter.flash_attn_func()`` ```
-- **Examples**: Always include runnable code examples
-- **Links**: Use relative links for internal references
-- **Line length**: Keep lines under 100 characters when possible
-
-## Building Options
-
-### Check for Warnings
+## Check the actual browser result
 
 ```bash
-make html SPHINXOPTS="-W --keep-going"
+/tmp/aiter-docs-env/bin/python -m pip install -r requirements/docs/browser.txt
+/tmp/aiter-docs-env/bin/python -m playwright install --with-deps chromium
+/tmp/aiter-docs-env/bin/python -m docs.website check \
+  --site /tmp/aiter-site --output /tmp/aiter-site-check
 ```
 
-This treats warnings as errors and shows all issues.
+This opens every HTML page in Chromium at desktop and phone widths with external network requests blocked. It checks local assets, JavaScript errors, Mermaid output, page and table clipping, search, mobile navigation and diagram controls. Wide tables become labeled rows on phones; the browser checks each label and the available reading width. Additional checks cover dark mode and enlarged text. The output directory retains a JSON report and screenshots for visual review. External article links are listed but are not fetched; the check does not certify their contents.
 
-### Check Links
+A passing browser report establishes rendering and navigation. GPU examples need their own operator or framework tests; the [engineering evidence](../notes.md) records those scopes separately.
+
+## Add or change a guide
+
+For a guide maintained outside the Sphinx source tree, add its canonical path to [the guide map](website/guides.json), create the corresponding wrapper page, and add that page to the appropriate toctree in [the site index](index.rst). The wrapper contains no copied prose. Relative links resolve from the maintained file's actual directory.
+
+Links to registered guides open rendered pages. Links to source files open a highlighted copy of the exact local file, with an exact download. They do not redirect an uncommitted change to a different GitHub branch. Every local target must exist; an unregistered Markdown guide is a build error.
+
+Use fenced `mermaid` blocks or the RST `mermaid` directive for diagrams. Keep the first diagram small, and put detailed class or sequence diagrams next to the explanation they support. Mermaid's pinned standalone renderer and license live in `docs/_static/vendor/`; its manifest binds their bytes. The build rejects an altered vendor asset.
+
+The focused CPU tests also use GNU tar to reproduce the Linux Pages action's archive exclusions. Run them with:
 
 ```bash
-make linkcheck
+/tmp/aiter-docs-env/bin/python -m unittest discover -s docs/website/tests -v
 ```
 
-Validates all external links (may take a few minutes).
-
-### Clean Build
-
-```bash
-make clean
-make html
-```
-
-### PDF Output
-
-```bash
-make latexpdf
-```
-
-Requires LaTeX installation.
-
-## Deployment
-
-Documentation is automatically deployed to `https://rocm.github.io/aiter/` via GitHub Actions on every push to `main`.
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
-
-## Contributing
-
-### Before Submitting
-
-1. ✅ Build locally and check for warnings
-2. ✅ Verify all links work (`make linkcheck`)
-3. ✅ Test code examples
-4. ✅ Check spelling and grammar
-5. ✅ Follow the style guide
-
-### Pull Request
-
-Documentation changes should be submitted via PR with:
-- Clear description of what's changed
-- Screenshots if adding new pages
-- Link to preview build (GitHub Actions provides artifacts)
-
-## Troubleshooting
-
-### "Module not found" errors
-
-Install AITER in development mode:
-
-```bash
-cd ..  # Go to repository root
-pip install -e .
-```
-
-### Missing dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Broken links in API docs
-
-Ensure the module is importable:
-
-```python
-import aiter
-print(dir(aiter))
-```
-
-### Build is slow
-
-Use `make html` instead of `make clean html` for incremental builds.
-
-## Tools
-
-### Useful Sphinx Extensions
-
-Already included:
-- `sphinx.ext.autodoc` - Auto-generate API docs from docstrings
-- `sphinx.ext.napoleon` - Support Google/NumPy docstring styles
-- `sphinx.ext.viewcode` - Add links to source code
-- `sphinx.ext.intersphinx` - Link to PyTorch docs
-- `sphinx_copybutton` - Copy button for code blocks
-
-### Theme
-
-We use `sphinx_rtd_theme` (Read the Docs theme) with AMD branding:
-- Primary color: AMD Red (#C00000)
-- Custom logo in `_static/`
-
-## Resources
-
-- [Sphinx Documentation](https://www.sphinx-doc.org/)
-- [reStructuredText Primer](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html)
-- [Read the Docs Theme](https://sphinx-rtd-theme.readthedocs.io/)
-- [Example: FlashInfer Docs](https://docs.flashinfer.ai/)
-
-## Support
-
-- **Documentation issues**: Open issue with `documentation` label
-- **Build problems**: Check GitHub Actions logs
-- **Content questions**: Ask in GitHub Discussions
+See [documentation coverage](DOCUMENTATION_AUDIT_REPORT.md) for the treatment of older material, and [publication](DEPLOYMENT.md) for the separate remote workflow.

@@ -131,8 +131,8 @@ gfx1250 register file. **No specific version is assumed or checked** — the poi
 is that you can swap toolchains freely:
 
 ```sh
-python3 csrc/opus_gemm/gen_co/build_co.py --llvm-bin /path/to/llvm/build/bin
-# or: OPUS_CO_LLVM_BIN=... python3 csrc/opus_gemm/gen_co/build_co.py
+python3 -m aiter.codegen gemm.opus_codeobjects --llvm-bin /path/to/llvm/build/bin
+# or: OPUS_CO_LLVM_BIN=... python3 -m aiter.codegen gemm.opus_codeobjects
 ```
 
 `--device-flag` appends a flag to **every** entry, on top of that entry's own

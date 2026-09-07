@@ -1,0 +1,2 @@
+-r frontend.txt
+build>=1.2,<2

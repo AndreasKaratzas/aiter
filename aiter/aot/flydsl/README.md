@@ -1,149 +1,75 @@
-# FlyDSL AOT Pre-compilation & Tests
+# FlyDSL compilation and packaged kernels
 
-This directory holds the **AOT (Ahead-Of-Time) pre-compilation entry points** for
-FlyDSL kernels. Each module extracts every unique FlyDSL kernel name from aiter's
-tuned CSV configs and compiles them into the cache up front, so that at runtime
-the JIT path hits the cache instead of compiling again.
+FlyDSL operator implementations live in `aiter/ops/flydsl/`. This directory collects existing tuning-table entries and compiles their specializations before a wheel is installed. Compilation coverage and runtime qualification are separate: a successfully compiled kernel still needs a numerical test on its target GPU.
 
-| Module | OpKind | Description |
-| --- | --- | --- |
-| `moe.py` | `MOE` | MoE / Mixed-MoE kernels (stage1 + stage2) |
-| `gemm.py` | `GEMM` | GEMM kernels |
-| `grouped_moe.py` | `GROUPED_MOE` | gfx1250 grouped MoE GEMM kernels |
-| `chunk_gdn_h.py` | `CHUNK_GDN_H` | chunk-gdn-h opt (K5) kernels |
-| `common.py` | — | Shared job collection, the deadlock-free fork pool, and cache-hit checking logic |
+| Module | Work it schedules |
+| --- | --- |
+| `gemm.py` | Dense GEMM specializations |
+| `moe.py` and `mxfp4_moe.py` | Mixture-of-experts stages |
+| `grouped_moe.py` | Grouped MoE specializations |
+| `chunk_gdn_h.py` | Recurrent chunk-GDN kernels |
+| `common.py` | Job collection, bounded workers, retries, and failure propagation |
+| `cache.py` | Artifact manifests, private runtime staging, and byte verification |
 
----
+## Build and collect evidence
 
-## 0. Set up the environment
+`build_backend/kernels.py` runs the FlyDSL phase for explicit native prebuild modes. For example, `PREBUILD_KERNELS=3` selects the existing FMHA native subset and also runs the FlyDSL phase. `PREBUILD_KERNELS=0` does not produce a FlyDSL bundle. Source caches are removed from the wheel staging tree before explicit prebuilding starts.
 
-Run everything inside your Python virtualenv, e.g.:
+Each accepted compilation job must finish successfully. A failed job fails the build. The successful phase writes `aiter/jit/flydsl_cache/manifest.json`, which records the exact Python/FlyDSL environment and every serialized kernel's SHA256 and size. Reader locks are excluded from the bundle. This manifest records artifact bytes; it is not an approved tuning selection or release attestation.
 
-```bash
-source /path/to/venv/bin/activate
-```
-
-All commands below assume you run them from the repo root (the top-level `aiter`
-directory of your checkout).
-
----
-
-## 1. Run AOT pre-compilation (compile smoke test)
-
-The most direct "test" is to run each module as a `python -m` entry point and
-confirm every kernel compiles. Each module prints `Compiled: N ok, M failed` at
-the end and exits 0 when all succeed, 1 on any failure — so it plugs straight
-into CI.
+For an individual development collection, use the packaged entrypoints:
 
 ```bash
-# MoE / Mixed-MoE (default CSVs)
-python -m aiter.aot.flydsl.moe
-
-# GEMM
-python -m aiter.aot.flydsl.gemm
-
-# grouped MoE (gfx1250)
-python -m aiter.aot.flydsl.grouped_moe
-
-# chunk-gdn-h
-python -m aiter.aot.flydsl.chunk_gdn_h
+FLYDSL_RUNTIME_CACHE_DIR=/tmp/aiter-flydsl-build \
+  python -m aiter.aot.flydsl.gemm --csv /path/to/gemm.csv
 ```
 
-### Common arguments
+The analogous `moe`, `mxfp4_moe`, `grouped_moe`, and `chunk_gdn_h` modules have `--help` describing their accepted inputs. Their legacy collectors can exclude rows they do not recognize. A compilation count therefore describes accepted jobs, not every row in the input tables.
+
+## Consume an installed bundle
+
+A normal import of `aiter.ops.flydsl` detects a bundle only in a declared installed package. It verifies the manifest and copies the kernel bytes into a private runtime cache. FlyDSL can then add missing specializations there. The installed package stays unchanged, including its directory permissions and reader locks.
+
+`AITER_FLYDSL_CACHE_DIR` selects the private cache root. Otherwise an explicitly set `FLYDSL_RUNTIME_CACHE_DIR` is used as that root; the default is `flydsl/` alongside AITER's writable JIT cache. Verified bundle copies are separated by manifest digest and by normal versus run-only mode. An ordinary wheel without a bundle keeps FlyDSL's normal JIT behavior.
+
+For deployment qualification, require existing compiled bytes and reject misses:
+
+```python
+from aiter.aot.flydsl.cache import prepare_cache, verify_cache
+
+receipt = prepare_cache('/tmp/aiter-flydsl-qualification', run_only=True)
+# Import and run the selected AITER FlyDSL workload here.
+verify_cache(receipt)
+```
+
+Call `prepare_cache` before importing the FlyDSL compiler or using FlyDSL from another library. Existing FlyDSL JIT objects keep their cache manager and loaded functions; changing environment variables cannot retarget them safely. AITER rejects late initial configuration or a changed configuration after compiler import. Repeating the identical admitted configuration is allowed. The automatic AITER operator entrypoint stages its bundle before importing its kernels.
+
+`prepare_cache` uses FlyDSL's supported `FLYDSL_RUNTIME_RUN_ONLY=1` mode. A missing specialization raises before compilation. Verification rejects changed bytes or extra serialized kernels; private reader locks are allowed. The exact bundle and copied cache identities are retained in `receipt`.
+
+A controller can use the equivalent subprocess interface:
 
 ```bash
-# Custom CSV(s) — every module supports --csv and accepts multiple paths
-python -m aiter.aot.flydsl.moe --csv /path/to/config1.csv /path/to/config2.csv
-python -m aiter.aot.flydsl.chunk_gdn_h --csv /path/to/tuned.csv
+python -m aiter.aot.flydsl.cache \
+  --destination /tmp/aiter-flydsl-qualification --receipt /tmp/flydsl-receipt.json
+python -m aiter.aot.flydsl.cache --verify --receipt /tmp/flydsl-receipt.json
 ```
 
-### Environment variables
+Between these commands, the controller must pass the receipt's `cache_dir` as `FLYDSL_RUNTIME_CACHE_DIR`, the original destination as `AITER_FLYDSL_CACHE_DIR`, and `FLYDSL_RUNTIME_RUN_ONLY=1` to the workload process. CI does this through its selected-package probe. A subprocess cannot change its parent's environment.
 
-| Variable | Purpose | Default |
-| --- | --- | --- |
-| `AITER_AOT_IMPORT` | Set to `1` so `import aiter` only loads the lightweight JIT core and skips the full top-level op namespace — faster and avoids heavy import side effects during AOT compilation (this is what `setup.py` sets while pre-compiling). | `0` |
-| `FLYDSL_RUNTIME_CACHE_DIR` | Cache directory | `~/.flydsl/cache` |
-| `AITER_FLYDSL_AOT_WORKERS` | Max concurrent worker processes. Set explicitly to honor it verbatim (bypasses the memory cap below); `0`/negative clamps to 1. Each worker uses ~1.5–2.5 GB RSS. | `min(affinity-aware CPUs, 64)`, then capped by available memory |
-| `AITER_FLYDSL_AOT_MEM_PER_WORKER_GB` | Assumed GiB/worker for the **auto memory cap** that keeps the OOM-killer from firing. Only applies when `AITER_FLYDSL_AOT_WORKERS` is **not** set; `0` disables the cap. | `2.0` |
-| `AITER_FLYDSL_AOT_TIMEOUT` | Per-kernel wall-clock cap (seconds). A worker stuck *alive* past this is killed (and retried); `0` disables. | `1200` |
-| `AITER_FLYDSL_AOT_MAX_RETRIES` | Retries for a worker that **died abnormally** (OOM-kill / segfault / timeout-kill). A clean compile error is never retried. `0` disables. | `2` |
-| `AITER_CONFIGS` | Resolves the default CSV lookup path (same as the runtime JIT) | repo built-in |
-| `ARCH` / `GPU_ARCHS` | **Banner/logging only** — printed as the "Target arch" line. Does **not** control the compiled target. | auto-detect |
+The runtime needs a writable copy because FlyDSL currently creates advisory lock files even when loading cached kernels. AITER does not replace or patch FlyDSL's compiler or cache manager.
 
-> **About the compile target arch.** The arch each kernel is actually compiled
-> for is derived per-job from the CSV's `cu_num` column (`cu_num_to_arch(...)`)
-> and applied internally via `FLYDSL_GPU_ARCH`. That internal var is overwritten
-> for every job, so setting `ARCH` / `GPU_ARCHS` / `FLYDSL_GPU_ARCH` in your shell
-> does **not** change what gets built. To cross-compile, edit the `cu_num`
-> column in the CSV.
+## Concurrency and targets
 
-Example:
+| Setting | Behavior |
+| --- | --- |
+| `MAX_JOBS` | Positive build-wide concurrency limit |
+| `AITER_FLYDSL_AOT_WORKERS` | Positive wheel-build worker request, capped by `MAX_JOBS` |
+| `AITER_FLYDSL_AOT_TIMEOUT` | Per-job deadline in seconds; default 1200, zero disables |
+| `AITER_FLYDSL_AOT_MAX_RETRIES` | Retries for crashes or timeouts; default 2; ordinary compiler errors are not retried |
+| `AITER_FLYDSL_AOT_MEM_PER_WORKER_GB` | Standalone collector's automatic memory allowance; default 2 GiB per worker |
 
-```bash
-AITER_FLYDSL_AOT_WORKERS=16 python -m aiter.aot.flydsl.moe
-```
+Standalone collector commands retain their existing worker policy: when no worker count is supplied, available CPU affinity and memory bound the pool. An explicit standalone count bypasses that memory estimate; wheel builds additionally cap the count by `MAX_JOBS`.
 
----
+Legacy collectors derive the compiled target from each job, commonly from its `cu_num` field. `ARCH` or `GPU_ARCHS` in a banner does not prove that every emitted kernel targets that architecture. Runtime FlyDSL specialization keys include the actual target; a run-only miss is a qualification failure, not permission to compile a replacement and call the bundle qualified.
 
-## 2. Run the "AOT cache hit" test
-
-Compiling successfully is not enough — you also want to verify that the **runtime
-actually hits the AOT cache** (no cache miss). That is done by
-`op_tests/test_moe_2stage.py`, which wraps test cases with
-`aiter.aot.flydsl.common.fail_on_aot_cache_miss`: if the runtime falls back to
-JIT compilation, the case fails.
-
-Full flow:
-
-```bash
-source /path/to/venv/bin/activate
-
-# (1) First compile the kernels into the cache
-python -m aiter.aot.flydsl.moe
-
-# (2) Then run the MoE 2stage test with cache checking.
-#     When a case has check_aot_cache=True it routes through
-#     test_fmoe_with_aot_cache_check, which raises AssertionError on a cache miss.
-python op_tests/test_moe_2stage.py
-```
-
-> Note: both steps must use the **same** `FLYDSL_RUNTIME_CACHE_DIR` and run on
-> (or target) the **same GPU arch**, otherwise step 2 will be treated as a miss
-> because the cache dir / arch don't line up.
-
----
-
-## 3. Troubleshooting
-
-- **`CSV file not found`**: check the `--csv` path, or whether `AITER_CONFIGS`
-  points at a valid config directory.
-- **Lots of `[FAIL]` prints + exit code 1**: an individual kernel failed to
-  compile; stdout has per-kernel diagnostics. The exception message inlines at
-  most 10 entries (`_MAX_ERRORS_IN_MSG` in `common.py`), the rest are elided as
-  `(... N more)`.
-- **Every kernel fails with the same error** (e.g. `'ArithValue' object has no
-  attribute 'ir_value'`): this is a **FlyDSL version mismatch**, not a per-kernel
-  problem. Check the *imported* FlyDSL:
-  ```bash
-  python -c "import flydsl, os; print(flydsl.__version__, os.path.dirname(flydsl.__file__))"
-  ```
-  If the version is older than the project's `FLYDSL_VERSION` (top-level
-  `setup.py`), a stale build is winning on `PYTHONPATH`. Either `pip install` the
-  matching version *and* drop the shadowing entry from `PYTHONPATH`, or rebuild
-  your local FlyDSL checkout (`scripts/build.sh`, after `pip install
-  nanobind==2.12.0` if CMake reports it missing) so the on-`PYTHONPATH` build dir
-  is refreshed to the right version.
-- **Worker OOM / killed (exitcode -9)**: abnormal exits are auto-retried
-  (`AITER_FLYDSL_AOT_MAX_RETRIES`) and the default worker count is already
-  memory-capped (`AITER_FLYDSL_AOT_MEM_PER_WORKER_GB`). If it still happens,
-  lower `AITER_FLYDSL_AOT_WORKERS` or raise the assumed GiB/worker.
-- **A kernel hangs / never finishes**: it is killed once it exceeds
-  `AITER_FLYDSL_AOT_TIMEOUT` (default 1200 s) and then retried. Lower the timeout
-  to fail faster, or raise it for genuinely slow kernels.
-- **`hipModuleLoadData ... hipErrorNoBinaryForGpu` printed but the kernel still
-  shows `[OK]`**: expected when AOT-compiling for an arch that is **not** the
-  machine's GPU (e.g. building `gfx950` artifacts on a different card). MLIR
-  compilation and the cache write succeed; only the *load* step fails, which AOT
-  does not need. It is noise, not a failure.
-- **Step 2 reports a cache miss**: confirm step 1 actually ran, the cache dir and
-  arch match, and the CSV config hasn't changed.
+`tests/integration/packaging/test_flydsl_cache.py` compiles a real route-copy kernel, loads it in a fresh process with compilation forbidden, rejects a second uncompiled specialization, exercises automatic operator staging, rejects admission after a JIT function has already executed, and verifies that the bundle remains unchanged. This tests the mechanism; the release matrix still owns workload and GPU coverage.

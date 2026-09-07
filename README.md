@@ -1,157 +1,134 @@
 <div align="center">
-<img src="docs/assets/aiter_logo.png" alt="AITER" width="400">
-<br><br>
-
-[![CI](https://github.com/ROCm/aiter/actions/workflows/aiter-test.yaml/badge.svg)](https://github.com/ROCm/aiter/actions/workflows/aiter-test.yaml)
-[![Release](https://img.shields.io/github/v/release/ROCm/aiter)](https://github.com/ROCm/aiter/releases)
-[![Docs](https://img.shields.io/badge/Docs-rocm.github.io%2Faiter-blue)](https://rocm.github.io/aiter)
-[![Last Commit](https://img.shields.io/github/last-commit/ROCm/aiter)](https://github.com/ROCm/aiter/commits)
-
+<img src="docs/assets/aiter_logo.png" alt="AITER" width="360">
 </div>
 
---------------------------------------------------------------------------------
+# AI Tensor Engine for ROCm
 
-**AITER** (AI Tensor Engine for ROCm) is AMD's high-performance AI operator library, providing optimized GPU kernels for inference and training workloads on ROCm. It serves as a unified collection of production-ready operators that framework developers can integrate directly into their stacks.
+AITER supplies optimized GPU operations for applications built on ROCm. Frameworks such as PyTorch, vLLM and SGLang use its kernels for matrix multiplication, attention, normalization, quantization, expert routing and communication.
 
-### Key Features
+This branch reorganizes the library around operation families and explicit preparation. It also adds installed-framework testing, repeatable builds and a searchable documentation site. [The rollout record](rollout.md) explains what is implemented, what has been tested and what is still required for a supported release.
 
-- **C++ and Python APIs** — use operators from either level
-- **Multiple kernel backends** — Triton, Composable Kernel (CK), and hand-tuned ASM
-- **Inference and training** — not just serving kernels, but also training and GEMM+communication fused kernels
-- **Framework-agnostic** — integrate into vLLM, SGLang, or any custom framework
+## Start here
 
-## News
+| What you want to do | Where to go |
+| --- | --- |
+| Read the guides as a searchable website | [Documentation website](https://AndreasKaratzas.github.io/aiter/) · [Local preview](docs/README.md) |
+| Understand the structure and dependencies | [Architecture and diagrams](ARCHITECTURE.md) |
+| Check dependency direction and repository layout | [Executable architecture rules](ci/architecture/README.md) |
+| Run a prepared operation or connect several operations | [Runtime guide](aiter/runtime/README.md) |
+| Try runnable Python, C++ and Rust programs | [Examples](examples/README.md) |
+| Use native C/C++ or Rust | [Native SDK](include/aiter/README.md) and [Rust frontend](bindings/rust/README.md) |
+| Find generators and build resources | [Code generation](aiter/codegen/README.md) |
+| Inspect precompiled kernel bytes and their availability | [Kernel resources](aiter/kernels/data/README.md) |
+| Run vLLM operators, models and serving cases | [vLLM test areas](tests/frameworks/vllm/README.md) |
+| Measure operators or real vLLM models | [Benchmarks](benchmarks/README.md) |
+| Measure implementations and pin a selection | [Tuning guide](aiter/tuning/README.md) |
+| Build an editable installation or a wheel | [Build guide](build_backend/README.md) |
+| Select tests, run a client profile or inspect release evidence | [CI guide](ci/README.md) |
+| Consume the tested wheel in a container | [Container guide](docker/README.md) |
+| Review changes, QA findings and the next PR boundaries | [Engineering notes](notes.md) and [rollout](rollout.md) |
 
-- **[2026/07]** [Kimi-K3 support](https://github.com/ROCm/aiter/pull/4397) — FlyDSL SiTUv2 fused-MoE kernels, strided grouped-topk router, and tuned GEMM/fused-MoE configs (BF16, A8W4, FP4) for Kimi-K3
-- **[2026/04]** [AITER v0.1.12.post1 Released](https://github.com/ROCm/aiter/releases/tag/v0.1.12.post1) — patch on v0.1.12 with GEMM and scale masking accuracy fixes; v0.1.12 highlights include blockwise sparse Sage Attention, fused gated RMSNorm+group quantization, etc., plus MI355X tuned configs for Kimi-K2.5 and DeepSeek-V3
-- **[2026/02]** [JAX-AITER: Bringing AMD's Optimized AI Kernels to JAX on ROCm](https://rocm.blogs.amd.com/software-tools-optimization/jax-aiter/README.html)
-- **[2026/02]** [Beyond Porting: How vLLM Orchestrates High-Performance Inference on AMD ROCm](https://blog.vllm.ai/2026/02/27/rocm-attention-backend.html)
-- **[2026/01]** [Character.ai: 2x Production Inference Performance on AMD Instinct GPUs](https://blog.character.ai/technical-deep-dive-how-digitalocean-and-amd-delivered-a-2x-production-inference-performance-increase-for-character-ai/)
-- **[2026/01]** [ROCm Becomes a First-Class Platform in the vLLM Ecosystem](https://rocm.blogs.amd.com/software-tools-optimization/vllm-omni/README.html)
-- **[2025]** [Accelerated LLM Inference with vLLM 0.9.x and ROCm](https://rocm.blogs.amd.com/software-tools-optimization/vllm-0.9.x-rocm/README.html)
-- **[2025]** [Accelerate DeepSeek-R1 Inference: Integrate AITER into SGLang](https://rocm.blogs.amd.com/artificial-intelligence/aiter-intergration-s/README.html)
-- **[2025/08]** [AITER-Enabled MLA Layer Inference on AMD Instinct MI300X](https://rocm.blogs.amd.com/software-tools-optimization/aiter-mla/README.html)
-- **[2025/08]** [Tutorial: MLA Decoding Kernel of the AITER Library to Accelerate LLM Inference](https://rocm.docs.amd.com/projects/ai-developer-hub/en/latest/notebooks/gpu_dev_optimize/aiter_mla_decode_kernel.html)
-- **[2025/03]** [Accelerating DeepSeek Inference with AMD MI300 — Microsoft](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/accelerating-deepseek-inference-with-amd-mi300-a-collaborative-breakthrough/4407673)
-- **[2025/03]** [AITER: AI Tensor Engine For ROCm — Launch Announcement](https://rocm.blogs.amd.com/software-tools-optimization/aiter-ai-tensor-engine/README.html)
+The website renders these same guides. Its build checks links; Chromium checks desktop and mobile layouts, search, navigation and diagrams. Building the documentation does not need AITER or a GPU.
 
-## Ecosystem
+## Install for development
 
-AITER is the **default kernel backend for LLM inference on AMD GPUs**, integrated into the major serving frameworks and powering production workloads at scale.
-
-### Framework Integration
-
-| Framework | Integration | Status | Operators Used |
-|---|---|---|---|
-| [**vLLM**](https://github.com/vllm-project/vllm) | Default attention backend on ROCm | Production | MHA, MLA, Paged Attention, Fused MoE, GEMM, RMSNorm, RoPE+KVCache |
-| [**SGLang**](https://github.com/sgl-project/sglang) | Default on ROCm Docker | Production | Attention, Fused MoE, Block-scale GEMM, All-reduce, RMSNorm |
-| [**ATOM**](https://github.com/ROCm/ATOM) | Built natively on AITER | Active development | All AITER operators (attention, MoE, sampling, communication) |
-| [**JAX**](https://github.com/ROCm/jax-aiter) | XLA FFI bridge, no PyTorch dependency | Experimental | MHA/FMHA, RMSNorm, BF16 GEMM |
-| Various customer proprietary inference engines | Kernel-level integration | Production | Attention, MoE, GEMM, quantization |
-
-### Performance Highlights
-
-| Operator | Speedup |
-|---|---|
-| MLA decode kernel | up to **17x** |
-| [MHA prefill kernel](op_tests/cpp/mha/README.md) | up to **14x** |
-| Block-scaled Fused MoE | up to **3x** |
-| Block-scaled GEMM | up to **2x** |
-| DeepSeek-R1 e2e (SGLang) | 6,484 → **13,704** tok/s (2.1x) |
-| JAX-AITER attention (MI350) | **4.39x** median |
-
-> For detailed benchmarks, see the [ATOM Benchmark Dashboard](https://rocm.github.io/ATOM/benchmark-dashboard/).
-
-### Supported Hardware
-
-| GPU | Architecture | Status |
-|---|---|---|
-| AMD Instinct MI300X | gfx942 (CDNA3) | Fully supported |
-| AMD Instinct MI325X | gfx942 (CDNA3) | Fully supported |
-| AMD Instinct MI350 | gfx950 (CDNA4) | Supported |
-| AMD Instinct MI355X | gfx950 (CDNA4) | Supported |
-| AMD Pro W7900 | gfx1100 (RDNA3) | Experimental<sup>1</sup> |
-| AMD AI Max and Max Pro 400/300 Series | gfx1151 (RDNA3.5) | Experimental<sup>1</sup> |
-| AMD Radeon AI PRO R9700 | gfx1201 (RDNA4) | Experimental<sup>1</sup> |
-
-<sup>1</sup> On RDNA, Triton and most FlyDSL kernels run, as do most HIP kernels (norm, RoPE, quant, activation, plus some GEMM/attention). Most CK and ASM kernels are CDNA-only.
-
-## Operators
-
-AITER provides optimized kernels for attention, MoE, GEMM, normalization, quantization, communication, and more. Each operator has unit tests under [`op_tests/`](op_tests/) that you can run directly:
+Use an environment with the appropriate ROCm Torch and Triton packages already selected for your GPU and application. The build system leaves those choices to the environment.
 
 ```bash
-# Example: run a single operator test
-python3 op_tests/test_mha.py
-python3 op_tests/test_mla.py
-python3 op_tests/test_moe.py
-python3 op_tests/test_gemm_a8w8.py
-python3 op_tests/test_rmsnorm2d.py
-
-# See all available operator tests
-ls op_tests/test_*.py
-```
-
-## Release Plan
-
-AITER publishes a scheduled release every two weeks. Each scheduled release uses a release branch named after the target version, such as `release/v0.1.20`, and a matching release tag, such as `v0.1.20`. The normal version progression moves from one scheduled release tag to the next, for example `v0.1.19` to `v0.1.20`.
-
-For scheduled releases, automation creates any missing `release/vX.Y.Z` branch and matching `vX.Y.Z` tag from the configured release source ref, which defaults to `main`. The tag must point at the release branch HEAD. The GitHub Release page is created with the release branch as the target, generated notes are diffed against the previous scheduled tag, and the notes state the diff base.
-
-If a hotfix is required after a release, the fix is cherry-picked onto the corresponding release branch and published as a post-release tag. Post-releases use the `.postN` suffix, for example `v0.1.20.post1`. Post-release tags must already exist on the matching release branch; automation refuses to create a post tag from `main`.
-
-Release automation validates that the release tag points at the matching release branch HEAD, builds manylinux_2_28 wheels for ROCm 7.0, 7.1, and 7.2 with Python 3.10 and 3.12, validates that exactly six wheels were produced, and uploads the complete wheel set to the matching GitHub Release. It does not upload partial wheel sets.
-
-## Installation
-
-```bash
-git clone --recursive https://github.com/ROCm/aiter.git
+git clone --recursive --branch akaratza_aiter_implementation https://github.com/AndreasKaratzas/aiter.git
 cd aiter
-python3 setup.py develop
+python -m pip install -e .
+python -m aiter doctor --gpu
 ```
 
-If you happen to forget the `--recursive` during `clone`, you can use the following command after `cd aiter`
+For an existing clone, initialize its pinned dependencies with `git submodule update --init --recursive`. Use `python -m aiter doctor` without `--gpu` to inspect package metadata without initializing a device.
+
+Native source compilation needs the ROCm compiler; Triton and Gluon preparation need their compiler environment. [The dependency guide](requirements/README.md) explains runtime, build, test, documentation and client environments. [The build guide](build_backend/README.md) covers wheels and precompiled native providers.
+
+## Prepare once, run repeatedly
+
+```python
+import torch
+from aiter.runtime import Runtime
+
+x = torch.randn(256, 4096, device="cuda:0", dtype=torch.bfloat16)
+weight = torch.ones(4096, device=x.device, dtype=x.dtype)
+out = torch.empty_like(x)
+
+runtime = Runtime(device=0)
+plan = runtime.prepare_rmsnorm(x, weight, out, backend="hip")
+plan.execute({"x": x, "weight": weight, "out": out})
+print(plan.explain())
+```
+
+Preparation checks the operation and loads or compiles its implementation. Execution reuses that implementation on the caller's stream. Your application owns the tensors and completion waits; `explain()` identifies the selected code.
+
+```mermaid
+flowchart LR
+    F[Application or framework] --> A[Operation description]
+    A --> R[Runtime: validate and prepare]
+    R --> H[Native HIP / CK]
+    R --> T[Triton / Gluon]
+    H --> P[Fixed execution plan]
+    T --> P
+    P --> G[GPU kernel on caller stream]
+    M[Approved dispatch manifest] --> R
+```
+
+The prepared interface covers RMSNorm, grouped FP8 quantization, ordinary FP8 blockscale GEMM, rotary embedding, dense attention, MXFP4 quantization and ordinary MXFP4 GEMM. Each provider declares its accepted shapes, layouts, dtypes and targets. Local GPU validation uses gfx950; it does not qualify gfx942.
+
+Specialized FP4 layouts, paged attention, MLA, MoE and collectives retain their existing interfaces and lifecycle rules. Run `python -m aiter operators` to find a domain and see whether it has a prepared interface. The [architecture guide](ARCHITECTURE.md) explains the ports-and-adapters design and its current boundaries.
+
+## Run the checks for your change
+
+The host suite needs Git and a Linux C++17 compiler available as `c++`. It does not need Torch or a GPU. Install its Python test dependencies before running the CI commands:
+
 ```bash
-git submodule sync && git submodule update --init --recursive
+python -m pip install -r requirements/test/host.txt
+python -m ci list
+python -m ci validate
+python -m ci architecture check
+python -m ci plan --profile host --architecture gfx950 --output /tmp/aiter-plan.json
+python -m ci run --plan /tmp/aiter-plan.json --output-dir /tmp/aiter-run
+python -m ci check --plan /tmp/aiter-plan.json --results /tmp/aiter-run
 ```
 
-### FlyDSL
+Here `gfx950` labels the candidate target; the `host` profile executes on the CPU. Numerical profiles such as `product-fast` additionally require the declared ROCm, Torch and GPU environment described in [the CI guide](ci/README.md).
 
-AITER uses [FlyDSL](https://github.com/ROCm/FlyDSL)-based kernels across a range of operators (e.g., GEMM and MoE). FlyDSL is a required dependency and is installed automatically when you run `python3 setup.py develop`.
+The catalog groups host checks, GPU operations, SDK checks and client cases. The same commands run locally and in GitHub Actions. Plans identify the source and selected cases; changing the source requires a new plan. Client declarations live under `ci/clients/CLIENT/`.
 
-To install it manually:
+Tests declare hardware requirements through [shared markers and fixtures](tests/common/README.md). Required qualification fails when a selected case cannot run. The vLLM nightly pipeline installs the framework in a fresh environment, installs the candidate AITER wheel, checks imports and runs its declared operator and model groups. Model tests require observed AITER execution as well as correct results.
 
-```bash
-pip install -r requirements.txt
+[The CI guide](ci/README.md) explains the daily, extended and release profiles. Framework correctness and performance measurements have separate acceptance conditions; a passing source test does not qualify an untested wheel or container image.
+
+## Repository map
+
+```text
+aiter/
+  api/             Operation meanings and tensor descriptions
+  runtime/         Preparation, execution policy and plans
+  backends/        Native and DSL provider adapters
+  tuning/          Immutable selections and offline search programs
+  codegen/         Named generators and declared build resources
+  kernels/         Resource catalog, admission logic and data/ code objects
+  testing/         Shared tensor, numerical and measurement helpers
+  ops/, jit/, aot/ Kernels, launch bridges and compilation
+include/aiter/     Public native C header
+bindings/rust/    Typed Rust client of the same native SDK
+csrc/             Native kernel sources; blas/ owns tuning bridges
+build_backend/    Immutable build plans, phase controller and package adapters
+ci/               Architecture checks, qualification, pipelines and delivery
+.github/workflows/ GitHub events and runner allocation
+.github/scripts/  common/, host/, product/, clients/, release/ adapters
+tests/            unit/, integration/, frameworks/{common,pytorch,vllm,sglang}
+  common/         Hardware markers, model fixtures and process/origin helpers
+benchmarks/       operators/, vllm/, model-shape sweeps and traces/
+examples/         Runnable Python and native integration examples
+requirements/     runtime/, build/, test/, docs/, clients/ dependency inputs
+docker/           common/, pytorch/, vllm/, sglang/ image recipes
+docs/             Website, canonical-guide mapping and browser checks
 ```
 
-### Triton
+`aiter/` is the installed library. `ci/` is repository automation and does not ship in the SDK. Kernel bytes belong to the library under `aiter/kernels/data/`; logs, reports and writable compilation caches belong outside the checkout.
 
-AITER includes Triton-based operators that require triton from AMD PyPI, with the correct version selected based on your ROCm installation.
-
-If you install with `python3 setup.py develop`, triton is installed automatically. To skip this and keep your existing triton, set:
-
-```bash
-AITER_USE_SYSTEM_TRITON=1 python3 setup.py develop
-```
-
-If you use `pip install -e .`, run the install script manually:
-
-```bash
-./.github/scripts/install_triton.sh
-```
-
-### Opus — Lightweight C++ Template for Kernel Development
-
-[Opus](csrc/include/opus/) is a single-header C++ template library (`opus.hpp`) for writing HIP kernels on AMD GPUs — vectorized load/store, layout abstractions, and MFMA wrappers with a strong focus on **build time optimization** (up to 61x faster than standard torch extension builds). See the [Opus README](csrc/include/opus/README.md) and [`op_tests/opus/`](op_tests/opus/) for details.
-
-### Triton-based Communication (Iris)
-
-AITER supports GPU-initiated communication using the [Iris library](https://github.com/ROCm/iris). This enables high-performance Triton-based communication primitives like reduce-scatter and all-gather.
-
-```bash
-pip install -e .
-pip install -r requirements-triton-comms.txt
-```
-
-For more details, see [docs/triton_comms.md](docs/triton_comms.md).
+For implementation details, see [Opus](csrc/include/opus/README.md), [Triton development](aiter/ops/triton/README.md), [native attention benchmarks](benchmarks/native/mha/README.md) and [Triton communication](docs/triton_comms.md).

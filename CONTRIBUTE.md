@@ -1,620 +1,114 @@
 # Contributing to AITER
 
-Thank you for your interest in contributing to AITER! We are building a high-performance inference runtime optimized for AMD GPUs with ROCm. Our community welcomes contributions of all kinds, whether you're fixing bugs, optimizing kernels, adding new operators, or improving documentation.
+Start with the behavior you want to change: an operator, a backend, a consumer integration or the delivery system. A good change makes that responsibility easier to understand and proves its effect with the relevant checks. Performance, numerical correctness and maintainability are reviewed together.
 
-## Ways to Contribute
+[The architecture](ARCHITECTURE.md) explains dependency direction and extension points. [The repository map](README.md#repository-map) helps locate code. [The rollout record](rollout.md) describes the dependencies between the current restructuring rounds.
 
-There are several ways you can contribute to AITER:
+## Set up a checkout
 
-* **Report Issues**: Identify and report bugs, performance issues, or unexpected behavior
-* **Add Operators**: Request or implement new operators for LLM inference
-* **Optimize Kernels**: Improve existing HIP/CK/Triton kernel performance
-* **Hardware Support**: Extend support for new AMD GPU architectures (MI200, MI300, etc.)
-* **Documentation**: Improve docs, add tutorials, or write performance guides
-* **Code Review**: Review pull requests and provide constructive feedback
-* **Community Support**: Answer questions and help other users
+Select a ROCm environment with the Torch and DSL versions appropriate for your target and consumer. AITER does not choose those dependencies on your behalf.
 
-We also encourage you to share your experiences with AITER in blog posts, social media, or conference talks. If AITER helps your project, please consider starring our repository!
-
----
-
-## Getting Started
-
-### Job Board
-
-Not sure where to start? Check out these tasks:
-
-* **Good First Issues**: Simple bugs or small enhancements
-* **Help Wanted**: Features or optimizations that need community help
-* **Kernel Optimization**: Performance improvement opportunities for existing operators
-* **New Operator Requests**: Missing operators needed for new models
-
-### Prerequisites
-
-Before contributing, ensure you have:
-
-* **AMD GPU**: MI200, MI300 series, or compatible ROCm hardware
-* **ROCm**: Version 5.7+ installed and configured
-* **Python**: 3.9, 3.10, 3.11, or 3.12
-* **PyTorch**: ROCm-enabled PyTorch 2.0+
-* **Git**: For version control
-
----
-
-## Development Setup
-
-### 1. Fork and Clone
-
-Fork the AITER repository to your GitHub account, then clone it:
-
-```bash
-git clone https://github.com/<<your_username>>/aiter.git
+```sh
+git clone --recursive https://github.com/ROCm/aiter.git
 cd aiter
-git remote add upstream https://github.com/ROCm/aiter.git  # Add upstream remote
+python -m pip install -e .
+python -m aiter doctor --gpu
 ```
 
-### 2. Set Up Python Environment
+For an existing checkout, initialize the pinned dependencies with `git submodule update --init --recursive`. Plain `python -m aiter doctor` inspects package metadata without initializing a GPU. See [the build guide](build_backend/README.md) for source archives, wheels and explicit prebuilds.
 
-We recommend using a virtual environment:
+## Put the change with its owner
 
-```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+| Change | Home |
+| --- | --- |
+| Operation meaning or tensor layout | `aiter/api/` |
+| Preparation, execution policy or resource validation | `aiter/runtime/` |
+| A provider for an existing prepared operation | `aiter/backends/` |
+| Optimized HIP/C++ or assembly code | `csrc/`, `kernels/` |
+| Triton, Gluon or other Python operation implementation | `aiter/ops/` |
+| Native source generation | `aiter/codegen/` and its named registry |
+| Native compiler recipe or cache behavior | `aiter/jit/` |
+| Ahead-of-time compiler and launch bridge | `aiter/aot/`, `aiter/ops/_native/` |
+| Offline search, observations and selection | `aiter/tuning/` |
+| A framework profile and its tests | `ci/clients/FRAMEWORK/`, `tests/frameworks/FRAMEWORK/` |
+| Qualification, release or ownership behavior | The corresponding application under `ci/` |
+| Workload measurement | `benchmarks/` |
 
-# Upgrade pip
-pip install --upgrade pip
+Find the effective reviewer rule with:
+
+```sh
+python -m ci.ownership.policy show aiter/runtime/plan.py
+python -m ci.ownership.policy check
 ```
 
-### 3. Install AITER from Source
+A domain spans its kernel, wrapper, tests and configuration. A change to layout, numerical semantics, synchronization, public API/ABI or release controls also needs a reviewer who can assess that boundary. The ownership policy records responsibilities; maintainers still need to accept their assignments and configure remote review enforcement.
 
-For Python-only development:
+## Add or change an operation
 
-```bash
-# Install with precompiled kernels
-PREBUILD_KERNELS=1 GPU_ARCHS="gfx942;gfx950" python setup.py develop
+For a prepared operation, define its mathematical behavior, physical layout, supported dtypes and resource ownership first. A packed format must specify where its values and scales live; a dtype name alone is insufficient. Decide how invalid shapes, output overlap, stream ownership and capture are handled.
+
+An adapter implements `Backend.supports()` and `Backend.prepare()`. Support queries report eligibility and a reason. Preparation may compile when policy allows it, but it preserves application data. The returned launcher retains its executable and enqueues work using the caller's buffers and stream. Execution does not tune, choose a different provider, allocate scratch or wait for completion. [The runtime guide](aiter/runtime/README.md) contains working examples and precise provider restrictions.
+
+Existing specialized operators remain valid interfaces. Adding a prepared plan for paged attention, an expert pipeline or a communicator is a separate capability: define and test the state/workspace/lifetime behavior before advertising the new guarantee. Keep compatibility exports pointed at canonical definitions when moving a module; do not restore incidental imports solely to keep an old reexport alive.
+
+Native generators use `BuildContext` to resolve sources, assembly and vendor inputs. Register an importable command under `aiter.codegen`; require an explicit output directory and propagate errors. Native recipes contain validated JSON data and explicit tokens. Do not add executable Python expressions to the recipe catalog or introduce another parent-directory search. [The generator guide](aiter/codegen/README.md) explains the entry point and installed-wheel resource layout.
+
+## Add the right test
+
+Use [the test guide](tests/README.md) to choose the owning subsystem. New correctness tests should expose individual pytest cases with assertions against an independent reference. Include the relevant invalid-input, tail/layout and lifetime cases. GPU capture or asynchronous claims require actual capture/stream tests.
+
+Framework tests belong under `tests/frameworks/pytorch`, `vllm` or `sglang`. Shared origin checks, references and tracing belong in `tests/frameworks/common`. Prove that the intended AITER path actually ran; an enabled environment flag is not sufficient.
+
+The broad operator inventory lives under `tests/operators`, grouped by implementation family. Existing standalone programs with their own case loops live in backend `drivers` directories and have explicit CI execution adapters. Do not make pytest import a script that starts parsing arguments or launching a full workload at module import.
+
+Run an individual suite or use the catalog:
+
+```sh
+python -S -m unittest discover -s tests/unit/runtime -t tests -v
+HIP_VISIBLE_DEVICES=0,1 python -m pytest tests/integration/runtime -q
+HIP_VISIBLE_DEVICES=0 python -m pytest tests/operators/triton/normalization/test_rmsnorm.py -q
+
+python -m ci list
+python -m ci validate
+python -m ci plan --profile product-fast --output /tmp/aiter-plan.json
+python -m ci run --plan /tmp/aiter-plan.json --gpus 0,1 --output-dir /tmp/aiter-run
+python -m ci check --plan /tmp/aiter-plan.json --results /tmp/aiter-run
 ```
 
-For full development (Python + HIP/CK kernels):
+Finish editing before planning. The executor checks the recorded candidate and controller identities. Keep output outside the checkout and retain failed attempts. A required skipped or missing test cannot qualify a release. State which hardware was actually tested; capability declarations are not substitutes for gfx942 or gfx950 results.
 
-```bash
-# Build all kernels from source
-pip install -e .
-```
-```
+## Measure performance separately
 
----
+Place measurement programs in `benchmarks`, and put tests of their measurement logic under `tests/unit/benchmarks`. Reuse workload factories rather than importing a test module into a tuner or benchmark. The [benchmark guide](benchmarks/README.md) covers operation measurements, model-shape sweeps and native attention programs.
 
-## Code Quality
+Record the exact workload, GPU, software versions, warmup, timing protocol and raw repeated samples. Compare numerical behavior before comparing speed. Report noise and regression thresholds, and distinguish preparation, steady execution and end-to-end model results. A model's matrix shapes do not establish its serving throughput.
 
-### Pre-commit Hooks
+Offline search produces observations. Promoting a prepared-runtime selection requires comparable, correct trials bound to the workload, environment and executable. Runtime reads do not rewrite source tuning tables or approve a result because one CSV row reports a shorter time. See [the tuning guide](aiter/tuning/README.md).
 
-AITER uses `pre-commit` to maintain code quality. Install it before making changes:
+## Check style and documentation
 
-```bash
-pip install black==26.3.0 ruff==0.15.7
-apt install clang-format-18
+Use the repository's configured tools, and format the files you changed:
 
-# Install pre-commit hooks
-bash ./.githooks/install
+```sh
+python -m ruff check .
+python -m black aiter/api aiter/runtime
 ```
 
-This will automatically:
-* Format Python code with `black`
-* Lint Python code with `ruff`
-* Format C++/HIP code with `clang-format`
-* Check for common issues
+Use `.clang-format` for changed C/C++/HIP files. Keep public descriptions concrete: state the accepted layout and behavior, show a working command, and explain limitations where they affect a caller's choice. Update navigation when a file moves.
 
-### Manual Linting
+The reference documentation builds without importing Torch:
 
-To manually run linters:
-
-```bash
-# Python formatting
-black aiter/ op_tests/
-
-# Python linting
-ruff check aiter/ op_tests/
-
-# C++/HIP formatting
-find csrc/ -name "*.cu" -o -name "*.h" -o -name "*.cpp" | xargs clang-format-18 -i
+```sh
+python -m pip install -r requirements/docs/build.txt
+python -m sphinx -W --keep-going -b html docs /tmp/aiter-docs
 ```
 
-### Code Style Guidelines
+## Prepare a reviewable change
 
-**Python Code:**
-* Follow [PEP 8](https://pep8.org/)
-* Use type hints for function signatures
-* Maximum line length: 88 characters (black default)
-* Use descriptive variable names
+Describe the concrete problem and resulting behavior. Include the affected public interface or consumer, relevant numerical and lifecycle evidence, measured performance conditions and any remaining qualification limits. A small change needs a short explanation; a new subsystem needs its dependency and ownership decisions as well.
 
-**C++/HIP Code:**
-* Follow [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
-* Use `snake_case` for functions and variables
-* Use `PascalCase` for classes
-* Comment complex kernel logic and optimizations
-* Always document performance-critical sections
+Keep related moves and caller updates in the same review round. Use `rollout.md` for dependencies between rounds and `notes.md` for file changes, findings and test evidence. Independent QA should challenge the interface after implementation; fix the findings and rerun the affected checks before requesting acceptance.
 
-**Kernel Development:**
-* Optimize for memory bandwidth (most operators are memory-bound)
-* Use vectorized loads/stores when possible (vec4, vec8, vec16)
-* Minimize global memory accesses
-* Document arithmetic intensity and roofline analysis
-* Include performance benchmarks in PR description
-* **Minimize external dependencies** - avoid adding new third-party libraries
+Delivery changes must preserve the identity of the exact wheel and image tested. Candidate source and trusted release controls have separate roles. Publication credentials belong to the reviewed publication boundary, and a failed candidate must remain visible without replacing the previous qualified reference. [The CI guide](ci/README.md) explains profiles, cadence, image inheritance and rollback.
 
----
-
-## Testing
-
-### Running Tests
-
-AITER tests are standalone Python scripts in the `op_tests/` directory:
-
-```bash
-# Run all tests using the CI script
-bash .github/scripts/aiter_test.sh
-
-# Run a specific test file directly
-python op_tests/test_rmsnorm2d.py
-
-# Run with specific parameters
-python op_tests/test_rmsnorm2d.py --dtype bf16 --m 1024 --n 4096
-
-# Run Triton-specific tests
-python op_tests/triton_tests/normalization/test_rmsnorm.py
-
-# Run multi-GPU tests
-MULTIGPU=TRUE bash .github/scripts/aiter_test.sh
-```
-
-### Adding Tests
-
-When adding new features or fixing bugs, include tests. AITER tests are standalone Python scripts:
-
-```python
-# op_tests/test_new_operator.py
-import torch
-import argparse
-from aiter.ops import new_operator
-from aiter.test_common import checkAllclose, perftest
-from aiter import dtypes
-
-@perftest()
-def run_reference(input, param):
-    """Reference implementation."""
-    # Your reference implementation
-    return expected_output
-
-@perftest()
-def run_aiter(input, param):
-    """AITER optimized implementation."""
-    return new_operator(input, param)
-
-def test_new_operator(dtype, m, n):
-    """Test operator correctness and performance."""
-    input_tensor = torch.randn(m, n, dtype=dtype, device='cuda')
-    
-    # Run both implementations
-    expected = run_reference(input_tensor, param)
-    output = run_aiter(input_tensor, param)
-    
-    # Check correctness
-    checkAllclose(output, expected, rtol=1e-3, atol=1e-3)
-    print(f"✓ Test passed for dtype={dtype}, m={m}, n={n}")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--dtype", type=str, default=None,
-                       help="Data type (e.g., bf16, fp16)")
-    parser.add_argument("-m", type=int, default=None, help="M dimension")
-    parser.add_argument("-n", type=int, default=None, help="N dimension")
-    
-    args = parser.parse_args()
-    
-    # Define test configurations
-    l_dtype = [torch.float16, torch.bfloat16]
-    l_m = [1024, 2048, 4096]
-    l_n = [4096, 8192]
-    
-    if args.dtype:
-        l_dtype = [dtypes.d_dtypes[args.dtype]]
-    if args.m:
-        l_m = [args.m]
-    if args.n:
-        l_n = [args.n]
-    
-    # Run tests
-    for dtype in l_dtype:
-        for m in l_m:
-            for n in l_n:
-                test_new_operator(dtype, m, n)
-```
-
-**Key Features:**
-- Use `@perftest()` decorator for performance timing
-- Use `checkAllclose()` for numerical comparison
-- Support command-line arguments for flexible testing
-- Print clear pass/fail messages
-
-### Testing on Different Hardware
-
-If you don't have access to specific AMD GPU models, mention this in your PR. Our CI system will run tests on:
-* MI300X (gfx942)
-* MI350X (gfx950)
-
----
-
-## Kernel Development
-
-### General Principles
-
-When developing new operators:
-
-* **Minimize External Dependencies**: Avoid introducing new third-party libraries whenever possible
-  - Prefer using existing dependencies: PyTorch, ROCm/HIP, Composable Kernel (CK), Triton
-  - If a new dependency is absolutely necessary, discuss it in the PR and provide strong justification
-  - Consider implementing functionality from scratch if the dependency is small or simple
-  - Avoid dependencies that are not well-maintained or AMD GPU-specific
-
-### HIP Kernel Development
-
-When developing or modifying HIP kernels:
-
-1. **Use JIT Compilation System**:
-   ```python
-   from aiter.jit import compile_ops
-   
-   @compile_ops(
-       srcs=["path/to/kernel.cu"],
-       extra_hip_flags=["-O3", "-DCK_TILE_FMHA_FWD_FAST_EXP2=1"]
-   )
-   def my_operator(input: torch.Tensor) -> torch.Tensor:
-       return torch_ops.my_operator_kernel(input)
-   ```
-
-2. **Profile Memory Access Patterns**:
-   ```bash
-   # Use AITER_LOG_MORE=1 to analyze kernel performance
-   AITER_LOG_MORE=1 python3 op_tests/test_gemm_a8w8.py
-   ```
-
-3. **Check Roofline Model**:
-   - Document arithmetic intensity (FLOPs/Byte)
-   - Compare against hardware peak (MI300X: ~380 TFLOPS FP16, 3.2 TB/s)
-   - Explain if kernel is compute-bound or memory-bound
-
-4. **Optimize for Coalesced Access**:
-   ```cpp
-   // Good: Coalesced access
-   vec8_t<scalar_t> data = vectorized_ptr[blockIdx.x * vec_size + threadIdx.x];
-   
-   // Bad: Strided access
-   scalar_t data = ptr[threadIdx.x * stride];  // Avoid when stride is large
-   ```
-
-### Composable Kernel (CK) Integration
-
-When integrating CK tiles:
-
-1. **Generate CK Instances**:
-   ```bash
-   cd 3rdparty/composable_kernel/example/ck_tile/01_fmha
-   python generate.py -d fwd --receipt 200 --filter "*bf16*" --output_dir /tmp/ck_gen
-   ```
-
-2. **Add to JIT Pipeline**:
-   ```python
-   blob_gen_cmd = [
-       f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d fwd --filter {filter_pattern} --output_dir {{}}"
-   ]
-   ```
-
-3. **Register with PyTorch**:
-   ```cpp
-   TORCH_LIBRARY(aiter, m) {
-       m.def("my_ck_op(Tensor input) -> Tensor");
-   }
-   ```
-
-### Triton Kernel Development
-
-For Triton kernels:
-
-1. **Use Appropriate Block Sizes**:
-   ```python
-   @triton.jit
-   def kernel(input_ptr, output_ptr, BLOCK_SIZE: tl.constexpr):
-       # Use BLOCK_SIZE between 128-1024 for AMD GPUs
-       pass
-   ```
-
-2. **Enable Software Pipelining**:
-   ```python
-   for blk_idx in tl.range(0, n_blocks, num_stages=2):  # Enable pipelining
-       data = tl.load(ptr + blk_idx * BLOCK_SIZE)
-   ```
-
-3. **Use Cache Modifiers**:
-   ```python
-   # For data that will be reused
-   x = tl.load(input_ptr, cache_modifier=".cg")  # Cache globally
-   ```
-
----
-
-## Performance Testing
-
-### Benchmarking Operators
-
-Always benchmark your changes:
-
-```bash
-# Benchmark single operator
-python op_tests/op_benchmarks/triton/bench_rmsnorm.py
-
-```
-
-### Performance Requirements
-
-For kernel PRs, include in description:
-* **Hardware**: GPU model (e.g., MI300X)
-* **Baseline**: Performance before changes
-* **Optimized**: Performance after changes
-* **Improvement**: Percentage gain
-* **Bandwidth Utilization**: % of peak memory bandwidth
-* **Roofline Analysis**: Where operator sits on roofline model
-
-Example:
-```
-## Performance Results (MI300X)
-
-| Config | Baseline | Optimized | Improvement |
-|--------|----------|-----------|-------------|
-| FP16, BS=1024, HS=4096 | 180 μs | 150 μs | 16.7% |
-| BF16, BS=2048, HS=8192 | 720 μs | 600 μs | 16.7% |
-
-Bandwidth Utilization: 78% of peak (2.5 TB/s / 3.2 TB/s)
-Arithmetic Intensity: 0.83 FLOPs/Byte (memory-bound as expected)
-```
-
----
-
-## Documentation
-
-### Building Documentation
-
-AITER uses deepwiki for documentation:
-
-https://deepwiki.com/ROCm/aiter
-
-## Pull Requests
-
-### Before Submitting
-
-Ensure your PR:
-* [ ] Passes all pre-commit hooks
-* [ ] Includes relevant tests
-* [ ] Updates documentation if needed
-* [ ] Includes performance benchmarks (for kernel changes)
-* [ ] Has a clear, descriptive title
-
-### PR Title Format
-
-PR titles carry two kinds of bracket tags.
-
-**Component tags — applied automatically.** A GitHub Action
-(`.github/workflows/pr-title-tags.yaml`) derives these from the files the PR
-changes and keeps them in sync on every push, so you don't need to add them
-yourself. The same components are also applied as PR labels (the title shows
-at most three; the labels carry the full set). Hand-written variants
-(`[TRITON]`, `[Gluon]`, `[CK_TILE]`, `[Doc]`, ...) are normalized to the
-canonical forms:
-
-* `[Triton/Gluon]` - Triton/Gluon kernels (`aiter/ops/triton/`, `aiter/aot/triton/`, triton tests and benchmarks)
-* `[ASM]` - assembly kernels (`hsa/`, `*_asm.py`)
-* `[HIP]` - HIP/C++ sources (`csrc/`, HIP benchmarks)
-* `[CK]` - Composable Kernel (`csrc/ck_*`, `csrc/include/ck_tile/`, the `composable_kernel` submodule)
-* `[OPUS]` - OPUS kernels (`aiter/ops/opus/`, `csrc/opus_*`, `csrc/include/opus/`, OPUS tests)
-* `[FlyDSL]` - FlyDSL kernels (`aiter/ops/flydsl/`, `aiter/aot/flydsl/`, FlyDSL tests)
-* `[CI]` - `.github/` workflows and scripts
-* `[JIT]` - JIT compilation system (`aiter/jit/`)
-* `[Build]` - `setup.py`, `pyproject.toml`, requirements, `MANIFEST.in`
-* `[Config]` - tuned-config-only changes
-* `[Docs]` - documentation-only changes
-
-Add the `no-auto-title` label to opt a PR out of automatic title tagging.
-
-**Type prefixes — added by you.** These are never touched by the automation;
-add whichever applies:
-
-* `[Bugfix]` - Bug fixes
-* `[Feature]` - New features or operators
-* `[Kernel]` - Kernel optimizations or new kernels
-* `[Perf]` - Performance optimizations
-* `[Test]` - Test additions or fixes
-* `[Hardware]` - Hardware-specific changes (e.g., `[Hardware][MI300X]`)
-* `[Misc]` - Miscellaneous changes
-
-Examples:
-* `[Triton/Gluon] [Perf] Optimize RMSNorm for MI300X using vec16 loads`
-* `[CK] [Feature] Add PagedAttention operator with CK backend`
-* `[HIP] [Bugfix] Fix numerical instability in FP16 softmax`
-
-### PR Description Template
-
-```markdown
-## Summary
-Brief description of changes
-
-## Motivation
-Why is this change needed?
-
-## Changes
-- Detailed list of changes
-- Impact on existing code
-
-## Performance (if applicable)
-| Configuration | Before | After | Improvement |
-|---------------|--------|-------|-------------|
-| ...           | ...    | ...   | ...         |
-
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Performance benchmarks run
-- [ ] Tested on MI250X
-- [ ] Tested on MI300X
-
-## Documentation
-- [ ] Docstrings updated
-- [ ] User guide updated
-- [ ] Performance guide updated
-
-## Dependencies
-- [ ] No new third-party dependencies added
-- [ ] If new dependencies added, justification provided
-
-## Breaking Changes
-List any breaking changes and migration guide
-```
-
-### Code Review Process
-
-1. **Initial Review**: A maintainer will review within 3-5 business days
-2. **Feedback**: Address comments and push updates
-3. **Approval**: After approval, CI will run full test suite
-4. **Merge**: Once CI passes, a maintainer will merge
-
-If your PR is urgent or hasn't been reviewed, ping maintainers on the issue or PR.
-
----
-
-## Specific Contribution Areas
-
-### Adding New Models
-
-When adding support for a new model:
-
-1. Identify required operators
-2. Check if operators exist in AITER
-3. Implement missing operators
-4. Add model configuration
-5. Add accuracy tests
-6. Benchmark performance
-
-### Optimizing Existing Kernels
-
-For kernel optimizations:
-
-1. Profile baseline performance with `rocprof`
-2. Identify bottleneck (memory-bound vs compute-bound)
-3. Apply optimizations:
-   - Increase vectorization width
-   - Improve memory coalescing
-   - Use shared memory effectively
-   - Enable software pipelining
-4. Verify correctness with tests
-5. Document performance improvement
-
-### Hardware-Specific Optimizations
-
-For new AMD GPU architectures:
-
-1. Check architecture features (cache sizes, VGPR count, LDS size)
-2. Tune kernel parameters for new hardware
-3. Update `get_gfx()` detection
-4. Add hardware-specific code paths if needed
-5. Update CI to test on new hardware
-
----
-
-## Community
-
-### Getting Help
-
-* **Issues**: [GitHub Issues](https://github.com/ROCm/aiter/issues)
-* **Discussions**: [GitHub Discussions](https://github.com/ROCm/aiter/discussions)
-
-### Code of Conduct
-
-We follow the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/). Please be respectful and constructive in all interactions.
-
----
-
-## Developer Certificate of Origin (DCO)
-
-By contributing to AITER, you certify that your contribution was created in whole or in part by you and that you have the right to submit it under the MIT License, as specified in this project's LICENSE
-
-```bash
-git commit -s -m "Your commit message"
-```
-
-This adds a `Signed-off-by` line to your commit message.
-
-**Tip**: Enable automatic sign-off in your Git config:
-```bash
-git config --global format.signoff true
-```
-
----
-
-## Advanced Topics
-
-### JIT Compilation System
-
-AITER uses a custom JIT system for compiling kernels. When modifying:
-
-1. **Adding New Modules**: Update `optCompilerConfig.json`
-2. **Dynamic Configuration**: Use `gen_func` in `@compile_ops` decorator
-3. **Blob Generation**: Add code generation commands to `blob_gen_cmd`
-
-## FAQ
-
-**Q: My kernel compiles but is slower than expected. What should I check?**
-
-A: 
-1. Check memory access patterns (use `rocprof`)
-2. Verify coalescing (check `MemUnitBusy`)
-3. Measure bandwidth utilization
-4. Compare against roofline model
-
-**Q: How do I test on hardware I don't have access to?**
-
-A: Submit your PR and mention hardware limitations. Our CI will test on MI250X and MI300X.
-
-**Q: When should I use HIP vs CK vs Triton?**
-
-A:
-* **HIP**: Maximum control, hardware-specific optimizations
-* **CK**: High-performance tile-based GEMM-like operations
-* **Triton**: Rapid prototyping, easier to write
-
-**Q: My PR conflicts with main branch. How do I resolve?**
-
-A:
-```bash
-git fetch upstream
-git rebase upstream/main
-# Resolve conflicts
-For more details, refer to the JIT compilation system documentation and comments in the relevant source files.
-```
-
-**Q: Can I add a new third-party library dependency?**
-
-A:
-We strongly prefer to avoid new dependencies. If you believe a new library is necessary:
-1. Check if the functionality can be implemented using existing dependencies (PyTorch, HIP, CK, Triton)
-2. Consider implementing the feature from scratch if it's relatively simple
-3. If the dependency is essential, provide strong justification in your PR:
-   - Why existing solutions don't work
-   - Performance benefits or features it provides
-   - Library maintenance status and AMD GPU support
-   - Impact on build time and binary size
-
----
-
-## Thank You!
-
-Thank you for contributing to AITER! Your contributions help make AITER the best inference runtime for AMD GPUs. Whether you're optimizing a single kernel or adding a major feature, we appreciate your effort and dedication to the project.
-
-Happy coding! 🚀
+Contributions remain subject to the repository's license and existing contribution requirements. Follow the project's Developer Certificate of Origin process when preparing commits for upstream review; local working changes do not themselves create commits or accept remote responsibilities.

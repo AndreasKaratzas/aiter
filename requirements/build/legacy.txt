@@ -1,0 +1,5 @@
+# Retained rolling-client builder additions, distinct from qualified builds.
+setuptools_scm[toml]>=6.2
+wheel
+packaging
+psutil

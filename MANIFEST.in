@@ -1,6 +1,29 @@
 graft aiter
-graft aiter_meta
+graft build_backend
+graft requirements
+graft csrc
+graft 3rdparty/ck_helper
+graft 3rdparty/composable_kernel
+exclude 3rdparty/composable_kernel/.git
+graft include
+graft examples
+graft cmake
+graft tests/integration/sdk
+graft bindings/rust
+prune bindings/rust/target
+include CMakeLists.txt
  
 # exclude cache and compiled files .pyc / .pyo / .pyd / .pyd 
 global-exclude *.py[cod]
 prune aiter/jit/build
+prune aiter/jit/prepared
+prune aiter/jit/flydsl_cache
+prune aiter/lib
+prune aiter/ops/triton/configs/gemm/aot
+prune aiter/ops/triton/configs/paged_mqa_logits/aot
+recursive-exclude aiter *.so *.so.* *.o *.hsaco *.co *.cubin *.ptx *.lock *.source.json *.ninja
+exclude aiter/install_mode
+exclude aiter/jit/prebuild.json
+
+# Managed code objects are declared library inputs, not local compiler output.
+graft aiter/kernels/data

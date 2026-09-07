@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "product": {
+    "dockerfile": "common/Dockerfile",
+    "targets": [
+      "runtime",
+      "development",
+      "wheelhouse"
+    ]
+  },
+  "consumers": {
+    "pytorch": {
+      "dockerfile": "pytorch/Dockerfile",
+      "profile": "image",
+      "client": "pytorch"
+    },
+    "vllm": {
+      "dockerfile": "vllm/Dockerfile",
+      "profile": "vllm-image",
+      "client": "vllm"
+    },
+    "sglang": {
+      "dockerfile": "sglang/Dockerfile",
+      "profile": "sglang-image",
+      "client": "sglang"
+    }
+  },
+  "inheritance_clients": [
+    "vllm",
+    "sglang"
+  ]
+}

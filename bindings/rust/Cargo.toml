@@ -1,0 +1,11 @@
+[package]
+name = "aiter"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+description = "Typed Rust frontend for the AITER native operator SDK"
+publish = false
+
+[lib]
+path = "src/lib.rs"

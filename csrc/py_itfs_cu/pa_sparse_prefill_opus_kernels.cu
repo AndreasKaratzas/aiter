@@ -6,7 +6,7 @@
 //   gfx950  -- kernels compiled from the device templates in
 //              `pa_sparse_prefill_opus.h` (single-header, IMPL-guarded).
 //   gfx1250 -- kernels loaded from the prebuilt code objects in
-//              `hsa/gfx1250/mla_v4_opus/`, one per precision.
+//              `kernels/gfx1250/mla_v4_opus/`, one per precision.
 
 #define PA_SPARSE_PREFILL_OPUS_IMPL
 #include "pa_sparse_prefill_opus.h"

@@ -1,0 +1,75 @@
+name: Host checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '30 2 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install test runner
+        run: python -m pip install -r requirements/test/host.txt
+      - name: Validate and run host profile
+        run: |
+          python -S -m ci.dependencies check
+          python -S -m ci validate
+          python -S -m ci architecture check
+          python -S -m ci.pipelines workflows --check
+          python -S -m ci.pipelines scripts --check
+          python -m ci plan --profile host --output "$RUNNER_TEMP/plan.json"
+          python -m ci run --plan "$RUNNER_TEMP/plan.json" --output-dir "$RUNNER_TEMP/results"
+          python -m ci check --plan "$RUNNER_TEMP/plan.json" --results "$RUNNER_TEMP/results"
+      - name: Retain execution evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: host-py${{ matrix.python }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: error
+
+  packaging:
+    name: Package with the PEP 517 frontend
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install declared CPU build tools
+        run: python -m pip install -r requirements/build/packaging.txt
+      - name: Build the distribution and verify source integrity
+        run: |
+          python -m ci plan --profile packaging --output "$RUNNER_TEMP/packaging-plan.json"
+          python -m ci run --plan "$RUNNER_TEMP/packaging-plan.json" --output-dir "$RUNNER_TEMP/packaging-run"
+          python -m ci check --plan "$RUNNER_TEMP/packaging-plan.json" --results "$RUNNER_TEMP/packaging-run"
+      - name: Retain packaging evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: packaging-py${{ matrix.python }}
+          path: ${{ runner.temp }}/packaging-run
+          if-no-files-found: error

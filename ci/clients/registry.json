@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "clients": {
+    "pytorch": {
+      "groups": "pytorch/groups.json",
+      "profiles": "pytorch/profiles.json"
+    },
+    "vllm": {
+      "groups": "vllm/groups.json",
+      "profiles": "vllm/profiles.json"
+    },
+    "sglang": {
+      "groups": "sglang/groups.json",
+      "profiles": "sglang/profiles.json"
+    }
+  }
+}

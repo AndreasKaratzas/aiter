@@ -1,0 +1,2 @@
+# Minimum pybind11 interface required by native extension builds.
+pybind11>=3.0.1

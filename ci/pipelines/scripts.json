@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "domains": {
+    "common": "Shared runner, dependency and container adapters.",
+    "product": "Operator drivers, sharding, Triton selection and tuning jobs.",
+    "host": "Repository checks and runner monitoring.",
+    "clients": "Framework-specific serving adapters.",
+    "release": "Wheel acquisition and build summaries."
+  },
+  "scripts": [
+    {
+      "file": "clients/sglang/kimi_accuracy.sh",
+      "purpose": "Run the specialized Kimi SGLang serving accuracy workload."
+    },
+    {
+      "file": "clients/sglang/kimi_perf.sh",
+      "purpose": "Run the specialized Kimi SGLang serving throughput sweep."
+    },
+    {
+      "file": "clients/vllm/kimi_accuracy.sh",
+      "purpose": "Run the specialized Kimi vLLM serving accuracy workload."
+    },
+    {
+      "file": "clients/vllm/kimi_perf.sh",
+      "purpose": "Run the specialized Kimi vLLM serving throughput sweep."
+    },
+    {
+      "file": "common/check_signal.sh",
+      "purpose": "Wait for the Checks workflow for the same commit before legacy GPU jobs."
+    },
+    {
+      "file": "common/cleanup_rocm.sh",
+      "purpose": "Clear GPU processes on dedicated legacy runner hosts; never run on a shared development machine."
+    },
+    {
+      "file": "common/docker_pull.sh",
+      "purpose": "Retry pulling the explicitly selected container image."
+    },
+    {
+      "file": "common/gpu_visibility.sh",
+      "purpose": "Inspect the GPU devices exposed to a legacy job."
+    },
+    {
+      "file": "common/install_triton.sh",
+      "purpose": "Install the legacy job Triton dependency from its declared ROCm wheel source."
+    },
+    {
+      "file": "common/verify_triton_pin.py",
+      "purpose": "Check the legacy Triton minimum version after installation."
+    },
+    {
+      "file": "host/check_deps.sh",
+      "purpose": "Check whether the CK gitlink belongs to upstream develop history."
+    },
+    {
+      "file": "host/list_jobs.py",
+      "purpose": "Read workflow job matrices for runner monitoring."
+    },
+    {
+      "file": "host/query_job_status.py",
+      "purpose": "Report queued and running jobs using the declared runner configuration."
+    },
+    {
+      "file": "host/update_split_test_times.py",
+      "purpose": "Refresh legacy shard timing data from retained job artifacts."
+    },
+    {
+      "file": "product/collect_logs.py",
+      "purpose": "Summarize retained standalone-driver output for the workflow."
+    },
+    {
+      "file": "product/run_tests.sh",
+      "purpose": "Run the retained standalone operator and communication drivers."
+    },
+    {
+      "file": "product/split_tests.sh",
+      "purpose": "Assign legacy operator drivers to timing-based shards."
+    },
+    {
+      "file": "product/triton/build.sh",
+      "purpose": "Prepare the legacy Triton test build environment."
+    },
+    {
+      "file": "product/triton/select_tests.py",
+      "purpose": "Select Triton tests and benchmarks from source dependencies."
+    },
+    {
+      "file": "product/tuning/check_regression.sh",
+      "purpose": "Apply the legacy tuning regression thresholds to two CSV inputs."
+    },
+    {
+      "file": "product/tuning/compare.py",
+      "purpose": "Compare retained baseline and candidate tuning CSV measurements."
+    },
+    {
+      "file": "product/tuning/run.sh",
+      "purpose": "Execute the selected tuning and post-tuning numerical drivers."
+    },
+    {
+      "file": "release/download_triton_wheel.sh",
+      "purpose": "Acquire the legacy release job Triton wheel artifacts."
+    },
+    {
+      "file": "release/generate_summary.py",
+      "purpose": "Render legacy wheel-build and promotion summaries from explicit inputs."
+    },
+    {
+      "file": "release/prebuild_summary.py",
+      "purpose": "Summarize native prebuild timings from retained wheel build logs."
+    }
+  ],
+  "external_references": [
+    {
+      "workflow": "client-atom-disaggregation.yaml",
+      "file": "atomesh/pd_matrix.py",
+      "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
+    },
+    {
+      "workflow": "client-atom-disaggregation.yaml",
+      "file": "atomesh/pd_submit.sh",
+      "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
+    },
+    {
+      "workflow": "client-atom-disaggregation.yaml",
+      "file": "atomesh/process_result.py",
+      "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
+    },
+    {
+      "workflow": "client-atom-disaggregation.yaml",
+      "file": "atomesh/slurm_submit_helpers.sh",
+      "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
+    },
+    {
+      "workflow": "client-atom.yaml",
+      "file": "atom_test.sh",
+      "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
+    },
+    {
+      "workflow": "client-atom.yaml",
+      "file": "download_model_with_lock.sh",
+      "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
+    }
+  ]
+}

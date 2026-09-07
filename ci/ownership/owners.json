@@ -1,0 +1,478 @@
+{
+  "schema_version": 1,
+  "local_steward": "@AndreasKaratzas",
+  "domains": {
+    "stewardship": {
+      "responsibility": "Repository direction, unresolved ownership and rollout decisions.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "api-runtime": {
+      "responsibility": "Public semantics, preparation, native ABI, execution policy and compatibility.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "build": {
+      "responsibility": "Wheel/native builds, compiler inputs, artifact packaging and generic JIT/AOT machinery.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "numerics": {
+      "responsibility": "GEMM, quantization, normalization and numerical representations.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "attention": {
+      "responsibility": "Attention, RoPE and state/cache layouts.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "moe": {
+      "responsibility": "Routing, expert ordering and expert execution.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "collectives": {
+      "responsibility": "Distributed execution, ordering, communicator and workspace lifetimes.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "clients": {
+      "responsibility": "Framework bridges, pinned client environments and serving acceptance.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    },
+    "delivery": {
+      "responsibility": "CI resources, evidence, release promotion, containers and cadence.",
+      "primary": null,
+      "backup": null,
+      "accepted": false
+    }
+  },
+  "rules": [
+    {
+      "pattern": "*",
+      "domain": "stewardship"
+    },
+    {
+      "pattern": "/aiter/api/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/aiter/runtime/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/aiter/backends/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/include/aiter/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/aiter/__init__.py",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/tests/unit/runtime/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/setup.py",
+      "domain": "build"
+    },
+    {
+      "pattern": "/pyproject.toml",
+      "domain": "build"
+    },
+    {
+      "pattern": "/MANIFEST.in",
+      "domain": "build"
+    },
+    {
+      "pattern": "/CMakeLists.txt",
+      "domain": "build"
+    },
+    {
+      "pattern": "/build_backend/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/3rdparty/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/jit/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/aot/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/csrc/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/csrc/runtime/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/tests/unit/build/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/tuning/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/configs/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/triton/gemm/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/triton/normalization/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/triton/quant/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/gemm_op*.py",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/rmsnorm.py",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/quant.py",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/csrc/ck_gemm*/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/csrc/blas/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/tests/unit/tuning/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/triton/attention/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/aiter/ops/triton/rope/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/aiter/ops/mha.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/aiter/ops/attention/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/aiter/ops/triton/moe/",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/aiter/fused_moe*.py",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/aiter/ops/moe*.py",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/aiter/dist/",
+      "domain": "collectives"
+    },
+    {
+      "pattern": "/tests/integration/communication/",
+      "domain": "collectives"
+    },
+    {
+      "pattern": "/csrc/kernels/rmsnorm*",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/csrc/kernels/quant*",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/csrc/kernels/rope*",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/csrc/ck_moe*/",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/csrc/kernels/moe*",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/ci/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/docker/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/.github/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/ci/clients/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/workflows/client-vllm-benchmarks.yaml",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/workflows/client-sglang-models.yaml",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/releases/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/ci/ownership/owners.json",
+      "domain": "stewardship"
+    },
+    {
+      "pattern": "/.github/CODEOWNERS",
+      "domain": "stewardship"
+    },
+    {
+      "pattern": "/bindings/rust/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/tests/unit/architecture/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/tests/unit/ci/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/tests/unit/benchmarks/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/tests/integration/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/tests/integration/packaging/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/tests/integration/runtime/test_attention.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/integration/runtime/test_rope.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/integration/runtime/test_mxfp4.py",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/tests/integration/communication/",
+      "domain": "collectives"
+    },
+    {
+      "pattern": "/tests/frameworks/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/benchmarks/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/codegen/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/_build_layout.json",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/ops/_native/",
+      "domain": "api-runtime"
+    },
+    {
+      "pattern": "/aiter/aot/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/tuning/search/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/benchmarks/models/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/tests/integration/benchmarks/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/tests/operators/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/tests/operators/triton/attention/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/triton/rope/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/triton/moe/",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/tests/operators/hip/test_mha*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/test_mla*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/test_pa*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/test_rope*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/test_moe*.py",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/tests/operators/hip/native/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/tests/unit/codegen/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/benchmarks/native/mha/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/benchmarks/communication/",
+      "domain": "collectives"
+    },
+    {
+      "pattern": "/tests/operators/hip/drivers/mha*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/drivers/mla*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/drivers/pa*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/drivers/rope*.py",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/tests/operators/hip/drivers/moe*.py",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/tests/integration/tuning/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/docker/pytorch/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/docker/vllm/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/docker/sglang/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/requirements/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/aiter/kernels/",
+      "domain": "build"
+    },
+    {
+      "pattern": "/benchmarks/traces/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/moe/",
+      "domain": "moe"
+    },
+    {
+      "pattern": "/aiter/ops/gemm/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/quantization/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/aiter/ops/position/",
+      "domain": "attention"
+    },
+    {
+      "pattern": "/aiter/testing/",
+      "domain": "numerics"
+    },
+    {
+      "pattern": "/benchmarks/vllm/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/scripts/clients/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/examples/",
+      "domain": "api-runtime"
+    }
+  ]
+}

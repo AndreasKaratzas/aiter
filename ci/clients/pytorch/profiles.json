@@ -1,0 +1,18 @@
+{
+  "pytorch": {
+    "description": "Product checks and actual Torch API integration.",
+    "client": "pytorch",
+    "groups": [
+      "host",
+      "normalization",
+      "triton-normalization",
+      "blockscale-gemm",
+      "prepared-runtime",
+      "native-sdk",
+      "compatibility"
+    ],
+    "mandatory_groups": [
+      "host"
+    ]
+  }
+}

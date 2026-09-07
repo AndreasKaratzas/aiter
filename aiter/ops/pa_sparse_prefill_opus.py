@@ -14,7 +14,7 @@ the running GPU. Both backends live in ``module_pa_sparse_prefill_opus``:
 * ``gfx950`` -- :func:`pa_sparse_prefill_gfx950_opus_fwd`, kernel compiled
   from source by the JIT.
 * ``gfx1250`` -- :func:`pa_sparse_prefill_gfx1250_opus_fwd`, kernel loaded
-  from the prebuilt code objects in ``hsa/gfx1250/mla_v4_opus/``.
+  from the prebuilt code objects in ``kernels/gfx1250/mla_v4_opus/``.
 
 Constraints common to both:
 
@@ -43,7 +43,7 @@ def _dispatch(gfx: str, op_gfx950, op_gfx1250):
     """Pick the backend for the running GPU.
 
     gfx950 compiles the kernel from source. gfx1250 instead loads a prebuilt
-    code object (``hsa/gfx1250/mla_v4_opus/``), because its kernel needs
+    code object (``kernels/gfx1250/mla_v4_opus/``), because its kernel needs
     the CoExec scheduler from a custom LLVM build that release images do not
     ship; see ``csrc/py_itfs_cu/pa_sparse_prefill_opus_kernels.cu``.
     """

@@ -1,0 +1,4 @@
+# Repository worker monitoring. No AITER runtime dependencies.
+requests
+tabulate
+pyyaml

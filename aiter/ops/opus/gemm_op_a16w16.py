@@ -41,13 +41,11 @@ module when that lands.
 
 import functools
 import logging
-import os
-import sys
 
 import torch
 from torch import Tensor
 
-from ...jit.core import AITER_ROOT_DIR, compile_ops
+from ...jit.core import compile_ops
 from . import common as _opus_common
 
 logger = logging.getLogger("aiter")
@@ -93,7 +91,7 @@ def _opus_gemm_a16w16_tune_raw(
 def _check_a16w16_tune_layout(XQ: torch.Tensor, WQ: torch.Tensor, Y: torch.Tensor):
     """Reject layouts that the opus launcher's hardcoded strides cannot serve.
 
-    Mirrors the kargs setup in csrc/opus_gemm/gen_instances.py
+    Mirrors the kargs setup in aiter/codegen/gemm/opus/generate.py
     (_gen_flatmm_splitk_instance et al.):
         kargs.stride_a        = K
         kargs.stride_b        = K
@@ -181,18 +179,17 @@ _OPUS_WS_TORCH_DTYPE = {
 
 @functools.lru_cache(maxsize=1)
 def _gfx1250_kids() -> dict:
-    """Lazily load the opus kid table (csrc/opus_gemm/opus_gemm_common.py).
+    """Lazily load the opus kid table (aiter/codegen/gemm/opus/instances.py).
 
     Lets the split-K workspace be sized from each kid's ACTUAL kernel
     definition (tile B_M/B_N, split_k, workspace dtype) instead of a byte
     guess. The module is pure-Python (no torch/JIT deps); returns ``{}`` if it
     can't be located so the caller can fall back to a safe over-estimate.
     """
-    csrc = os.path.join(AITER_ROOT_DIR, "csrc", "opus_gemm")
-    if csrc not in sys.path:
-        sys.path.insert(0, csrc)
     try:
-        from opus_gemm_common import kernels_list  # type: ignore[import-not-found]
+        from aiter.codegen.gemm.opus.instances import (
+            kernels_list,  # type: ignore[import-not-found]
+        )
 
         return kernels_list
     except Exception:  # noqa: BLE001
@@ -472,7 +469,7 @@ def _validate_and_reshape(A: Tensor, B: Tensor, bias, dtype, out):
     #   * [batch, N, K] real-strided   - allowed for any batch
     #
     # The opus a16w16-family launchers hardcode `kargs.stride_b_batch = N * K`
-    # (csrc/opus_gemm/gen_instances.py around lines 531/634/735/865) and the
+    # (aiter/codegen/gemm/opus/generate.py around lines 531/634/735/865) and the
     # device kernel computes `ptr_b + batch_id * stride_b_batch` directly,
     # ignoring the tensor's reported stride. A `B.unsqueeze(0).expand(batch,
     # -1, -1)` view has batch_stride == 0, so the kernel reads garbage past
@@ -490,7 +487,7 @@ def _validate_and_reshape(A: Tensor, B: Tensor, bias, dtype, out):
                 f"batched (got A.shape={tuple(A.shape)}, "
                 f"B.shape={tuple(B.shape)}). The opus a16w16 launchers "
                 f"assume stride_b_batch == N*K (see "
-                f"csrc/opus_gemm/gen_instances.py), which is incompatible "
+                f"aiter/codegen/gemm/opus/generate.py), which is incompatible "
                 f"with the batch_stride=0 view a B.unsqueeze(0)."
                 f"expand(batch, -1, -1) would produce. Two valid fixes:\n"
                 f"  1. Broadcast explicitly:  B = B.expand({batch}, -1, "

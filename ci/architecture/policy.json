@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "source_roots": [
+    "aiter",
+    "build_backend",
+    "ci",
+    "benchmarks"
+  ],
+  "rules": [
+    {
+      "name": "library-independence",
+      "reason": "The installed library cannot depend on repository tooling, test suites, or serving frameworks.",
+      "sources": [
+        "aiter"
+      ],
+      "exclude": [],
+      "allow": [
+        "*"
+      ],
+      "deny": [
+        "ci",
+        "build_backend",
+        "benchmarks",
+        "tests",
+        "vllm",
+        "sglang",
+        "common",
+        "frameworks",
+        "support"
+      ]
+    },
+    {
+      "name": "operation-semantics",
+      "reason": "Operation descriptions and validation remain usable with the Python standard library alone.",
+      "sources": [
+        "aiter.api",
+        "aiter._validation"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter.api",
+        "aiter._validation"
+      ],
+      "deny": []
+    },
+    {
+      "name": "tuning-data",
+      "reason": "Immutable tuning data cannot import runtime engines or execute offline searches.",
+      "sources": [
+        "aiter.tuning"
+      ],
+      "exclude": [
+        "aiter.tuning.search",
+        "aiter.tuning.__main__"
+      ],
+      "allow": [
+        "@stdlib",
+        "aiter.tuning",
+        "aiter._validation"
+      ],
+      "deny": [
+        "aiter.tuning.search"
+      ]
+    },
+    {
+      "name": "tuning-command",
+      "reason": "The tuning CLI selects lazy search commands; it does not embed a GPU implementation.",
+      "sources": [
+        "aiter.tuning.__main__"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter.tuning",
+        "aiter._validation"
+      ],
+      "deny": []
+    },
+    {
+      "name": "runtime-inversion",
+      "reason": "Runtime orchestration uses operation models and provider ports; concrete providers are assembled only in composition.py.",
+      "sources": [
+        "aiter.runtime"
+      ],
+      "exclude": [
+        "aiter.runtime.composition"
+      ],
+      "allow": [
+        "@stdlib",
+        "torch",
+        "aiter.api",
+        "aiter._validation",
+        "aiter.runtime",
+        "aiter.tuning"
+      ],
+      "deny": [
+        "aiter.tuning.search"
+      ]
+    },
+    {
+      "name": "backend-direction",
+      "reason": "Backend adapters implement provider ports without calling the runtime controller or another application.",
+      "sources": [
+        "aiter.backends"
+      ],
+      "exclude": [
+        "aiter.backends.__init__"
+      ],
+      "allow": [
+        "@stdlib",
+        "@external",
+        "aiter.backends",
+        "aiter.api",
+        "aiter._validation",
+        "aiter.runtime.provider",
+        "aiter.runtime.configuration",
+        "aiter.codegen",
+        "aiter.jit",
+        "aiter.aot",
+        "aiter.ops",
+        "aiter.dtypes",
+        "aiter.kernels"
+      ],
+      "deny": []
+    },
+    {
+      "name": "build-independence",
+      "reason": "Wheel construction cannot require repository CI, benchmarks, test suites, or serving frameworks.",
+      "sources": [
+        "build_backend"
+      ],
+      "exclude": [],
+      "allow": [
+        "*"
+      ],
+      "deny": [
+        "ci",
+        "benchmarks",
+        "tests",
+        "vllm",
+        "sglang",
+        "common",
+        "frameworks",
+        "support"
+      ]
+    },
+    {
+      "name": "build-planning",
+      "reason": "Build plans describe work without importing compilers, setuptools, Torch, or runtime kernels.",
+      "sources": [
+        "build_backend.plan"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "build_backend.plan",
+        "build_backend.options"
+      ],
+      "deny": []
+    },
+    {
+      "name": "common-dependencies",
+      "reason": "Shared CI primitives stay independent of the applications that use them.",
+      "sources": [
+        "ci.common"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "ci.common"
+      ],
+      "deny": []
+    },
+    {
+      "name": "control-separation",
+      "reason": "Host controllers coordinate isolated executors; importing candidate GPU or framework code would cross that boundary.",
+      "sources": [
+        "ci.pipelines",
+        "ci.architecture",
+        "ci.release",
+        "ci.qualification.plan",
+        "ci.qualification.catalog",
+        "ci.qualification.report",
+        "ci.qualification.run",
+        "ci.qualification.changes"
+      ],
+      "exclude": [],
+      "allow": [
+        "*"
+      ],
+      "deny": [
+        "aiter",
+        "build_backend",
+        "torch",
+        "triton",
+        "vllm",
+        "sglang"
+      ]
+    },
+    {
+      "name": "backend-compatibility-facade",
+      "reason": "Only the legacy package facade may forward available_backends to the canonical composition root.",
+      "sources": [
+        "aiter.backends.__init__"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter.runtime.configuration",
+        "aiter.runtime.composition"
+      ],
+      "deny": []
+    },
+    {
+      "name": "jit-orchestration",
+      "reason": "The JIT service coordinates injected recipe/compiler/module ports without importing concrete adapters or GPU packages.",
+      "sources": [
+        "aiter.jit.service"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter.jit.service"
+      ],
+      "deny": []
+    },
+    {
+      "name": "runtime-configuration",
+      "reason": "Built-in provider definitions are immutable metadata and do not import their implementations.",
+      "sources": [
+        "aiter.runtime.configuration"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter._validation",
+        "aiter.runtime.configuration"
+      ],
+      "deny": []
+    },
+    {
+      "name": "build-orchestration",
+      "reason": "The build controller executes a plan through phase ports; packaging and compiler adapters are assembled outside it.",
+      "sources": [
+        "build_backend.controller"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "build_backend.plan",
+        "build_backend.controller"
+      ],
+      "deny": []
+    },
+    {
+      "name": "kernel-resource-management",
+      "reason": "Precompiled kernel admission manages declared bytes and cache storage without importing GPU runtimes, compilers, CI or consumers.",
+      "sources": [
+        "aiter.kernels"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter.kernels",
+        "aiter._validation",
+        "aiter.codegen.context",
+        "aiter.jit.cache"
+      ],
+      "deny": []
+    },
+    {
+      "name": "kernel-catalog",
+      "reason": "Kernel identity and selection metadata are usable independently of admission, compilers and hardware.",
+      "sources": [
+        "aiter.kernels.catalog",
+        "aiter.kernels.tables"
+      ],
+      "exclude": [],
+      "allow": [
+        "@stdlib",
+        "aiter.kernels.catalog",
+        "aiter.kernels.tables",
+        "aiter._validation"
+      ],
+      "deny": []
+    }
+  ]
+}

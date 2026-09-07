@@ -11,7 +11,7 @@
 
 3. Start tuning:
 Run the following cmd to start tuning, please wait a few minutes as it will build gemm_a4w4_blockscale_tune via jit:
-`GEMM_A4W4_BLOCKWISE_HIP_CLANG_PATH=/work/llvm-project/build/bin/ python3 csrc/ck_gemm_a4w4_blockscale/gemm_a4w4_blockscale_tune.py -i aiter/configs/a4w4_blockscale_untuned_gemm.csv -o aiter/configs/a4w4_blockscale_tuned_gemm.csv`
+`GEMM_A4W4_BLOCKWISE_HIP_CLANG_PATH=/work/llvm-project/build/bin/ python3 -m aiter.tuning gemm.a4w4_blockscale -i aiter/configs/a4w4_blockscale_untuned_gemm.csv -o aiter/configs/a4w4_blockscale_tuned_gemm.csv`
 You can find the results of the tuning in `aiter/configs/a4w4_blockscale_tuned_gemm.csv`, like this:
     |**gfx**  |**cu_num**|**M**|**N**|**K**|**kernelId**|**splitK**|**us**|**kernelName**|**tflops**|**bw**|**errRatio**|
     |---------|----------|-----|-----|-----|------------|----------|------|--------------|----------|------|------------|
@@ -20,9 +20,9 @@ You can find the results of the tuning in `aiter/configs/a4w4_blockscale_tuned_g
     `gfx` identifies the GPU architecture (e.g. `gfx942`, `gfx950`). `cu_num` is the number of compute units and distinguishes partitioned or binned variants of the same architecture (e.g. MI308X vs MI300X both use `gfx942`).
 
 4. Build tuned kernels and test:
-Test the performance, modify the test instance in `op_tests/test_gemm_a4w4_blockscale.py` and run it, please wait a few minutes as it will build gemm_a4w4_blockscale tuned kernels in `aiter/configs/a4w4_blockscale_tuned_gemm.csv` via jit:
-`GEMM_A4W4_BLOCKWISE_HIP_CLANG_PATH=/work/llvm-project/build/bin/ python3 op_tests/test_gemm_a4w4_blockscale.py`
-If you have built gemm_a4w4 kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 op_tests/test_gemm_a4w4_blockscale.py`. It will rebuild kernels from `AITER_CONFIG_GEMM_A4W4`, the default one will be results merged from `aiter/configs/a4w4_blockscale_tuned_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_a4w4_blockscale_tuned_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/a4w4_blockscale_tuned_gemm.csv`
+Test the performance, modify the test instance in `operators/test_gemm_a4w4_blockscale.py` and run it, please wait a few minutes as it will build gemm_a4w4_blockscale tuned kernels in `aiter/configs/a4w4_blockscale_tuned_gemm.csv` via jit:
+`GEMM_A4W4_BLOCKWISE_HIP_CLANG_PATH=/work/llvm-project/build/bin/ python3 operators/test_gemm_a4w4_blockscale.py`
+If you have built gemm_a4w4 kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 operators/test_gemm_a4w4_blockscale.py`. It will rebuild kernels from `AITER_CONFIG_GEMM_A4W4`, the default one will be results merged from `aiter/configs/a4w4_blockscale_tuned_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_a4w4_blockscale_tuned_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/a4w4_blockscale_tuned_gemm.csv`
 
 ## More Options
 
@@ -117,11 +117,11 @@ If you have built gemm_a4w4 kernels before tuning new GEMM shapes, please add `A
 **Examples**:
 ```bash
 # benchmark tuned kernels from specified tuned config
-python3 csrc/ck_gemm_a4w4_blockscale/gemm_a4w4_blockscale_tune.py \
+python3 -m aiter.tuning gemm.a4w4_blockscale \
   --run_config aiter/configs/a4w4_blockscale_tuned_gemm.csv
 
 # benchmark default kernels using shapes from -i
-python3 csrc/ck_gemm_a4w4_blockscale/gemm_a4w4_blockscale_tune.py \
+python3 -m aiter.tuning gemm.a4w4_blockscale \
   -i aiter/configs/a4w4_blockscale_untuned_gemm.csv --run_config
 ```
 

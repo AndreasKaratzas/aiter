@@ -8,7 +8,7 @@ from multiprocessing import TimeoutError as MPTimeoutError
 import torch
 
 from aiter import dtypes, logger
-from aiter.test_common import checkAllclose
+from aiter.testing import checkAllclose
 
 _TASK_START_TIMES = None
 
@@ -71,7 +71,7 @@ def worker(
     _arg_key_list=None,
     catastrophic_check=True,
 ):
-    from aiter.test_common import run_perftest
+    from aiter.testing import run_perftest
 
     pid = mp.current_process().pid
     device = torch.device(f"cuda:{gpu_id}")

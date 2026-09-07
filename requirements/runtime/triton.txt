@@ -1,0 +1,3 @@
+# Historical ROCm compiler selection; index URL remains selected by ROCm version.
+triton==3.8.0
+triton-kernels==1.0.0

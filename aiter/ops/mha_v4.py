@@ -10,9 +10,7 @@ LUT triple on the packed API; the work table is built inside the sparse
 custom op.
 """
 
-import csv
 import functools
-import os
 from enum import IntEnum
 from typing import Optional
 
@@ -21,7 +19,7 @@ import triton
 from torch import Tensor
 
 from aiter import dtypes
-from aiter.jit.core import AITER_ROOT_DIR, compile_ops
+from aiter.jit.core import compile_ops
 from aiter.jit.utils.chip_info import get_gfx
 from aiter.jit.utils.torch_guard import torch_compile_guard
 from aiter.ops.triton._triton_kernels.quant.sage_attention_quant import (
@@ -218,21 +216,16 @@ def mha_v4_kv_tile() -> int:
 @torch_compile_guard()
 def _mha_v4_kv_tile_from_manifest() -> int:
     gfx = get_gfx()
-    asm_dir = os.environ.get("AITER_ASM_DIR", os.path.join(AITER_ROOT_DIR, "hsa"))
-    manifest = os.path.join(asm_dir, gfx, "fmha_v4_fwd", "fmha_v4_fwd.csv")
-    tiles = set()
-    try:
-        with open(manifest, newline="") as handle:
-            for row in csv.DictReader(
-                filter(lambda line: not line.startswith("#"), handle)
-            ):
-                if int(row["mode"]) == _MHA_V4_SPARSE_MODE:
-                    tiles.add(int(row["ts_kv"]))
-    except FileNotFoundError as error:
-        raise ValueError(
-            f"no MHA v4 manifest for {gfx} at {manifest}; sorted-sparse MHA v4 is "
-            "unavailable on this GPU"
-        ) from error
+    from aiter.codegen import BuildContext
+    from aiter.kernels import KernelCatalog
+
+    catalog = KernelCatalog.load(BuildContext.load().resource("kernels"))
+    manifest = f"{gfx}/fmha_v4_fwd/fmha_v4_fwd.csv"
+    tiles = {
+        int(row["ts_kv"])
+        for row in catalog.rows(manifest)
+        if int(row["mode"]) == _MHA_V4_SPARSE_MODE
+    }
     if not tiles:
         raise ValueError(f"{gfx} has no sorted-sparse MHA v4 manifest row")
     if len(tiles) > 1:

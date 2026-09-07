@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: MIT
+"""Shared gemm.basic.gemm_a16wfp4 workload generation and numerical references."""
+
+import torch
+
+from aiter.ops.shuffle import shuffle_weight
+from aiter.ops.triton.utils.shuffle import shuffle_scale_gemm
+
+SCALE_GROUP_SIZE = 32
+
+
+def generate_gemm_a16wfp4_inputs(
+    M: int,
+    N: int,
+    K: int,
+    output: bool,
+    atomic_add: bool,
+    dtype: bool,
+    layout: str = "TN",
+    shuffle: bool = False,
+):
+    torch.manual_seed(5)
+    # 34 is two packed e2m1 values 0010 which is 1.0.
+    if layout[0] == "T":
+        x_low = torch.randint(0, 16, (M, K // 2), dtype=torch.uint8, device="cuda")
+        x_high = torch.randint(0, 16, (M, K // 2), dtype=torch.uint8, device="cuda")
+    else:
+        x_low = torch.randint(0, 16, (K // 2, M), dtype=torch.uint8, device="cuda").T
+        x_high = torch.randint(0, 16, (K // 2, M), dtype=torch.uint8, device="cuda").T
+    x = x_low | x_high << 4
+    x_scales = torch.randint(
+        124, 128, (K // SCALE_GROUP_SIZE, M), dtype=torch.uint8, device="cuda"
+    ).T
+
+    x_f32 = mxfp4_to_f32(x)
+    x_scales = x_scales.repeat_interleave(SCALE_GROUP_SIZE, dim=-1).to(torch.float32)
+    x_scales_f32 = e8m0_to_f32(x_scales)
+    x_f32 = x_f32 * x_scales_f32
+    x = x_f32.to(torch.bfloat16)
+
+    # x = torch.rand((B, M, K), dtype=torch.bfloat16, device="cuda")
+    if layout[1] == "N":
+        w_low = torch.randint(0, 16, (N, K // 2), dtype=torch.uint8, device="cuda")
+        w_high = torch.randint(0, 16, (N, K // 2), dtype=torch.uint8, device="cuda")
+    else:
+        w_low = torch.randint(0, 16, (K // 2, N), dtype=torch.uint8, device="cuda").T
+        w_high = torch.randint(0, 16, (K // 2, N), dtype=torch.uint8, device="cuda").T
+    w = w_low | w_high << 4
+    # Scale of 1.0 in e8m0, bias 127.
+    w_scales = torch.randint(
+        124, 128, (K // SCALE_GROUP_SIZE, N), dtype=torch.uint8, device="cuda"
+    )
+    w_scales = w_scales.T
+
+    if shuffle:
+        use_int4 = False
+        weight_shuffle_layout = (16, 16)
+        w_shuffed = shuffle_weight(
+            w, layout=weight_shuffle_layout, use_int4=use_int4
+        ).reshape(
+            w.shape[0] // weight_shuffle_layout[0],
+            w.shape[1] * weight_shuffle_layout[0],
+        )
+
+        # CDNA4-only triton kernel -> always the gfx950 scale layout.
+        w_scales_shuffled = shuffle_scale_gemm(
+            w_scales, arch="gfx950", preshuffle_factor=32, scale_kwidth=8
+        )
+    else:
+        w_shuffed = w
+        w_scales_shuffled = w_scales
+
+    y = None
+    if output:
+        dtype = torch.float32 if atomic_add else dtype
+        y = torch.zeros((M, N), device=x.device, dtype=dtype)
+
+    return x, w, w_shuffed, x_scales, w_scales, w_scales_shuffled, y
+
+
+def mxfp4_to_f32(x):
+    # 2 because we pack fp4 in uint8.
+    x = x.repeat_interleave(2, dim=-1)
+    x[..., ::2] = x[..., ::2] & 0xF
+    x[..., 1::2] = x[..., 1::2] >> 4
+    mxfp4_list = [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        3.0,
+        4.0,
+        6.0,
+        -0.0,
+        -0.5,
+        -1.0,
+        -1.5,
+        -2.0,
+        -3.0,
+        -4.0,
+        -6.0,
+    ]
+    mxfp4_in_f32 = torch.tensor(mxfp4_list, dtype=torch.float32, device="cuda")
+    return mxfp4_in_f32[x.long()]
+
+
+def e8m0_to_f32(x):
+    x_f32 = 2 ** (x.to(torch.float32) - 127)
+    x_f32[x_f32 == 128] = float("nan")
+    return x_f32

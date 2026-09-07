@@ -46,7 +46,7 @@ AITER_C_ITFS void top_k_per_row_prefill_fast(
 
     static AiterAsmKernel impl_topk_prefill(
         "_ZN5aiter11PrefillTopKL10topKPerRowILi1024ELi2048ELi2048ELi512EEEvPvPKfPKiS6_PiPfii",
-        "/topk_per_row_prefill/asm_top_k_per_row_prefill.co");
+        "topk_per_row_prefill/asm_top_k_per_row_prefill.co");
 
     constexpr int kNumThreadsPerBlock = 1024;
     AITER_CHECK(numRows >> 31 == 0, "numRows too large: ", numRows);

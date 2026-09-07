@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "models": {
+    "qwen25_vl_3b": {
+      "repository": "Qwen/Qwen2.5-VL-3B-Instruct",
+      "revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+      "files": {
+        "chat_template.json": {
+          "size": 1050,
+          "git_blob_sha1": "732bd68bc5427d1fb6c06a59b3bf2456b2155d24"
+        },
+        "config.json": {
+          "size": 1373,
+          "git_blob_sha1": "0ae1866f05ab0153ad293bdc92bb1b842c4d95b1"
+        },
+        "generation_config.json": {
+          "size": 216,
+          "git_blob_sha1": "1dfafa23e24b68b694722c6211e7da36730e9917"
+        },
+        "merges.txt": {
+          "size": 1671839,
+          "git_blob_sha1": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0"
+        },
+        "model-00001-of-00002.safetensors": {
+          "size": 3982649232,
+          "sha256": "41a8895c164b4d32bae6b302f4603fcbc1797f32dafa45c7e9bcda23c6755df8"
+        },
+        "model-00002-of-00002.safetensors": {
+          "size": 3526688744,
+          "sha256": "365531ff8752420e89dee707b79d021fb2d6e25abafe486f080555a4fe6972e4"
+        },
+        "model.safetensors.index.json": {
+          "size": 65448,
+          "git_blob_sha1": "7a3ec4f48662e38593f8cab48fe12a4f28003aba"
+        },
+        "preprocessor_config.json": {
+          "size": 350,
+          "git_blob_sha1": "7f3b746825e5eef53ed8ed57a91df9e86ee62c0a"
+        },
+        "tokenizer.json": {
+          "size": 7031645,
+          "git_blob_sha1": "443909a61d429dff23010e5bddd28ff530edda00"
+        },
+        "tokenizer_config.json": {
+          "size": 5702,
+          "git_blob_sha1": "91684ea3dc135a7d815e2c932054ce88c1aab41f"
+        },
+        "vocab.json": {
+          "size": 2776833,
+          "git_blob_sha1": "4783fe10ac3adce15ac8f358ef5462739852c569"
+        },
+        "LICENSE": {
+          "size": 7387,
+          "git_blob_sha1": "87f48cf86671d627b4dd4b8e5189b8e32ae11dd8"
+        }
+      }
+    },
+    "llama32_1b": {
+      "repository": "unsloth/Llama-3.2-1B-Instruct",
+      "revision": "5a8abab4a5d6f164389b1079fb721cfab8d7126c",
+      "files": {
+        "chat_template.jinja": {
+          "size": 3827,
+          "git_blob_sha1": "1bad6a0f648dccdbec523ca79ba90fbcfc806af0"
+        },
+        "config.json": {
+          "size": 894,
+          "git_blob_sha1": "efa30582955bb5e3a626981b1b74c6ebb107c02c"
+        },
+        "generation_config.json": {
+          "size": 239,
+          "git_blob_sha1": "d3af262e14cd9f678b04201e6a04ca36ba4ebb48"
+        },
+        "model.safetensors": {
+          "size": 2471645608,
+          "sha256": "1ff795ff6a07e6a68085d206fb84417da2f083f68391c2843cd2b8ac6df8538f"
+        },
+        "special_tokens_map.json": {
+          "size": 454,
+          "git_blob_sha1": "3c1d04911c269b925af977a3151c9704e990e4d0"
+        },
+        "tokenizer.json": {
+          "size": 17209920,
+          "sha256": "6b9e4e7fb171f92fd137b777cc2714bf87d11576700a1dcd7a399e7bbe39537b"
+        },
+        "tokenizer_config.json": {
+          "size": 54669,
+          "git_blob_sha1": "3dc1faa6025cdb195c0889dd8d3d13ca26af9225"
+        },
+        "README.md": {
+          "size": 5743,
+          "git_blob_sha1": "0d01bf250f2f0ee855c4a1df6a1581ff937f81fa"
+        }
+      }
+    },
+    "qwen3_1_7b": {
+      "repository": "Qwen/Qwen3-1.7B",
+      "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "files": {
+        "config.json": {
+          "size": 726,
+          "git_blob_sha1": "044a86ecf7cb32238f3fae4184e55d354787edec"
+        },
+        "generation_config.json": {
+          "size": 239,
+          "git_blob_sha1": "20a8a9156fc8c3f25295ca067f61fdf120d517c5"
+        },
+        "merges.txt": {
+          "size": 1671853,
+          "git_blob_sha1": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
+        },
+        "model-00001-of-00002.safetensors": {
+          "size": 3441185608,
+          "sha256": "169ad53ec313c3a34b06c0809216e4fc072cce444a5d4ff2b59690d064130ed5"
+        },
+        "model-00002-of-00002.safetensors": {
+          "size": 622329984,
+          "sha256": "912becff8d60672aa8628ef08c05898d9adf17c2ad4ae3caf99b065622fdeff9"
+        },
+        "model.safetensors.index.json": {
+          "size": 25605,
+          "git_blob_sha1": "986d7db875b47d21f68530f6baac038f1b297b39"
+        },
+        "tokenizer.json": {
+          "size": 11422654,
+          "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+        },
+        "tokenizer_config.json": {
+          "size": 9732,
+          "git_blob_sha1": "417d038a63fa3de29cfde265caedae14d1a58d92"
+        },
+        "vocab.json": {
+          "size": 2776833,
+          "git_blob_sha1": "4783fe10ac3adce15ac8f358ef5462739852c569"
+        },
+        "LICENSE": {
+          "size": 11343,
+          "git_blob_sha1": "6634c8cc3133b3848ec74b9f275acaaa1ea618ab"
+        }
+      }
+    }
+  }
+}

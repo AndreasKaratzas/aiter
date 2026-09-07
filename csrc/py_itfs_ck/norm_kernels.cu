@@ -247,50 +247,10 @@ void layernorm2d_with_dynamicquant(torch::Tensor &out,    // [m ,n]
                                    double epsilon,
                                    std::optional<torch::Tensor> x_bias)
 {
-    auto dtype = input.dtype();
-    TORCH_CHECK(dtype == torch::kFloat16 || dtype == torch::kBFloat16,
-                "ck layernorm2d only support fp16 and bf16 data type");
-    TORCH_CHECK(weight.dtype() == dtype && bias.dtype() == dtype,
-                "ck layernorm2d requires weight/bias dtype to match input dtype (",
-                dtype, "), got weight=", weight.dtype(), ", bias=", bias.dtype());
-
-    std::string dtype_str = torchDTypeToStr(input.dtype());
-    std::string out_dtype_str = torchDTypeToStr(out.dtype());
-    std::string yscale_dtype_str = torchDTypeToStr(yscale.dtype());
-    int n = input.size(-1);
-    int m = input.numel() / n;
-    int stride = input.stride(0);
-    int xr_stride = -1;
-    int y_stride = out.stride(0);
-    int yr_stride = -1;
-    bool SaveMeanVar = false;
-    const at::hip::OptionalHIPGuardMasqueradingAsCUDA device_guard(device_of(input));
-    const hipStream_t stream = at::hip::getCurrentHIPStream();
-
-    layernorm2d_fwd({
-                        dtype_str,        // input precision
-                        out_dtype_str,    // output precision
-                        dtype_str,        // x-scale, used for [1*N] input smooth quant
-                        yscale_dtype_str, // y-scale, used for [M*1] output for next layer
-                        SaveMeanVar,
-                        x_bias.has_value() ? 1 : 0, // x_bias
-                        0,                          // fused_add
-                        2                           // fused_quant
-                    },
-                    {input.data_ptr(),                                         // p_x
-                     nullptr,                                                  // p_x_residual
-                     nullptr,                                                  // p_x_scale
-                     x_bias.has_value() ? x_bias.value().data_ptr() : nullptr, // p_x_bias
-                     weight.data_ptr(),                                        // p_gamma
-                     bias.data_ptr(),                                          // p_beta
-
-                     out.data_ptr(),    // p_y
-                     nullptr,           // p_y_residual
-                     yscale.data_ptr(), // p_y_scale
-                     nullptr,           // p_mean
-                     nullptr,           // p_invStd
-                     static_cast<float>(epsilon), m, n, stride, xr_stride, y_stride, yr_stride},
-                    {stream});
+    TORCH_CHECK(false,
+        "The pinned CK layernorm generator has no dynamic-only quantization specialization. "
+        "Use aiter.ops.triton.normalization.norm.layernorm2d_fwd_with_dynamicquant "
+        "or layernorm2d_fwd_with_add_dynamicquant.");
 }
 
 void layernorm2d_with_add_dynamicquant(torch::Tensor &out,          // [m ,n]
@@ -303,48 +263,8 @@ void layernorm2d_with_add_dynamicquant(torch::Tensor &out,          // [m ,n]
                                        double epsilon,
                                        std::optional<torch::Tensor> x_bias)
 {
-    auto dtype = input.dtype();
-    TORCH_CHECK(dtype == torch::kFloat16 || dtype == torch::kBFloat16,
-                "ck layernorm2d only support fp16 and bf16 data type");
-    TORCH_CHECK(weight.dtype() == dtype && bias.dtype() == dtype,
-                "ck layernorm2d requires weight/bias dtype to match input dtype (",
-                dtype, "), got weight=", weight.dtype(), ", bias=", bias.dtype());
-
-    std::string dtype_str = torchDTypeToStr(input.dtype());
-    std::string out_dtype_str = torchDTypeToStr(out.dtype());
-    std::string yscale_dtype_str = torchDTypeToStr(yscale.dtype());
-    int n = input.size(-1);
-    int m = input.numel() / n;
-    int stride = input.stride(0);
-    int xr_stride = residual_in.stride(0);
-    int y_stride = out.stride(0);
-    int yr_stride = residual_out.stride(0);
-    bool SaveMeanVar = false;
-    const at::hip::OptionalHIPGuardMasqueradingAsCUDA device_guard(device_of(input));
-    const hipStream_t stream = at::hip::getCurrentHIPStream();
-
-    layernorm2d_fwd({
-                        dtype_str,        // input precision
-                        out_dtype_str,    // output precision
-                        dtype_str,        // x-scale, used for [1*N] input smooth quant
-                        yscale_dtype_str, // y-scale, used for [M*1] output for next layer
-                        SaveMeanVar,
-                        x_bias.has_value() ? 1 : 0, // x_bias
-                        1,                          // fused_add
-                        2                           // fused_quant
-                    },
-                    {input.data_ptr(),                                         // p_x
-                     residual_in.data_ptr(),                                   // p_x_residual
-                     nullptr,                                                  // p_x_scale
-                     x_bias.has_value() ? x_bias.value().data_ptr() : nullptr, // p_x_bias
-                     weight.data_ptr(),                                        // p_gamma
-                     bias.data_ptr(),                                          // p_beta
-
-                     out.data_ptr(),          // p_y
-                     residual_out.data_ptr(), // p_y_residual
-                     yscale.data_ptr(),       // p_y_scale
-                     nullptr,                 // p_mean
-                     nullptr,                 // p_invStd
-                     static_cast<float>(epsilon), m, n, stride, xr_stride, y_stride, yr_stride},
-                    {stream});
+    TORCH_CHECK(false,
+        "The pinned CK layernorm generator has no dynamic-only quantization specialization. "
+        "Use aiter.ops.triton.normalization.norm.layernorm2d_fwd_with_dynamicquant "
+        "or layernorm2d_fwd_with_add_dynamicquant.");
 }

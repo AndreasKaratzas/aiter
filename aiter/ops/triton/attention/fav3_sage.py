@@ -31,7 +31,7 @@ def _load_sage_fwd_tables() -> dict[str, dict]:
 
     Read once, at import. ``get_sage_fwd_configs()`` is traced by Dynamo under
     ``torch.compile(fullgraph=True)`` -- see
-    op_tests/triton_tests/attention/test_fav3_sage_compile.py -- and Dynamo
+    tests/operators/triton/attention/test_fav3_sage_compile.py -- and Dynamo
     cannot trace the ``open()`` inside ``load_config_json()``. Its ``lru_cache``
     does not help either: Dynamo ignores the wrapper and traces the function
     body. So the read has to happen off the traced path, leaving

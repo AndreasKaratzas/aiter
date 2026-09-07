@@ -8,6 +8,8 @@ from importlib import import_module
 import flydsl as _flydsl
 from packaging.version import Version
 
+from aiter.aot.flydsl.cache import configure_installed_cache
+
 from .moe_common import GateMode
 
 _MIN_FLYDSL_VERSION = Version("0.2.4")
@@ -23,6 +25,8 @@ if _base_version < _MIN_FLYDSL_VERSION:
         f"expected >=`{_MIN_FLYDSL_VERSION}`, "
         f"got `{installed_flydsl_version}`."
     )
+
+_bundle_cache = configure_installed_cache()
 
 _LAZY_IMPORTS = {
     "FP8_MQA_LOGITS_DEFAULT_VARIANT": (

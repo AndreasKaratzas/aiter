@@ -1,48 +1,46 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2024-2026, Advanced Micro Devices, Inc. All rights reserved.
+"""AITER public package.
 
+Importing AITER is a metadata operation. GPU runtimes and legacy operators are
+loaded when requested; preparation and execution live in ``aiter.runtime``.
+"""
+
+import importlib as _importlib
+import json as _json
 import logging
 import os
 import sys
+from pathlib import Path as _Path
+from threading import RLock as _RLock
 
-import torch
+from ._logging import getLogger as getLogger
 
-logger = logging.getLogger("aiter")
+logger = getLogger()
+AITER_AOT_IMPORT = os.getenv("AITER_AOT_IMPORT", "0") == "1"
+AITER_TRITON_ONLY = (
+    os.getenv("AITER_TRITON_ONLY", "0") == "1" or sys.platform == "win32"
+)
+
+# Explicit compatibility inventory preserves existing exported names without
+# importing hundreds of backend modules to discover them on every startup.
+_exports = _json.loads((_Path(__file__).parent / "_compat_exports.json").read_text())
+_public_modules = {"api", "runtime", "backends", "tuning"}
+_optional_exports = {
+    "IrisCommContext": "IrisCommContext",
+    "all_gather": "all_gather",
+    "calculate_heap_size": "calculate_heap_size",
+    "reduce_scatter_rmsnorm_quant_all_gather": "reduce_scatter_rmsnorm_quant_all_gather",
+    "iris_reduce_scatter": "reduce_scatter",
+}
+_import_lock = _RLock()
+_logging_ready = False
 
 
-def getLogger():
-    if not logger.handlers:
-        # Configure log level from environment variable
-        # Valid values: DEBUG, INFO (default), WARNING, ERROR
-        log_level_str = os.getenv("AITER_LOG_LEVEL", "INFO").upper()
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
-
-        if log_level_str not in valid_levels:
-            print(
-                f"\033[93m[aiter] Warning: Invalid AITER_LOG_LEVEL '{log_level_str}', "
-                f"using 'INFO'. Valid values: {', '.join(valid_levels)}\033[0m"
-            )
-            log_level_str = "INFO"
-
-        log_level = getattr(logging, log_level_str)
-        logger.setLevel(log_level)
-
-        console_handler = logging.StreamHandler()
-        if int(os.environ.get("AITER_LOG_MORE", "0")):
-            formatter = logging.Formatter(
-                fmt="[%(name)s %(levelname)s] %(asctime)s.%(msecs)03d - %(processName)s:%(process)d - %(pathname)s:%(lineno)d - %(funcName)s\n%(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        else:
-            formatter = logging.Formatter(
-                fmt="[%(name)s] %(message)s",
-            )
-        console_handler.setFormatter(formatter)
-        console_handler.setLevel(log_level)
-
-        logger.addHandler(console_handler)
-        logger.propagate = False
-
+def _configure_torch_logging():
+    global _logging_ready
+    if not _logging_ready:
+        torch = _importlib.import_module("torch")
         if hasattr(torch._dynamo.config, "ignore_logger_methods"):
             torch._dynamo.config.ignore_logger_methods = (
                 logging.Logger.info,
@@ -52,112 +50,76 @@ def getLogger():
                 logger.info,
                 logger.debug,
             )
+        _logging_ready = True
 
-    return logger
+
+def __getattr__(name):
+    if name == "__all__":
+        value = list(_base_exports)
+        try:
+            optional = _importlib.import_module("aiter.ops.triton.comms")
+            for public, attribute in _optional_exports.items():
+                if hasattr(optional, attribute):
+                    value.append(public)
+        except (ImportError, AttributeError):
+            pass
+    elif name in _public_modules:
+        value = _importlib.import_module(f"aiter.{name}")
+    elif name == "torch":
+        value = _importlib.import_module("torch")
+    elif name == "IRIS_COMM_AVAILABLE":
+        try:
+            value = _importlib.import_module(
+                "aiter.ops.triton.comms"
+            ).IRIS_COMM_AVAILABLE
+        except (ImportError, AttributeError):
+            value = False
+    elif name in _optional_exports:
+        try:
+            value = getattr(
+                _importlib.import_module("aiter.ops.triton.comms"),
+                _optional_exports[name],
+            )
+        except (ImportError, AttributeError) as error:
+            raise AttributeError(
+                f"aiter.{name} requires the optional Iris communication provider"
+            ) from error
+    elif name in _exports:
+        if AITER_TRITON_ONLY or (AITER_AOT_IMPORT and name != "core"):
+            raise AttributeError(
+                f"aiter.{name} is unavailable in the selected import mode"
+            )
+        with _import_lock:
+            if name in globals():
+                return globals()[name]
+            _configure_torch_logging()
+            module, attribute = _exports[name]
+            imported = _importlib.import_module(module)
+            value = imported if attribute is None else getattr(imported, attribute)
+    else:
+        raise AttributeError(f"module 'aiter' has no attribute {name!r}")
+    globals()[name] = value
+    return value
 
 
-logger = getLogger()
-AITER_AOT_IMPORT = os.getenv("AITER_AOT_IMPORT", "0") == "1"
-# Triton-only: expose only the Triton ops, skipping the C++/CK/HIP ops and their
-# JIT build. Always on for Windows (no CK/HIP there); elsewhere opt in via the
-# env var, e.g. Triton-backend users with no C++ toolchain or CK.
-AITER_TRITON_ONLY = (
-    os.getenv("AITER_TRITON_ONLY", "0") == "1" or sys.platform == "win32"
-)
-
-# Use bundled pre-compiled FlyDSL cache unless the user overrides via env var.
-_flydsl_cache = os.path.join(os.path.dirname(__file__), "jit", "flydsl_cache")
-if os.path.isdir(_flydsl_cache) and "FLYDSL_RUNTIME_CACHE_DIR" not in os.environ:
-    os.environ["FLYDSL_RUNTIME_CACHE_DIR"] = _flydsl_cache
-
-if AITER_TRITON_ONLY:
-    logger.info("Triton ops only: CK and HIP ops (and their JIT build) are skipped.")
-elif AITER_AOT_IMPORT:
-    from .jit import core as core
-else:
-    # NOTE: do NOT wrap this block in try/except.
-    # Catching ImportError here silently truncates the top-level aiter
-    # namespace whenever any single import fails, which has caused
-    # downstream regressions (e.g. vLLM-ROCm losing rmsnorm2d_fwd_with_add).
-    # Any real import failure on Linux must surface as a loud ImportError
-    # on `import aiter` -- that is what 0.1.10.post3 and earlier did.
-    # opus is gfx950-only but the package self-guards (warn + stubs on
-    # non-gfx950) inside aiter/ops/opus/__init__.py, so its import line
-    # is safe to put at top-level without try/except.
-    # isort: off
-    # Order below is load-bearing, do not sort. `dtypes` must be bound on the
-    # aiter package before any submodule that does `from aiter import dtypes`
-    # (mla.py among others) gets pulled in, otherwise that resolves against a
-    # partially initialised aiter and raises ImportError.
-    from .jit import core as core
-    from .utility import dtypes as dtypes
-    from .ops.enum import *
-    from .ops.norm import *
-    from .ops.quant import *
-    from .ops.gemm_op_a8w8 import *
-    from .ops.gemm_op_a16w16 import *
-    from .ops.gemm_op_a4w4 import *
-    from .ops.gemm_op_a6w6 import *
-    from .ops.gemm_op_a8w4 import *
-    from .ops.batched_gemm_op_a8w8 import *
-    from .ops.batched_gemm_op_bf16 import *
-    from .ops.deepgemm import *
-    from .ops.opus import *
-    from .ops.aiter_operator import *
-    from .ops.activation import *
-    from .ops.attention import *
-    from .ops.custom import *
-    from .ops.custom_all_reduce import *
-    from .ops.quick_all_reduce import *
-    from .ops.moe_op import *
-    from .ops.moe_sorting import *
-    from .ops.moe_sorting_opus import *
-    from .ops.moe_mxfp4_aux import *
-    from .ops.mla_sparse_prefill import *
-    from .ops.pa_sparse_prefill_opus import *
-    from .ops.msa_attention import *
-    from .ops.pos_encoding import *
-    from .ops.cache import *
-    from .ops.rmsnorm import *
-    from .ops.communication import *
-    from .ops.rope import *
-    from .ops.topk import *
-    from .ops.topk_plain import topk_plain  # noqa: F401
-    from .ops.mha import *
-    from .ops.vsa_sparse_attention import vsa_sparse_attention  # noqa: F401
-    from .ops.gradlib import *
-    from .ops.trans_ragged_layout import *
-    from .ops.sample import *
-    from .ops.fused_qk_norm_mrope_cache_quant import *
-    from .ops.fused_qknorm_idxrqknorm import (  # noqa: F401
-        FUSED_QKNORM_IDXRQKNORM_SUPPORTS_FP8_INDEX_Q,
-        FUSED_QKNORM_IDXRQKNORM_SUPPORTS_PACKED_SHUFFLE,
-        fused_qknorm_idxrqknorm,
+def __dir__():
+    return sorted(
+        set(globals()) | set(_base_exports) | _public_modules | set(_optional_exports)
     )
-    from .ops.fused_qk_norm_rope_cache_quant import *
-    from .ops.fused_qk_rmsnorm_group_quant import *
-    from .ops.inverse_rope_group_quant import *
-    from .ops.groupnorm import *
-    from .ops.mhc import *
-    from .ops.causal_conv1d_update import *
-    from .ops.fused_split_gdr_update import *
-    from .ops.gdr_decode_packed_bf16 import *
-    from . import mla  # noqa: F401
 
-    # isort: on
 
-# Import Triton-based communication primitives from ops.triton.comms (optional, only if Iris is available)
-try:
-    from .ops.triton.comms import (
-        IRIS_COMM_AVAILABLE,
-        IrisCommContext,  # noqa: F401
-        all_gather,  # noqa: F401
-        calculate_heap_size,  # noqa: F401
-        reduce_scatter_rmsnorm_quant_all_gather,  # noqa: F401
-    )
-    from .ops.triton.comms import (
-        reduce_scatter as iris_reduce_scatter,  # noqa: F401  # avoid shadowing C++ reduce_scatter exported by custom_all_reduce.py
-    )
-except (ImportError, AttributeError):
-    # Iris or triton not available, skip import
-    IRIS_COMM_AVAILABLE = False
+_base_exports = [
+    "AITER_AOT_IMPORT",
+    "AITER_TRITON_ONLY",
+    "IRIS_COMM_AVAILABLE",
+    "getLogger",
+    "logger",
+    "logging",
+    "os",
+    "sys",
+    "torch",
+]
+if not (AITER_TRITON_ONLY or AITER_AOT_IMPORT):
+    _base_exports += sorted(_exports)
+elif AITER_AOT_IMPORT and not AITER_TRITON_ONLY:
+    _base_exports.append("core")

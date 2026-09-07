@@ -12,7 +12,7 @@
 
 3. Start tuning:
 Run the following cmd to start tuning, please wait a few minutes as it will build moe 2-stages kernels via jit:
-`python3 csrc/ck_gemm_moe_2stages_codegen/gemm_moe_tune.py -i aiter/configs/untuned_fmoe.csv -o aiter/configs/tuned_fmoe.csv`
+`python3 -m aiter.tuning moe.two_stage -i aiter/configs/untuned_fmoe.csv -o aiter/configs/tuned_fmoe.csv`
 You can find the results of this tuning in `aiter/configs/tuned_fmoe.csv`, like this:
     |**cu_num**|**token**|**model_dim**|**inter_dim**|**expert**|**topk**|**act_type**|**dtype**|**q_dtype_a**|**q_dtype_w**|**q_type**|**use_g1u1**|**doweight_stage1**|**block_m**|**ksplit**|**us1**|**kernelName1**|**err1**|**us2**|**kernelName2**|**err2**|**us**|**run_1stage**|**tflops**|**bw**|
     |----------|---------|-------------|-------------|----------|--------|------------|---------|-------------|-------------|----------|------------|-------------------|-----------|----------|-------|---------------|--------|-------|---------------|--------|------|--------------|----------|------|
@@ -22,9 +22,9 @@ You can find the results of this tuning in `aiter/configs/tuned_fmoe.csv`, like 
     `run_1stage` indicates whether to run fused 1-stage kernel (1) or 2-stages kernels (0).
 
 4. Build tuned kernels and test:
-Test the performance, modify the test instance in `op_tests/test_moe.py` or `python3 op_tests/test_moe_2stage.py` and run it, please wait a few minutes as it will build moe tuned kernels in `aiter/configs/tuned_fmoe.csv` via jit:
-`python3 op_tests/test_moe.py` or `python3 op_tests/test_moe_2stage.py`
-If you have built moe kernels before tuning new MoE shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 op_tests/test_moe.py`. It will rebuild kernels from `AITER_CONFIG_FMOE`, the default one will be results merged from `aiter/configs/tuned_fmoe.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_tuned_fmoe_xx.csv`, the merged result is stored in `/tmp/aiter_configs/tuned_fmoe.csv`.
+Test the performance, modify the test instance in `tests/operators/hip/drivers/moe.py` or `python3 tests/operators/hip/drivers/moe_2stage.py` and run it, please wait a few minutes as it will build moe tuned kernels in `aiter/configs/tuned_fmoe.csv` via jit:
+`python3 tests/operators/hip/drivers/moe.py` or `python3 tests/operators/hip/drivers/moe_2stage.py`
+If you have built moe kernels before tuning new MoE shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 tests/operators/hip/drivers/moe.py`. It will rebuild kernels from `AITER_CONFIG_FMOE`, the default one will be results merged from `aiter/configs/tuned_fmoe.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_tuned_fmoe_xx.csv`, the merged result is stored in `/tmp/aiter_configs/tuned_fmoe.csv`.
 
 ## More Options
 
@@ -127,11 +127,11 @@ If you have built moe kernels before tuning new MoE shapes, please add `AITER_RE
 **Examples**:
 ```bash
 # benchmark tuned kernels from specified tuned config
-python3 csrc/ck_gemm_moe_2stages_codegen/gemm_moe_tune.py \
+python3 -m aiter.tuning moe.two_stage \
   --run_config aiter/configs/tuned_fmoe.csv
 
 # benchmark default kernels using shapes from -i
-python3 csrc/ck_gemm_moe_2stages_codegen/gemm_moe_tune.py \
+python3 -m aiter.tuning moe.two_stage \
   -i aiter/configs/untuned_fmoe.csv --run_config
 ```
 

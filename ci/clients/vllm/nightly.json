@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "classification": "rolling-candidate-only",
+  "consumer": "vllm",
+  "dependency": "amd-aiter",
+  "module": "aiter"
+}

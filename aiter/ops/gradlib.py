@@ -3,7 +3,7 @@
 
 import torch
 
-from csrc.cpp_itfs.torch_utils import direct_register_custom_op
+from aiter.ops._native.torch_utils import direct_register_custom_op
 
 from ..jit.core import compile_ops
 

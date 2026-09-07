@@ -6,7 +6,7 @@
 #   1. Generate Gluon kernel based on rocm/triton/gluon_ext (3.5.0+gite392a058)
 #      it requires zip installed.
 #          $ cd ${AOT_DUMP_AITER_ROOT}
-#          $ python3 op_tests/op_benchmarks/triton/bench_deepgemm_attention.py --batch=1 -aot [-p]
+#          $ python3 -m benchmarks.operators.triton.bench_deepgemm_attention --batch=1 -aot [-p]
 #      "-p" means kernel could assume the stride of KVCache is aligned to 16B.
 #      If enable it, the stride of KVCache in the AOT_load side must also be aligned to 16B.
 #   2. Copy generated paged_mqa_logits_aot_kernel.zip to ${AOT_LOAD_AITER_ROOT}/aiter/ops/triton/configs
@@ -15,7 +15,7 @@
 #          $ cd aiter/ops/triton/configs && unzip paged_mqa_logits_aot_kernel.zip && cd -
 #   3. Set env variable to enable AOT gluon kernel loading
 #          $ export AITER_ENABLE_AOT_GLUON_PA_MQA_LOGITS=1
-#          $ python3 op_tests/op_benchmarks/triton/bench_deepgemm_attention.py -kv_length=32768 --batch=2 -mtp=1 -p
+#          $ python3 -m benchmarks.operators.triton.bench_deepgemm_attention -kv_length=32768 --batch=2 -mtp=1 -p
 #      Set AITER_ENABLE_AOT_GLUON_PA_MQA_LOGITS=0 to disable AOT gluon kernel. It will backward
 #      to triton JIT kernel
 # ========================================================================

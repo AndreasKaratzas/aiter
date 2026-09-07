@@ -6,14 +6,14 @@ import os
 import re
 import subprocess
 
-from build_targets import (
+from aiter.jit.utils.build_targets import (
     GFX_MAP,
     _parse_gpu_archs_env,
     filter_tune_df,
     get_build_targets_env,
 )
-from cpp_extension import executable_path
-from torch_guard import torch_compile_guard
+from aiter.jit.utils.cpp_extension import executable_path
+from aiter.jit.utils.torch_guard import torch_compile_guard
 
 logger = logging.getLogger("aiter")
 

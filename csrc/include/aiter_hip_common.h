@@ -6,6 +6,7 @@
 
 #include "aiter_enum.h"
 #include "aiter_logger.h"
+#include "aiter_kernel_integrity.h"
 #if !ENABLE_CK
 #include "ck_tile_shim.h"
 #else
@@ -400,6 +401,11 @@ class AiterAsmKernel : private AiterAsmKernelFast
             AITER_CHECK(
                 file.read(hsaco_data.get(), file_size), "failed to read ", full_path.c_str());
 
+            aiter::kernels::verify_object(AITER_ASM_DIR,
+                                          arch_name + "/" + hsaco_path,
+                                          hsaco_data.get(),
+                                          file_size,
+                                          std::getenv("AITER_KERNEL_INDEX_SHA256"));
             validate_hsaco_lds(kernel_name, full_path, hsaco_data.get(), file_size);
 
             return hsaco_data.get();

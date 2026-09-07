@@ -1,0 +1,90 @@
+{
+  "gemm.ck_batched_bf16": {
+    "module": "aiter.codegen.gemm.ck_batched_bf16.generate",
+    "description": "Generate gemm / ck batched bf16 native build inputs"
+  },
+  "gemm.ck_batched_a8w8": {
+    "module": "aiter.codegen.gemm.ck_batched_a8w8.generate",
+    "description": "Generate gemm / ck batched a8w8 native build inputs"
+  },
+  "gemm.ck_a8w8": {
+    "module": "aiter.codegen.gemm.ck_a8w8.generate",
+    "description": "Generate gemm / ck a8w8 native build inputs"
+  },
+  "gemm.ck_a8w8_blockscale": {
+    "module": "aiter.codegen.gemm.ck_a8w8_blockscale.generate",
+    "description": "Generate gemm / ck a8w8 blockscale native build inputs"
+  },
+  "gemm.ck_a8w8_blockscale_bpreshuffle": {
+    "module": "aiter.codegen.gemm.ck_a8w8_blockscale_bpreshuffle.generate",
+    "description": "Generate gemm / ck a8w8 blockscale bpreshuffle native build inputs"
+  },
+  "gemm.ck_a4w4_blockscale": {
+    "module": "aiter.codegen.gemm.ck_a4w4_blockscale.generate",
+    "description": "Generate gemm / ck a4w4 blockscale native build inputs"
+  },
+  "gemm.ck_a8w8_bpreshuffle": {
+    "module": "aiter.codegen.gemm.ck_a8w8_bpreshuffle.generate",
+    "description": "Generate gemm / ck a8w8 bpreshuffle native build inputs"
+  },
+  "gemm.ck_tile_a8w8_bpreshuffle": {
+    "module": "aiter.codegen.gemm.ck_tile_a8w8_bpreshuffle.generate",
+    "description": "Generate gemm / ck tile a8w8 bpreshuffle native build inputs"
+  },
+  "gemm.ck_deepgemm": {
+    "module": "aiter.codegen.gemm.ck_deepgemm.generate",
+    "description": "Generate gemm / ck deepgemm native build inputs"
+  },
+  "gemm.opus": {
+    "module": "aiter.codegen.gemm.opus.generate",
+    "description": "Generate gemm / opus native build inputs"
+  },
+  "moe.ck_two_stage": {
+    "module": "aiter.codegen.moe.ck_two_stage.generate",
+    "description": "Generate moe / ck two stage native build inputs"
+  },
+  "moe.ck_tile_two_stage": {
+    "module": "aiter.codegen.moe.ck_tile_two_stage.generate",
+    "description": "Generate moe / ck tile two stage native build inputs"
+  },
+  "moe.opus": {
+    "module": "aiter.codegen.moe.opus.generate",
+    "description": "Generate moe / opus native build inputs"
+  },
+  "gemm.ck_tile_a8w8_blockscale": {
+    "module": "aiter.codegen.gemm.ck_a8w8_blockscale.ck_tile",
+    "description": "Generate gemm / ck tile a8w8 blockscale native build inputs"
+  },
+  "moe.mxfp4_aux": {
+    "module": "aiter.codegen.moe.mxfp4_aux",
+    "description": "Generate moe / mxfp4 aux native build inputs"
+  },
+  "elementwise.binary": {
+    "module": "aiter.codegen.elementwise.binary",
+    "description": "Generate elementwise / binary native build inputs"
+  },
+  "attention.fmha_backward": {
+    "module": "aiter.codegen.attention.fmha_backward",
+    "description": "Generate attention / fmha backward native build inputs"
+  },
+  "assembly.configs": {
+    "module": "aiter.codegen.assembly.configs",
+    "description": "Generate assembly / configs native build inputs"
+  },
+  "gemm.opus_codeobjects": {
+    "module": "aiter.codegen.gemm.opus.build_codeobjects",
+    "description": "Generate gemm / opus codeobjects native build inputs"
+  },
+  "ck.attention": {
+    "module": "aiter.codegen.vendor.ck_attention",
+    "description": "Run pinned CK attention generator"
+  },
+  "ck.layernorm": {
+    "module": "aiter.codegen.vendor.ck_layernorm",
+    "description": "Run pinned CK layernorm generator"
+  },
+  "ck.sparse_attention": {
+    "module": "aiter.codegen.vendor.ck_sparse_attention",
+    "description": "Run pinned CK sparse attention generator"
+  }
+}

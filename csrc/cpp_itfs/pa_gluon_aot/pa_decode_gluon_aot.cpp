@@ -65,7 +65,7 @@ static PaDecodeCacheEntry warmup_and_load(
     py::gil_scoped_acquire gil;
 
     py::module_ warmup_mod =
-        py::module_::import("csrc.cpp_itfs.pa_gluon_aot.pa_decode_gluon_aot_warmup");
+        py::module_::import("aiter.ops._native.pa_gluon_aot.pa_decode_gluon_aot_warmup");
 
     py::dict result = warmup_mod.attr("warmup_pa_decode")(
         compute_type,

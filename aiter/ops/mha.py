@@ -8,7 +8,6 @@ import torch
 from torch import Generator, Tensor
 
 from ..jit.core import (
-    AITER_META_DIR,
     CK_DIR,
     ENABLE_CK,
     compile_ops,
@@ -115,8 +114,7 @@ def cmdGenFunc_mha_fwd(
         filter += "_pertensor*"
 
     blob_gen_cmd = [
-        f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d fwd "
-        "--receipt 100 --filter {} --output_dir {{}}".format(filter),
+        f"-m aiter.codegen ck.attention -d fwd --receipt 100 --filter {filter} --output_dir {{}}",
     ]
     return {
         "md_name": md_name,
@@ -940,12 +938,12 @@ def cmdGenFunc_mha_varlen_fwd(
         filter_fwd_splitkv2 += "_pagedkv*"
         filter_fwd_splitkv = f"{filter_fwd_splitkv1}@{filter_fwd_splitkv2}"
         blob_gen_cmd = [
-            f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d fwd "
+            "-m aiter.codegen ck.attention -d fwd "
             "--receipt 200 --filter {} --output_dir {{}}".format('" "')
         ]
         blob_gen_cmd.append(
-            f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d fwd_splitkv "
-            "--receipt 200 --filter {} --output_dir {{}}".format(filter_fwd_splitkv)
+            "-m aiter.codegen ck.attention -d fwd_splitkv "
+            f"--receipt 200 --filter {filter_fwd_splitkv} --output_dir {{}}"
         )
     return {
         "md_name": md_name,
@@ -1232,9 +1230,8 @@ def cmdGenFunc_mha_bwd(
     filter = f"{filter1}@{filter2}@{filter3}"
 
     blob_gen_cmd = [
-        f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d bwd "
-        "--receipt 300 --filter {} --output_dir {{}}".format(filter),
-        f"{AITER_META_DIR}/hsa/codegen.py -m fmha_v3_bwd --output_dir {{}}",
+        f"-m aiter.codegen ck.attention -d bwd --receipt 300 --filter {filter} --output_dir {{}}",
+        "-m aiter.codegen assembly.configs -m fmha_v3_bwd --output_dir {}",
     ]
     return {
         "md_name": md_name,
@@ -1490,9 +1487,8 @@ def cmdGenFunc_mha_varlen_bwd(
     filter = f"{filter1}@{filter2}@{filter3}"
 
     blob_gen_cmd = [
-        f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d bwd "
-        "--receipt 400 --filter {} --output_dir {{}}".format(filter),
-        f"{AITER_META_DIR}/hsa/codegen.py -m fmha_v3_bwd --output_dir {{}}",
+        f"-m aiter.codegen ck.attention -d bwd --receipt 400 --filter {filter} --output_dir {{}}",
+        "-m aiter.codegen assembly.configs -m fmha_v3_bwd --output_dir {}",
     ]
     return {
         "md_name": md_name,
@@ -1611,8 +1607,7 @@ def cmdGenFunc_mha_batch_prefill(
         md_name += "_nsink"
         filter_fwd += "_nsink*"
     blob_gen_cmd = [
-        f"{CK_DIR}/example/ck_tile/01_fmha/generate.py -d batch_prefill "
-        "--receipt 200 --filter {} --output_dir {{}}".format(filter_fwd)
+        f"-m aiter.codegen ck.attention -d batch_prefill --receipt 200 --filter {filter_fwd} --output_dir {{}}"
     ]
     return {
         "md_name": md_name,
@@ -3648,7 +3643,10 @@ def flash_attn_varlen_func(
            of the sequences in the batch, used to index into kv.
         max_seqlen_q: int. Maximum query sequence length in the batch.
         max_seqlen_k: int. Maximum key sequence length in the batch.
-        min_seqlen_q: int. Minimum query sequence length for chunked prefill.
+        min_seqlen_q: int or None. Skip threshold for mixed decode/chunked prefill.
+            None and zero disable skipping. A positive value leaves sequences
+            with query length <= this threshold unwritten. Supply ``out`` with
+            those rows already initialized or computed by the decode path.
         dropout_p: float. Dropout probability.
         softmax_scale: float. The scaling of QK^T before applying softmax.
             Default to 1 / sqrt(headdim_q).
@@ -3672,6 +3670,15 @@ def flash_attn_varlen_func(
             The output of softmax (possibly with different scaling). It also encodes the dropout
             pattern (negative means that location was dropped, nonnegative means it was kept).
     """
+
+    # Frameworks use None when no query sequences should be skipped. Zero
+    # selects the existing CK variant without a skip threshold.
+    if min_seqlen_q is None:
+        min_seqlen_q = 0
+    elif isinstance(min_seqlen_q, bool) or not isinstance(min_seqlen_q, int):
+        raise TypeError("min_seqlen_q must be a nonnegative integer or None")
+    if min_seqlen_q < 0:
+        raise ValueError("min_seqlen_q must be nonnegative")
 
     # Try the PR3039 gfx1250 prefill ASM path before FlyDSL can claim it.
     def can_try_gfx1250_fmha_fwd_with_sink_varlen_asm():

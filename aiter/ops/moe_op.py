@@ -6,7 +6,7 @@ import functools
 import torch
 from torch import Tensor
 
-from ..jit.core import AITER_CSRC_DIR, compile_ops
+from ..jit.core import compile_ops
 from ..utility import dtypes
 from .enum import ActivationType, QuantType
 
@@ -533,6 +533,23 @@ str2dtype_dict = {
 }
 
 
+def _validate_ck_moe_weight_layout(weight_dtype, quant_type, is_shuffled):
+    # The unquantized fp16/bf16 DeviceMoeGemm family consumes the fixed
+    # preshuffled layout in gemm_moe_ck2stages_common.cuh. Its generator has
+    # no row-major variant, even though the old module name said "off".
+    if (
+        QuantType(quant_type) == QuantType.No
+        and weight_dtype in (dtypes.fp16, dtypes.bf16)
+        and not is_shuffled
+    ):
+        raise ValueError(
+            "Unquantized CK MoE requires preshuffled FP16/BF16 weights. "
+            "Prepare each weight with aiter.ops.shuffle.shuffle_weight (or "
+            "vLLM rocm_aiter_ops.shuffle_weights) and preserve is_shuffled=True; "
+            "raw row-major weights are not supported by this CK kernel family."
+        )
+
+
 @functools.lru_cache(maxsize=1024)
 def get_moe_stage_module(
     input_dtype,
@@ -548,6 +565,8 @@ def get_moe_stage_module(
         activation = ActivationType(activation)
     if isinstance(quant_type, int):
         quant_type = QuantType(quant_type)
+
+    _validate_ck_moe_weight_layout(weight_dtype, quant_type, preshuffle_mode)
 
     Adtype = dtype2str_dict[input_dtype]
     Bdtype = dtype2str_dict[weight_dtype]
@@ -578,7 +597,7 @@ def get_moe_stage_module(
         parts.append("splitk")
     md_name = "_".join(parts)
     blob_gen_cmd = [
-        f"{AITER_CSRC_DIR}/ck_gemm_moe_2stages_codegen/gen_instances.py -a {Adtype} -b {Bdtype} -c {Cdtype} -q {quant_type} -act {act} -m {mul_routed_weight_stage} {preshuffle_str} {splitk_str} -w {{}}"
+        f"-m aiter.codegen moe.ck_two_stage -a {Adtype} -b {Bdtype} -c {Cdtype} -q {quant_type} -act {act} -m {mul_routed_weight_stage} {preshuffle_str} {splitk_str} -w {{}}"
     ]
 
     return md_name, blob_gen_cmd

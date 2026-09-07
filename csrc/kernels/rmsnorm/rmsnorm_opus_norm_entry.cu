@@ -10,6 +10,9 @@
 
 #define OPUS_EXPORT extern "C" __attribute__((visibility("default")))
 
+// Private provider ABI consumed by the prepared runtime and the native SDK.
+OPUS_EXPORT int aiter_rmsnorm_backend_abi_version() { return 1; }
+
 // Dispatch a norm launch on the dtype code. R = residual_in, RO = residual_out.
 #define OPUS_NORM_DISPATCH(DTYPE, O, I, W, R, RO)                                                    \
     do                                                                                               \

@@ -1,0 +1,146 @@
+name: Record delivery outcomes and last qualified artifacts
+
+on:
+  workflow_call:
+    inputs:
+      source_revision:
+        type: string
+        required: true
+      job_results:
+        type: string
+        required: true
+      cadence:
+        type: string
+        required: true
+      publish:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      qualification:
+        description: Exact previously qualified event digest to restore
+        type: string
+        required: true
+      reason:
+        description: Reviewed reason for restoring this qualified artifact
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+# Serialize writers locally; S3 conditional writes also protect against external writers.
+concurrency:
+  group: aiter-delivery-channel-state
+  cancel-in-progress: false
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  update:
+    runs-on: build-only-aiter
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      CHANNEL_BUCKET: ${{ vars.AITER_CHANNEL_BUCKET }}
+      CHANNEL_KEY: ${{ vars.AITER_CHANNEL_KEY }}
+      CONTROLLER_SOURCE: ${{ inputs.source_revision || github.sha }}
+      CONTROLLER_JOBS: ${{ inputs.job_results || '{}' }}
+      CONTROLLER_RUN: ${{ github.run_id }}:${{ github.run_attempt }}
+      CONTROLLER_OWNER: ${{ vars.AITER_DELIVERY_OWNER || github.actor }}
+      CONTROLLER_DELTA: ${{ inputs.cadence || 'rollback' }} run ${{ github.run_id }} at ${{ inputs.source_revision || github.sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Check persistent channel configuration
+        if: inputs.publish || (github.event_name == 'workflow_dispatch' && inputs.cadence == '')
+        run: test -n "$CHANNEL_BUCKET" && test -n "$CHANNEL_KEY"
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: inputs.publish || (github.event_name == 'workflow_dispatch' && inputs.cadence == '')
+        with:
+          aws-region: ${{ vars.AITER_CHANNEL_REGION || 'us-east-1' }}
+          role-to-assume: ${{ vars.AITER_CHANNEL_ROLE }}
+      - name: Fetch authoritative state with its compare-and-swap token
+        id: fetch
+        if: inputs.publish || (github.event_name == 'workflow_dispatch' && inputs.cadence == '')
+        run: |
+          python3 -m ci.release.storage fetch --store "$RUNNER_TEMP/channel-store" --bucket "$CHANNEL_BUCKET" --key "$CHANNEL_KEY"
+      - uses: actions/download-artifact@v4
+        if: github.event_name != 'workflow_dispatch' || inputs.cadence != ''
+        with:
+          path: ${{ runner.temp }}/delivery-artifacts
+      - name: Retain actual workflow and build-job timing observations
+        if: github.event_name != 'workflow_dispatch' || inputs.cadence != ''
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PYJOBS'
+          import json, os, urllib.request
+          from pathlib import Path
+          def read(path):
+              request = urllib.request.Request(os.environ['GITHUB_API_URL'] + path,
+                  headers={'Authorization':'Bearer '+os.environ['API_TOKEN'], 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2026-03-10'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+          prefix = '/repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
+          run = read(prefix)
+          jobs_endpoint = prefix + '/attempts/' + os.environ['GITHUB_RUN_ATTEMPT'] + '/jobs'
+          jobs = []
+          page = 1
+          while True:
+              batch = read(jobs_endpoint + '?per_page=100&page=' + str(page))['jobs']
+              jobs.extend(batch)
+              if len(batch) < 100:
+                  break
+              page += 1
+          path = Path(os.environ['RUNNER_TEMP']) / 'workflow-jobs.json'
+          path.write_text(json.dumps({'source_revision':os.environ['CONTROLLER_SOURCE'], 'run_id':os.environ['CONTROLLER_RUN'], 'workflow_run':run, 'jobs':jobs, 'jobs_endpoint':jobs_endpoint}))
+          PYJOBS
+      - name: Record every required qualification and any failed stage
+        id: finalize
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.cadence != '')
+        run: |
+          mkdir -p "$RUNNER_TEMP/delivery-artifacts"
+          python3 -m ci.release.channel_delivery finalize \
+            --artifacts "$RUNNER_TEMP/delivery-artifacts" --store "$RUNNER_TEMP/channel-store" \
+            --source-revision "$CONTROLLER_SOURCE" --run-id "$CONTROLLER_RUN" \
+            --owner "$CONTROLLER_OWNER" --delta "$CONTROLLER_DELTA" \
+            --job-results "$CONTROLLER_JOBS" --jobs-evidence "$RUNNER_TEMP/workflow-jobs.json" --output "$RUNNER_TEMP/channel-output"
+      - name: Restore an exact previously qualified reference
+        id: rollback
+        if: github.event_name == 'workflow_dispatch' && inputs.cadence == ''
+        env:
+          QUALIFICATION: ${{ inputs.qualification }}
+          REASON: ${{ inputs.reason }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from ci.common.json import write_json
+          from ci.release.channels import channel_index, read_state, rollback
+          from ci.release.metrics import summarize
+          root = Path(os.environ['RUNNER_TEMP'])
+          store = root / 'channel-store'
+          rollback(store, os.environ['QUALIFICATION'], owner=os.environ['CONTROLLER_OWNER'], reason=os.environ['REASON'], expected_digest=read_state(store)['state_digest'])
+          write_json(root / 'channel-output/index.json', channel_index(store, as_of=read_state(store)['events'][-1]['created_utc']))
+          write_json(root / 'channel-output/metrics.json', summarize(root / 'channel-output/observations', channels=store))
+          PY
+      - name: Publish the new state only if the remote history has not changed
+        if: always() && steps.fetch.outcome == 'success' && (steps.finalize.outcome == 'success' || steps.rollback.outcome == 'success') && (inputs.publish || (github.event_name == 'workflow_dispatch' && inputs.cadence == ''))
+        run: python3 -m ci.release.storage publish --store "$RUNNER_TEMP/channel-store" --output "$RUNNER_TEMP/channel-output"
+      - name: Retain state, current failures and measured observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: delivery-channel-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/channel-store
+            ${{ runner.temp }}/channel-output
+          if-no-files-found: error
+          retention-days: 90

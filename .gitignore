@@ -25,7 +25,7 @@ aiter/install_mode
 *.so.*
 *.dylib
 *.dll
-build
+/build/
 blob
 
 # Fortran module files
@@ -54,10 +54,11 @@ __pycache__
 
 # debug folder
 debug
-aiter_logs
 *.log
 
 # artifacts
+/dist/
+/test-results/
 aiter_meta
 aiter/install_mode
 
@@ -66,8 +67,8 @@ aiter/install_mode
 *.pth
 *.bin
 *.ckpt
-op_tests/test_jenga_vsa/
-op_tests/dump_data/
+tests/operators/hip/test_jenga_vsa/
+tests/operators/hip/dump_data/
 
 # Temporary and debug files
 debug_log.txt
@@ -78,7 +79,7 @@ OUT_FOLDER/
 *.att
 
 # Large benchmark results - archive to Wiki or external storage
-op_tests/moe_benchmarking_profiling/results/*.csv
+benchmarks/models/results/*.csv
 scripts/results/*.csv
 
 # Opus tuned/untuned CSVs (moved to aiter/configs/bf16_tuned_gemm.csv with libtype='opus' filter;

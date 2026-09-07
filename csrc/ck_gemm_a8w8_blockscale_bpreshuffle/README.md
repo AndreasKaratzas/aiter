@@ -11,7 +11,7 @@
 
 3. Start tuning:
 Run the following cmd to start tuning, please wait a few minutes as it will build gemm_a8w8_blockscale_bpreshuffle_tune via jit:
-`python3 csrc/ck_gemm_a8w8_blockscale/gemm_a8w8_blockscale_tune.py --preshuffle -i aiter/configs/a8w8_blockscale_bpreshuffle_untuned_gemm.csv -o aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv`
+`python3 -m aiter.tuning gemm.a8w8_blockscale --preshuffle -i aiter/configs/a8w8_blockscale_bpreshuffle_untuned_gemm.csv -o aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv`
 You can find the results of the tuning in `aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv`, like this:
     |**gfx**  |**cu_num**|**M**|**N**|**K**|**libtype**|**kernelId**|**splitK**|**us**|**kernelName**|**tflops**|**bw**|**errRatio**|
     |---------|----------|-----|-----|-----|-----------|------------|----------|------|--------------|----------|------|------------|
@@ -20,13 +20,13 @@ You can find the results of the tuning in `aiter/configs/a8w8_blockscale_bpreshu
     `gfx` identifies the GPU architecture (e.g. `gfx942`, `gfx950`). `cu_num` is the number of compute units and distinguishes partitioned or binned variants of the same architecture (e.g. MI308X vs MI300X both use `gfx942`).
 
 4. Build tuned kernels and test:
-Test the performance, modify the test instance in `op_tests/test_gemm_a8w8_blockscale.py` and run it, please wait a few minutes as it will build gemm_a8w8_blockscale_bpreshuffle tuned kernels in `aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv` via jit:
-`python3 op_tests/test_gemm_a8w8_blockscale.py`
-If you have built gemm_a8w8 kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 op_tests/test_gemm_a8w8_blockscale.py`. It will rebuild kernels from `AITER_CONFIG_GEMM_A8W8_BLOCKSCALE_BPRESHUFFLE`, the default one will be results merged from `aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_a8w8_blockscale_bpreshuffle_tuned_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv`.
+Test the performance, modify the test instance in `tests/operators/hip/drivers/gemm_a8w8_blockscale.py` and run it, please wait a few minutes as it will build gemm_a8w8_blockscale_bpreshuffle tuned kernels in `aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv` via jit:
+`python3 tests/operators/hip/drivers/gemm_a8w8_blockscale.py`
+If you have built gemm_a8w8 kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 tests/operators/hip/drivers/gemm_a8w8_blockscale.py`. It will rebuild kernels from `AITER_CONFIG_GEMM_A8W8_BLOCKSCALE_BPRESHUFFLE`, the default one will be results merged from `aiter/configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_a8w8_blockscale_bpreshuffle_tuned_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/a8w8_blockscale_bpreshuffle_tuned_gemm.csv`.
 
 ## More Options
 
-The tuning uses `csrc/ck_gemm_a8w8_blockscale/gemm_a8w8_blockscale_tune.py` with `--preshuffle` flag, which supports both CK and CKTile backends.
+The tuning uses `aiter/tuning/search/gemm/a8w8_blockscale.py` with `--preshuffle` flag, which supports both CK and CKTile backends.
 
 ### Output Configuration
 

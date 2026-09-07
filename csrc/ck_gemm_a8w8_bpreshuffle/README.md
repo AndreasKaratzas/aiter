@@ -12,7 +12,7 @@
 
 3. Start tuning:
 Run the following cmd to start tuning, please wait a few minutes as it will build gemm_a8w8_bpreshuffle_tune via jit:
-`python3 csrc/ck_gemm_a8w8_bpreshuffle/gemm_a8w8_bpreshuffle_tune.py -i aiter/configs/a8w8_bpreshuffle_untuned_gemm.csv -o aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv`
+`python3 -m aiter.tuning gemm.a8w8_bpreshuffle -i aiter/configs/a8w8_bpreshuffle_untuned_gemm.csv -o aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv`
 You can find the results of this tuning in `aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv`, like this:
     |**gfx**  |**cu_num**|**M**|**N**|**K**|**q_dtype_w**        |**libtype**|**kernelId**|**splitK**|**us**|**kernelName**|**tflops**|**bw**|**errRatio**|
     |---------|----------|-----|-----|-----|---------------------|-----------|------------|----------|------|--------------|----------|------|------------|
@@ -22,9 +22,9 @@ You can find the results of this tuning in `aiter/configs/a8w8_bpreshuffle_tuned
     `q_dtype_w` means the quantization data type of weight, and it is used to distinguish between different quantization data types. support torch.int8 and fp8
 
 4. Build tuned kernels and test:
-Test the performance, modify the test instance in `op_tests/test_gemm_a8w8.py` and run it, please wait a few minutes as it will build gemm_a8w8 tuned kernels in `aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv` via jit:
-`python3 op_tests/test_gemm_a8w8.py`
-If you have built gemm_a8w8_bpreshuffle kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 op_tests/test_gemm_a8w8.py`. It will rebuild kernels from `AITER_CONFIG_GEMM_A8W8_BPRESHUFFLE`, the default one will be results merged from `aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_a8w8_bpreshuffle_tuned_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/a8w8_bpreshuffle_tuned_gemm.csv`.
+Test the performance, modify the test instance in `tests/operators/hip/drivers/gemm_a8w8.py` and run it, please wait a few minutes as it will build gemm_a8w8 tuned kernels in `aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv` via jit:
+`python3 tests/operators/hip/drivers/gemm_a8w8.py`
+If you have built gemm_a8w8_bpreshuffle kernels before tuning new GEMM shapes, please add `AITER_REBUILD=1` before your test cmd, such as `AITER_REBUILD=1 python3 tests/operators/hip/drivers/gemm_a8w8.py`. It will rebuild kernels from `AITER_CONFIG_GEMM_A8W8_BPRESHUFFLE`, the default one will be results merged from `aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv` and tuned fmoe csv under `aiter/configs/model_configs/xx_a8w8_bpreshuffle_tuned_gemm_xx.csv`, the merged result is store in `/tmp/aiter_configs/a8w8_bpreshuffle_tuned_gemm.csv`.
 
 ## More Options
 
@@ -135,11 +135,11 @@ If you have built gemm_a8w8_bpreshuffle kernels before tuning new GEMM shapes, p
 **Examples**:
 ```bash
 # benchmark tuned kernels from specified tuned config
-python3 csrc/ck_gemm_a8w8_bpreshuffle/gemm_a8w8_bpreshuffle_tune.py \
+python3 -m aiter.tuning gemm.a8w8_bpreshuffle \
   --run_config aiter/configs/a8w8_bpreshuffle_tuned_gemm.csv
 
 # benchmark default kernels using shapes from -i
-python3 csrc/ck_gemm_a8w8_bpreshuffle/gemm_a8w8_bpreshuffle_tune.py \
+python3 -m aiter.tuning gemm.a8w8_bpreshuffle \
   -i aiter/configs/a8w8_bpreshuffle_untuned_gemm.csv --run_config
 ```
 

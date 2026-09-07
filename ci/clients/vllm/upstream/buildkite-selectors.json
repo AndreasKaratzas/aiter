@@ -1,0 +1,4738 @@
+{
+  "schema_version": 1,
+  "upstream_revision": "5690b02c03832a4ac3af231d3ecebe649c188095",
+  "scope": "Area-file groups include all steps; named-label selections elsewhere are also retained. Legacy AMD selectors remain a separate source form, not additional executed coverage.",
+  "areas": {
+    "entrypoints": [
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (LLM)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-llm",
+          "timeout_in_minutes": 60,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/llm --ignore=entrypoints/llm/test_generate.py --ignore=entrypoints/llm/test_collective_rpc.py --ignore=entrypoints/llm/offline_mode",
+            "pytest -v -s entrypoints/llm/test_generate.py",
+            "pytest -v -s entrypoints/llm/offline_mode"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Entrypoints Integration (LLM)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 55
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (API Server) %N",
+          "key": "entrypoints-integration-api-server",
+          "device": "h200_35gb",
+          "timeout_in_minutes": 75,
+          "parallelism": 4,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/serve --ignore=entrypoints/serve/dev/rpc --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB",
+            "if [ \"$$BUILDKITE_PARALLEL_JOB\" = \"1\" ]; then PYTHONPATH=/vllm-workspace pytest -v -s entrypoints/serve/dev/rpc; fi",
+            "pytest -v -s entrypoints/scale_out --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Entrypoints Integration (API Server) %N",
+              "device": "mi300_1",
+              "timeout_in_minutes": 65
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (API Server OpenAI - Part 1)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-api-server-openai-part-1",
+          "timeout_in_minutes": 68,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai --ignore=entrypoints/openai/completion --ignore=entrypoints/openai/chat_completion --ignore=entrypoints/openai/responses --ignore=entrypoints/openai/correctness"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Entrypoints Integration (API Server OpenAI - Part 1)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 65
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 4,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (API Server OpenAI - Part 2)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-api-server-openai-part-2",
+          "timeout_in_minutes": 83,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai/chat_completion",
+            "pytest -v -s entrypoints/openai/completion --ignore=entrypoints/openai/completion/test_tensorizer_entrypoint.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Entrypoints Integration (API Server OpenAI - Part 2)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 70
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (API Server Generate)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-api-server-generate",
+          "timeout_in_minutes": 50,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s tool_use",
+            "pytest -v -s entrypoints/tool_parsers",
+            "pytest -v -s entrypoints/generate",
+            "pytest -v -s entrypoints/anthropic",
+            "pytest -v -s entrypoints/cohere"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Entrypoints Integration (API Server Generate)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 65
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 6,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (Responses API)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-responses-api",
+          "timeout_in_minutes": 50,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s entrypoints/openai/responses"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) Entrypoints Integration (Responses API)",
+              "device": "mi355_1",
+              "timeout_in_minutes": 50
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 7,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (Speech to Text)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-speech_to_text",
+          "timeout_in_minutes": 45,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/speech_to_text"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 8,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (Multimodal)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-multimodal",
+          "timeout_in_minutes": 45,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/multimodal"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) Entrypoints Integration (Multimodal)",
+              "device": "mi355_1",
+              "timeout_in_minutes": 55
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/entrypoints.yaml",
+        "file_sha256": "2eacab4377b10562d2074fc886264edc92697ef03852c99cf8b24b88bba6cfc7",
+        "source_form": "area",
+        "step_index": 9,
+        "selection": "matching_label",
+        "group": "Entrypoints",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Entrypoints Integration (Pooling)",
+          "device": "h200_35gb",
+          "key": "entrypoints-integration-pooling",
+          "timeout_in_minutes": 75,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/pooling"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 46,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (LLM)",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/llm --ignore=entrypoints/llm/test_generate.py --ignore=entrypoints/llm/test_collective_rpc.py --ignore=entrypoints/llm/offline_mode",
+            "pytest -v -s entrypoints/llm/test_generate.py",
+            "pytest -v -s entrypoints/llm/offline_mode"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 47,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (API Server)",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/serve --ignore=entrypoints/serve/dev/rpc",
+            "PYTHONPATH=/vllm-workspace pytest -v -s entrypoints/serve/dev/rpc",
+            "pytest -v -s entrypoints/scale_out"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 48,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (API Server OpenAI - Part 1)",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "fast_check": true,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai/ --ignore=entrypoints/openai/completion --ignore=entrypoints/openai/chat_completion --ignore=entrypoints/openai/responses --ignore=entrypoints/openai/correctness"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 49,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (API Server OpenAI - Part 2)",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "fast_check": true,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai/chat_completion",
+            "pytest -v -s entrypoints/openai/completion --ignore=entrypoints/openai/completion/test_tensorizer_entrypoint.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 50,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (API Server Generate)",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s tool_use",
+            "pytest -v -s entrypoints/tool_parsers",
+            "pytest -v -s entrypoints/generate",
+            "pytest -v -s entrypoints/anthropic",
+            "pytest -v -s entrypoints/cohere"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 51,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (Responses API)",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai/responses"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 52,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (Speech to Text)",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/speech_to_text"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 53,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (Multimodal)",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/multimodal"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 54,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Entrypoints Integration (Pooling)",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/pooling"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 153,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (API Server)",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/serve --ignore=entrypoints/serve/dev/rpc",
+            "PYTHONPATH=/vllm-workspace pytest -v -s entrypoints/serve/dev/rpc",
+            "pytest -v -s entrypoints/scale_out"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 154,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (API Server OpenAI - Part 1)",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "fast_check": true,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai --ignore=entrypoints/openai/completion --ignore=entrypoints/openai/chat_completion --ignore=entrypoints/openai/responses --ignore=entrypoints/openai/correctness"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 155,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (API Server OpenAI - Part 2)",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "fast_check": true,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/openai/chat_completion",
+            "pytest -v -s entrypoints/openai/completion --ignore=entrypoints/openai/completion/test_tensorizer_entrypoint.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 156,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (API Server Generate)",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "fast_check": true,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s tool_use",
+            "pytest -v -s entrypoints/tool_parsers",
+            "pytest -v -s entrypoints/generate",
+            "pytest -v -s entrypoints/anthropic"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 157,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (Speech to Text)",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi355"
+          ],
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/speech_to_text"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 158,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (Multimodal)",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi355"
+          ],
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/multimodal"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 159,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Entrypoints Integration (Pooling)",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "fast_check": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s entrypoints/pooling"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ],
+    "lm_eval": [
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) LM Eval Small Models",
+          "device": "h200_35gb",
+          "key": "lm-eval-small-models",
+          "timeout_in_minutes": 45,
+          "autorun_on_main": true,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-small.txt"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) LM Eval Small Models",
+              "device": "mi300_1",
+              "timeout_in_minutes": 45
+            }
+          }
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-small.txt": {
+            "sha256": "14658bfbbc6125285e0eb3cc9d83c783b3150f92ad8f49a9bded30050ebd0abc",
+            "text": "Qwen3-0.6B-FP8.yaml\nLlama-3.2-1B-Instruct-INT8-CT.yaml\nLlama-3-8B-Instruct-nonuniform-CT.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-CT.yaml\nDeepSeek-V2-Lite-Instruct-FP8.yaml\nQwen3-30B-A3B-MXFP4A16.yaml\ngemma-4-E4B-it-qat-mobile-ct.yaml\n"
+          },
+          "tests/evals/mrcr/configs/models-small.txt": {
+            "sha256": "2013922245f6e7e0d64537116ea6072fb8357bf6943a866e94474389a10bd2d2",
+            "text": "Qwen3.5-4B.yaml\n"
+          },
+          ".buildkite/lm-eval-harness/configs/models-small.txt": {
+            "sha256": "0db49d624aa1046e931ee73ae48b30d84bccdbe504ad4686ef3e94c9521be1af",
+            "text": "Qwen2.5-1.5B-Instruct.yaml\nMeta-Llama-3.2-1B-Instruct-INT8-compressed-tensors.yaml\nMeta-Llama-3-8B-Instruct-INT8-compressed-tensors-asym.yaml\nMeta-Llama-3-8B-Instruct-nonuniform-compressed-tensors.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-compressed-tensors.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) LM Eval Large Models",
+          "key": "lm-eval-large-models-4xh100",
+          "device": "h100",
+          "optional": true,
+          "num_devices": 4,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "export VLLM_USE_DEEP_GEMM=0",
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-large-hopper.txt --tp-size=4"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-large-hopper.txt": {
+            "sha256": "720363be1bfa89fc2ec6a0a1a135718e8351a01992c479b4b74117f173a3d3fb",
+            "text": "Qwen3-235B-A22B-Instruct-2507-FP8.yaml\nNVIDIA-Nemotron-3-Nano-30B-A3B-FP8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Small Models",
+          "key": "lm-eval-small-models-1xb200",
+          "timeout_in_minutes": 50,
+          "device": "b200-k8s",
+          "optional": true,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-blackwell.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-blackwell.txt": {
+            "sha256": "7cb9e73fb5093210d8404ebaf30fbf3b00ff08972114c61ed2bfbbf0778e2084",
+            "text": "Qwen3-0.6B-FP8.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-CT.yaml\nDeepSeek-V2-Lite-Instruct-FP8.yaml\nQwen3-30B-A3B-NVFP4.yaml\nLaguna-XS.2-NVFP4.yaml\nLaguna-XS-2.1-INT4.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Small Models Distributed",
+          "key": "lm-eval-small-models-distributed-2xb200",
+          "timeout_in_minutes": 120,
+          "device": "b200-k8s",
+          "num_devices": 2,
+          "optional": true,
+          "autorun_on_main": true,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-small-tp.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-small-tp.txt": {
+            "sha256": "f35a8be1ed3da21f8b656ce6cbdc3353cd011cc5c7f3a1dfc38ae08af0d039ec",
+            "text": "DiffusionGemma-26B-A4B-it-FP8-dynamic.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 4,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval PCP",
+          "key": "lm-eval-pcp-4xb200",
+          "timeout_in_minutes": 360,
+          "device": "b200-k8s",
+          "num_devices": 4,
+          "optional": true,
+          "autorun_on_main": true,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-pcp.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-pcp.txt": {
+            "sha256": "10b384154fb8216a500023af3d89f89e26a7dd36f51d488b15c38610bdee2857",
+            "text": "GLM-5.2-NVFP4-TP2-PCP2-EP.yaml\nGLM-5.2-NVFP4-TP1-PCP4-EP.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Spec Decode",
+          "key": "lm-eval-spec-decode-4xb200",
+          "timeout_in_minutes": 120,
+          "device": "b200-k8s",
+          "num_devices": 4,
+          "optional": true,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-spec-decode.txt"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) LM Eval Spec Decode",
+              "device": "mi355_4",
+              "timeout_in_minutes": 120,
+              "commands": [
+                "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-spec-decode-rocm.txt"
+              ]
+            }
+          }
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-spec-decode.txt": {
+            "sha256": "e9fe3e8a0a426c652f7b5641900a24cdabd1fb4b6cc1654e6f212ee5e48779e5",
+            "text": "DeepSeek-V4-Flash-DSpark-confidence-TEP4.yaml\nKimi-K3-pruned75-DSpark-TP4.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/models-spec-decode-rocm.txt": {
+            "sha256": "b9ddbfc8261156f3cb188974dcf4e1504068a2944b11a15459507d81c28af75e",
+            "text": "Kimi-K3-pruned75-DSpark-AITER-TP4.yaml\nDeepSeek-V4-Flash-DSpark-AITER-TEP4.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 6,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Large Models EP",
+          "key": "lm-eval-large-models-ep-2xb200",
+          "timeout_in_minutes": 60,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-blackwell-ep.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-blackwell-ep.txt": {
+            "sha256": "c258703f920dc324da80b53cafeeb265e0637d020adbb4f84655908d6b2c7913",
+            "text": "Qwen3-Next-80B-A3B-NVFP4-EP2.yaml\nQwen3-Next-FP8-EP2.yaml\nNemotron-3-Super-120B-A12B-NVFP4.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 7,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Qwen3.5 Models",
+          "key": "lm-eval-qwen3-5-models-2xb200",
+          "timeout_in_minutes": 45,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-qwen35-blackwell.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-qwen35-blackwell.txt": {
+            "sha256": "cdb9eb36cbe70ceeab2b750a39dbf96dc24b510a780a08e5e6cf5706a76a3618",
+            "text": "Qwen3.5-35B-A3B-DEP2.yaml\nQwen3.5-35B-A3B-FP8-DEP2.yaml\nQwen3.5-397B-A17B-NVFP4-DEP2.yaml\nQwen3.5-397B-A17B-NVFP4-DEP2-MTP.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 8,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200) LM Eval Large Models",
+          "key": "lm-eval-large-models-8xh200",
+          "timeout_in_minutes": 50,
+          "device": "h200",
+          "optional": true,
+          "num_devices": 8,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-h200.txt"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) LM Eval Large Models",
+              "device": "mi300_8",
+              "timeout_in_minutes": 40,
+              "commands": [
+                "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+                "export PYTORCH_ROCM_ARCH=gfx942",
+                "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-mi3xx.txt"
+              ]
+            }
+          }
+        },
+        "config_lists": {
+          "tests/evals/qwen4_exp/configs/models-h200.txt": {
+            "sha256": "60ea3245b4e19ff731c60f19e0dd2f12d823c3f4f131f7546aaeaf8621de62fa",
+            "text": "# H200 configuration for Qwen3.8-Flash-Next-FP8 accuracy evaluation\nQwen3.8-Flash-Next-FP8.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/models-h200.txt": {
+            "sha256": "b2450f9bbb159da1a3bdcb7c9a63becffd37ed5bae48a5239b1bf60b518c881d",
+            "text": "DeepSeek-R1-TP.yaml\nDeepSeek-R1-DP.yaml\nDeepSeek-V3.2-TP.yaml\nDeepSeek-V3.2-DP.yaml\nNemotron-3-Super-120B-A12B-BF16.yaml\nNemotron-3-Super-120B-A12B-FP8.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/models-mi3xx.txt": {
+            "sha256": "5ca056cc667541ae63234c2149b0560178a1b4d9f8634e49b0cc1ff8289542c9",
+            "text": "DeepSeek-R1-TP_MI325.yaml\nDeepSeek-R1-DP_MI325.yaml\nDeepSeek-V3.2-TP_MI325.yaml\nDeepSeek-V3.2-DP_MI325.yaml\nQwen3-30B-A3B-NVFP4.yaml\nQwen3-30B-A3B-NVFP4-quark.yaml\nQwen3.5-35B-A3B-MXFP4-AITER-TP2.yaml\nQwen3.5-35B-A3B-MXFP4-EMU-TP2.yaml\nQwen-1.5-MOE-W-MXFP4-A-MXFP6.yaml\nQwen-1.5-MOE-W-MXFP6-A-MXFP6.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 9,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) MoE Refactor Integration TEMPORARY",
+          "key": "moe-refactor-integration-test-h100-temporary",
+          "device": "h100",
+          "optional": true,
+          "num_devices": 2,
+          "parallelism": 4,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/moe-refactor/config-h100-shard-$$BUILDKITE_PARALLEL_JOB.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/moe-refactor/config-h100-shard-2.txt": {
+            "sha256": "4eefe1cbbfb3c6fe5c8f7ca023cd8f18e252e717f829dfc23f309cfcfc1dff77",
+            "text": "Qwen3-30B-A3B-Fp8-AutoFp8-fi-cutlass.yaml\nQwen3-30B-A3B-Fp8-CT-Block-deepgemm.yaml\nQwen3-30B-A3B-Fp8-CT-Block-triton.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/moe-refactor/config-h100-shard-0.txt": {
+            "sha256": "41e8b7224ef64b62f2be1be5c0cb69bab5bd342d7853e6196c778e19587beb96",
+            "text": "Qwen3-30B-A3B-Fp8-AutoFp8-deepgemm.yaml\nQwen3-30B-A3B-BF16-fi-cutlass.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/moe-refactor/config-h100-shard-3.txt": {
+            "sha256": "7ec0976be62bdcc537aa2a018d13fab752e22798239c6c3a5e689baa1a6d1496",
+            "text": "Mixtral-8x7B-Fp8-AutoFp8-triton.yaml\nQwen3-30B-A3B-Fp8-CT-Block-marlin.yaml\nQwen3-30B-A3B-Fp8-CT-Channel-marlin.yaml\nQwen3-30B-A3B-Fp8-CT-Channel-vllm-cutlass.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/moe-refactor/config-h100-shard-1.txt": {
+            "sha256": "21bfa62f317e3c92f3828e063348d2d3ddaaac8c02bf53ea1d30beeb3efc921a",
+            "text": "Qwen3-30B-A3B-Fp8-AutoFp8-marlin.yaml\nQwen3-30B-A3B-Fp8-AutoFp8-triton.yaml\nQwen3-30B-A3B-BF16-triton.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 10,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) MoE Refactor Integration TEMPORARY Shard %N",
+          "key": "moe-refactor-integration-test-b200-temporary",
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "parallelism": 4,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/moe-refactor/config-b200-shard-$$BUILDKITE_PARALLEL_JOB.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/moe-refactor/config-b200-shard-0.txt": {
+            "sha256": "3daacd4dee2fbb60c40a961c1a504c1866629ab6b6e7d30cf9b47e60536010d3",
+            "text": "DeepSeek-V4-Flash-deepgemm-mega-moe.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-marlin.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-fi-trtllm.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/moe-refactor/config-b200-shard-3.txt": {
+            "sha256": "c740104817d5b1062dcd4729ae3cb9d9d7c895fc4f3f2e8dbb174b51f9a1eaaf",
+            "text": "Llama-4-Scout-BF16-fi-cutlass.yaml\nQwen3-30B-A3B-Fp8-AutoFp8-fi-trtllm.yaml\nNemotron-Nano-30B-NvFp4-ModelOpt-vllm-cutlass.yaml\nMixtral-8x7B-BF16-fi-cutlass.yaml\nQwen3-30B-A3B-NvFp4-CT-marlin.yaml\nMixtral-8x7B-BF16-triton.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/moe-refactor/config-b200-shard-1.txt": {
+            "sha256": "0d1f0ab3d3c43209b7029f35ae46e1b33b2949e49c0332315b95a242aa516d93",
+            "text": "Nemotron-Nano-30B-Fp8-ModelOpt-fi-trtllm.yaml\nNemotron-Nano-30B-NvFp4-ModelOpt-fi-cutlass.yaml\nLlama-4-Scout-Fp8-CT-vllm-cutlass.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-fi-cutlass.yaml\nQwen3-30B-A3B-NvFp4-CT-fi-cutlass.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/moe-refactor/config-b200-shard-2.txt": {
+            "sha256": "bf8d831f490c64fee71a7d92a6545ef30f47fbfc9a78e5ee63b9207f70e7f337",
+            "text": "Llama-4-Scout-Fp8-ModelOpt-fi-trtllm.yaml\nQwen3-30B-A3B-NvFp4-CT-fi-trtllm.yaml\nQwen3-30B-A3B-NvFp4-CT-vllm-cutlass.yaml\nLlama-4-Scout-BF16-triton.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-vllm-cutlass.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 11,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) MoE Refactor DP Integration TEMPORARY",
+          "key": "moe-refactor-integration-test-b200-dp-temporary",
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/moe-refactor-dp-ep/config-b200.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/moe-refactor-dp-ep/config-b200.txt": {
+            "sha256": "549b7578292c7bcbb373526b5685c7811916380b6e78998acf114ef0466c69ca",
+            "text": "Qwen3-30B-A3B-NvFp4-CT-fi-cutedsl-deepep-ll.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-fi-cutedsl-deepep-ll.yaml\nQwen3-30B-A3B-NvFp4-CT-fi-cutlass.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-fi-trtllm.yaml\nQwen3-30B-A3B-NvFp4-ModelOpt-fi-cutlass.yaml\nQwen3-30B-A3B-Fp8-AutoFp8-deepgemm-deepep-ht.yaml\nQwen3-30B-A3B-Fp8-AutoFp8-deepgemm-deepep-ll.yaml\nQwen3-30B-A3B-Fp8-AutoFp8-deepgemm.yaml\nQwen3-30B-A3B-Fp8-CT-Block-deepgemm-deepep-ht.yaml\nQwen3-30B-A3B-Fp8-CT-Block-deepgemm-deepep-ll.yaml\nQwen3-30B-A3B-Fp8-CT-Block-deepgemm.yaml\nQwen3-30B-A3B-BF16-triton.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 12,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (A100) LM Eval Humming FP16 TEMPORARY Shard %N",
+          "key": "lm-eval-humming-f16-a100",
+          "timeout_in_minutes": 75,
+          "device": "a100",
+          "optional": true,
+          "num_devices": 1,
+          "parallelism": 3,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config-a100-shard-$$BUILDKITE_PARALLEL_JOB.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/humming/config-a100-shard-1.txt": {
+            "sha256": "715b5db227bc13c31b1b699bfb2652e4271aba41751c34aaa2fab47cf82fff11",
+            "text": "Qwen3.6-35B-A3B-NVFP4-humming.yaml\nQwen3-30B-A3B-Instruct-2507-quantized.w8a8-humming.yaml\nQwen3-30B-A3B-Fp8-v1-humming.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3-0.6B-MXFP8-humming.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/humming/config-a100-shard-0.txt": {
+            "sha256": "f7ddba67df11a519e552e1d54abcdb43d10105a20ee8fd816f9b9576ab39c3b9",
+            "text": "Qwen3.5-35B-A3B-experts-int8-humming.yaml\ngpt-oss-20b-humming.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming.yaml\nQwen3-30B-A3B-FP8-block-humming.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/humming/config-a100-shard-2.txt": {
+            "sha256": "70fc4a49537cfd4a42ea5445dedd15284b27bcd6d077deac0e4ab7240dd2c9ee",
+            "text": "Qwen3.5-35B-A3B-FP8-humming.yaml\nNVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4-humming.yaml\nQwen3-30B-A3B-MXFP4A16-humming.yaml\nQwen3-30B-A3B-NVFP4-humming.yaml\nQwen2-1.5B-Instruct-FP8W8-humming.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 13,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (A100) LM Eval Humming Activation INT8 TEMPORARY",
+          "key": "lm-eval-humming-act-a100",
+          "timeout_in_minutes": 45,
+          "device": "a100",
+          "optional": true,
+          "num_devices": 1,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config-act-int8.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/humming/config-act-int8.txt": {
+            "sha256": "22bc96ab60793ee9f842ec860d1c9578d31a239b16d9b64c5f2dd3a2b12adc21",
+            "text": "gpt-oss-20b-humming.yaml\nQwen3-30B-A3B-Instruct-2507-quantized.w8a8-humming-act-int8.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming-act-int8.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3.5-35B-A3B-experts-int8-humming-act-int8.yaml\nQwen3-4B-mixed-quant-RTN-humming.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 14,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) LM Eval Humming FP16 TEMPORARY Shard %N",
+          "key": "lm-eval-humming-f16-h100",
+          "timeout_in_minutes": 70,
+          "device": "h100",
+          "optional": true,
+          "num_devices": 1,
+          "parallelism": 3,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config-h100-shard-$$BUILDKITE_PARALLEL_JOB.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/humming/config-h100-shard-2.txt": {
+            "sha256": "9dfb6d22052b54a815a231df2146dad65ec800c9ad81149c762e007996f22e2f",
+            "text": "NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4-humming.yaml\nQwen3.5-35B-A3B-FP8-humming.yaml\nQwen3-30B-A3B-MXFP4A16-humming.yaml\ngpt-oss-20b-humming.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/humming/config-h100-shard-0.txt": {
+            "sha256": "7b82d99d14068ef455cce67b90ff81d4b5fd2c8d24abedc4b38588e7f7276b43",
+            "text": "Qwen3.5-35B-A3B-experts-int8-humming.yaml\nQwen3-30B-A3B-Instruct-2507-quantized.w8a8-humming.yaml\nQwen3-30B-A3B-Fp8-v1-humming.yaml\nQwen3-30B-A3B-NVFP4-humming.yaml\nQwen2-1.5B-Instruct-FP8W8-humming.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/humming/config-h100-shard-1.txt": {
+            "sha256": "c5e7c724af9822c2ca700f46f87bfd5bb0c32339ab4d04de2ec03821d2b6d789",
+            "text": "Qwen3.6-35B-A3B-NVFP4-humming.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming.yaml\nQwen3-30B-A3B-FP8-block-humming.yaml\nQwen3-0.6B-MXFP8-humming.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 15,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) LM Eval Humming Activation FP8/INT8 TEMPORARY",
+          "key": "lm-eval-humming-act-h100",
+          "timeout_in_minutes": 70,
+          "device": "h100",
+          "optional": true,
+          "num_devices": 1,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config-act-fp8.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/humming/config-act-fp8.txt": {
+            "sha256": "c338f04e8e4ef8d2fbacada9491c1353bd9cc1b72c4e57e0e6fa95b7e75ae1ef",
+            "text": "gpt-oss-20b-humming-act-fp8.yaml\nQwen3-30B-A3B-MXFP4A16-humming-act-fp8.yaml\nQwen2-1.5B-Instruct-FP8W8-humming-act-fp8.yaml\nQwen3-0.6B-MXFP8-humming-act-fp8.yaml\nQwen3-30B-A3B-Fp8-v1-humming-act-fp8.yaml\nQwen3-30B-A3B-FP8-block-humming-act-fp8.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming-act-fp8.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3.5-35B-A3B-FP8-humming-act-fp8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 16,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Humming FP16 TEMPORARY",
+          "key": "lm-eval-humming-f16-b200",
+          "timeout_in_minutes": 50,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 1,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/humming/config.txt": {
+            "sha256": "0b02a323ebd691fb02a8fcbd5960ac61f371499e5d8db9a75512699c8799f3f2",
+            "text": "gpt-oss-20b-humming.yaml\nQwen3-30B-A3B-MXFP4A16-humming.yaml\nQwen2-1.5B-Instruct-FP8W8-humming.yaml\nQwen3-0.6B-MXFP8-humming.yaml\nQwen3.6-35B-A3B-NVFP4-humming.yaml\nQwen3-30B-A3B-Fp8-v1-humming.yaml\nQwen3-30B-A3B-FP8-block-humming.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming.yaml\nQwen3-30B-A3B-Instruct-2507-quantized.w8a8-humming.yaml\nQwen3-30B-A3B-NVFP4-humming.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3.5-35B-A3B-FP8-humming.yaml\nQwen3.5-35B-A3B-experts-int8-humming.yaml\nNVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4-humming.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 17,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Humming Activation FP8/INT8 TEMPORARY",
+          "key": "lm-eval-humming-act-b200",
+          "timeout_in_minutes": 50,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 1,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config-act-fp8.txt",
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/humming/config-act-int8.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/humming/config-act-fp8.txt": {
+            "sha256": "c338f04e8e4ef8d2fbacada9491c1353bd9cc1b72c4e57e0e6fa95b7e75ae1ef",
+            "text": "gpt-oss-20b-humming-act-fp8.yaml\nQwen3-30B-A3B-MXFP4A16-humming-act-fp8.yaml\nQwen2-1.5B-Instruct-FP8W8-humming-act-fp8.yaml\nQwen3-0.6B-MXFP8-humming-act-fp8.yaml\nQwen3-30B-A3B-Fp8-v1-humming-act-fp8.yaml\nQwen3-30B-A3B-FP8-block-humming-act-fp8.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming-act-fp8.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3.5-35B-A3B-FP8-humming-act-fp8.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/humming/config-act-int8.txt": {
+            "sha256": "22bc96ab60793ee9f842ec860d1c9578d31a239b16d9b64c5f2dd3a2b12adc21",
+            "text": "gpt-oss-20b-humming.yaml\nQwen3-30B-A3B-Instruct-2507-quantized.w8a8-humming-act-int8.yaml\nQwen3-30B-A3B-GPTQ-Int4-humming-act-int8.yaml\nQwen3-30B-A3B-AWQ-humming.yaml\nQwen3.5-35B-A3B-experts-int8-humming-act-int8.yaml\nQwen3-4B-mixed-quant-RTN-humming.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 18,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) LM Eval TurboQuant KV Cache",
+          "key": "lm-eval-turboquant-kv-cache",
+          "timeout_in_minutes": 55,
+          "device": "h200_18gb",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=evals/gsm8k/configs/models-turboquant.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-turboquant.txt": {
+            "sha256": "94480b31b83579b2ab8a6ed22a67f6b7bbad39bb0ddafbd7020a49358d614122",
+            "text": "Qwen3-4B-TQ-k8v4.yaml\nQwen3-4B-TQ-t4nc.yaml\nQwen3-4B-TQ-k3v4nc.yaml\nQwen3-4B-TQ-t3nc.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 19,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) GPQA Eval (GPT-OSS)",
+          "key": "gpqa-eval-gpt-oss-2xh100",
+          "timeout_in_minutes": 35,
+          "device": "h100",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "uv pip install --system 'gpt-oss[eval]==0.0.5'",
+            "pytest -s -v evals/gpt_oss/test_gpqa_correctness.py --config-list-file=configs/models-h100.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gpt_oss/configs/models-h100.txt": {
+            "sha256": "18c77a175ea43c38b440b41e74d5bc6ee4e26a676121a238c1095be6926f7a73",
+            "text": "# H100 model configurations for GPQA evaluation\n# Tests different environment variable combinations\ngpt-oss-20b-baseline.yaml\ngpt-oss-20b-flashinfer-mxfp4-bf16-cutlass.yaml\ngpt-oss-20b-marlin.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 20,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) GPQA Eval (GPT-OSS)",
+          "key": "gpqa-eval-gpt-oss-2xb200",
+          "timeout_in_minutes": 30,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "uv pip install --system 'gpt-oss[eval]==0.0.5'",
+            "pytest -s -v evals/gpt_oss/test_gpqa_correctness.py --config-list-file=configs/models-b200.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/qwen4_exp/configs/models-b200.txt": {
+            "sha256": "21b2260cb52982d8f5a88432b0265bb1de8d3c59d56f7256e996e4414044abf8",
+            "text": "# B200 configuration for Qwen3.8-Flash-Next-FP8 accuracy evaluation\nQwen3.8-Flash-Next-FP8.yaml\n"
+          },
+          "tests/evals/gpt_oss/configs/models-b200.txt": {
+            "sha256": "1e9e72e90ab07ab3d15b433baab167316a7f5ced798b0b67214f24e16e948e6b",
+            "text": "# B200 model configurations for GPQA evaluation\n# Tests different environment variable combinations\ngpt-oss-20b-flashinfer-mxfp4-bf16-trtllm.yaml\ngpt-oss-20b-flashinfer-mxfp4-mxfp8-cutlass.yaml\ngpt-oss-20b-sm100-fi-mxfp4-mxfp8-trtllm.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 21,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) Qwen3.8-Flash-Next-FP8 Accuracy Eval",
+          "key": "accuracy-eval-qwen3-8-flash-next-fp8-b200",
+          "timeout_in_minutes": 60,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 4,
+          "commands": [
+            "uv pip install --system 'evalscope==1.10.0'",
+            "pytest -s -v evals/qwen4_exp/test_accuracy.py --config-list-file=configs/models-b200.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/qwen4_exp/configs/models-b200.txt": {
+            "sha256": "21b2260cb52982d8f5a88432b0265bb1de8d3c59d56f7256e996e4414044abf8",
+            "text": "# B200 configuration for Qwen3.8-Flash-Next-FP8 accuracy evaluation\nQwen3.8-Flash-Next-FP8.yaml\n"
+          },
+          "tests/evals/gpt_oss/configs/models-b200.txt": {
+            "sha256": "1e9e72e90ab07ab3d15b433baab167316a7f5ced798b0b67214f24e16e948e6b",
+            "text": "# B200 model configurations for GPQA evaluation\n# Tests different environment variable combinations\ngpt-oss-20b-flashinfer-mxfp4-bf16-trtllm.yaml\ngpt-oss-20b-flashinfer-mxfp4-mxfp8-cutlass.yaml\ngpt-oss-20b-sm100-fi-mxfp4-mxfp8-trtllm.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 22,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200) Qwen3.8-Flash-Next-FP8 Accuracy Eval",
+          "key": "accuracy-eval-qwen3-8-flash-next-fp8-h200",
+          "timeout_in_minutes": 60,
+          "device": "h200",
+          "optional": true,
+          "num_devices": 4,
+          "commands": [
+            "uv pip install --system 'evalscope==1.10.0'",
+            "pytest -s -v evals/qwen4_exp/test_accuracy.py --config-list-file=configs/models-h200.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/qwen4_exp/configs/models-h200.txt": {
+            "sha256": "60ea3245b4e19ff731c60f19e0dd2f12d823c3f4f131f7546aaeaf8621de62fa",
+            "text": "# H200 configuration for Qwen3.8-Flash-Next-FP8 accuracy evaluation\nQwen3.8-Flash-Next-FP8.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/models-h200.txt": {
+            "sha256": "b2450f9bbb159da1a3bdcb7c9a63becffd37ed5bae48a5239b1bf60b518c881d",
+            "text": "DeepSeek-R1-TP.yaml\nDeepSeek-R1-DP.yaml\nDeepSeek-V3.2-TP.yaml\nDeepSeek-V3.2-DP.yaml\nNemotron-3-Super-120B-A12B-BF16.yaml\nNemotron-3-Super-120B-A12B-FP8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 23,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (DGX) Spark GPQA Eval (GPT-OSS)",
+          "key": "gpqa-eval-gpt-oss-spark",
+          "timeout_in_minutes": 35,
+          "device": "dgx-spark",
+          "optional": true,
+          "num_devices": 1,
+          "commands": [
+            "uv pip install --system 'gpt-oss[eval]==0.0.5'",
+            "pytest -s -v evals/gpt_oss/test_gpqa_correctness.py --config-list-file=configs/models-spark.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gpt_oss/configs/models-spark.txt": {
+            "sha256": "d371b18d5d63bf2b8544cdb1d501f4413d3779449c37b8bc5c821de3f68deda8",
+            "text": "# DGX Spark model configurations for GPQA evaluation\ngpt-oss-20b-sm120.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 24,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) LM Eval KV-Offload",
+          "key": "kv-offload-small",
+          "timeout_in_minutes": 30,
+          "device": "h200_35gb",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_offloading.py -k \"nemotron-h-8b or gemma-4-e4b-it\""
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 25,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) LM Eval KV-Offload Medium",
+          "key": "kv-offload-medium",
+          "timeout_in_minutes": 45,
+          "device": "h100",
+          "num_devices": 2,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_offloading.py -k \"qwen3.5-35b or deepseek-v2-lite\""
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 26,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H100) LM Eval KV-Offload Large",
+          "key": "kv-offload-large",
+          "timeout_in_minutes": 40,
+          "device": "h100",
+          "num_devices": 4,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_offloading.py -k \"deepseek-v4-flash\""
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 27,
+        "selection": "whole_area",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) MRCR Eval Small Models",
+          "device": "h200_35gb",
+          "timeout_in_minutes": 25,
+          "commands": [
+            "pytest -s -v evals/mrcr/test_mrcr_correctness.py --config-list-file=evals/mrcr/configs/models-small.txt"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) MRCR Eval Small Models",
+              "device": "mi355_1",
+              "timeout_in_minutes": 40
+            }
+          }
+        },
+        "config_lists": {
+          "tests/evals/mrcr/configs/models-small.txt": {
+            "sha256": "2013922245f6e7e0d64537116ea6072fb8357bf6943a866e94474389a10bd2d2",
+            "text": "Qwen3.5-4B.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 57,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Small Models",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-small.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-small.txt": {
+            "sha256": "14658bfbbc6125285e0eb3cc9d83c783b3150f92ad8f49a9bded30050ebd0abc",
+            "text": "Qwen3-0.6B-FP8.yaml\nLlama-3.2-1B-Instruct-INT8-CT.yaml\nLlama-3-8B-Instruct-nonuniform-CT.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-CT.yaml\nDeepSeek-V2-Lite-Instruct-FP8.yaml\nQwen3-30B-A3B-MXFP4A16.yaml\ngemma-4-E4B-it-qat-mobile-ct.yaml\n"
+          },
+          "tests/evals/mrcr/configs/models-small.txt": {
+            "sha256": "2013922245f6e7e0d64537116ea6072fb8357bf6943a866e94474389a10bd2d2",
+            "text": "Qwen3.5-4B.yaml\n"
+          },
+          ".buildkite/lm-eval-harness/configs/models-small.txt": {
+            "sha256": "0db49d624aa1046e931ee73ae48b30d84bccdbe504ad4686ef3e94c9521be1af",
+            "text": "Qwen2.5-1.5B-Instruct.yaml\nMeta-Llama-3.2-1B-Instruct-INT8-compressed-tensors.yaml\nMeta-Llama-3-8B-Instruct-INT8-compressed-tensors-asym.yaml\nMeta-Llama-3-8B-Instruct-nonuniform-compressed-tensors.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-compressed-tensors.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 59,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Small Models Harness",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-small-rocm.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-small-rocm.txt": {
+            "sha256": "0db49d624aa1046e931ee73ae48b30d84bccdbe504ad4686ef3e94c9521be1af",
+            "text": "Qwen2.5-1.5B-Instruct.yaml\nMeta-Llama-3.2-1B-Instruct-INT8-compressed-tensors.yaml\nMeta-Llama-3-8B-Instruct-INT8-compressed-tensors-asym.yaml\nMeta-Llama-3-8B-Instruct-nonuniform-compressed-tensors.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-compressed-tensors.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 62,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Small Models FP8 + Mixed",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 2,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-mi3xx-fp8-and-mixed.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-mi3xx-fp8-and-mixed.txt": {
+            "sha256": "39feb99799ac0bf856cb180ba6e13aff1f8edb79c962022fd66a7ad3c2a1ff0d",
+            "text": "Qwen3-0.6B-FP8.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-CT.yaml\nQwen1.5-MoE-A2.7B-Chat-INT8.yaml\nDeepSeek-V2-Lite-Instruct-FP8.yaml\nQwen3-Next-FP8-EP2_MI355.yaml\nQwen3-30B-A3B-Thinking-2507-FP8.yaml\nQwen3-30B-A3B-Thinking-2507-PTPC-FP8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 64,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Large Models Harness",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-large.txt --tp-size=4"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-large.txt": {
+            "sha256": "db79430adc242f45fc5826279c8f0782d51c432a7e759670e47630c2069143f2",
+            "text": "Meta-Llama-3-70B-Instruct-FBGEMM-nonuniform.yaml\nMeta-Llama-3-70B-Instruct.yaml\nMixtral-8x7B-Instruct-v0.1.yaml\nQwen2-57B-A14-Instruct.yaml\nDeepSeek-V2-Lite-Chat.yaml\nNVIDIA-Nemotron-3-Nano-30B-A3B-BF16.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 68,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Large Models",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "num_gpus": 8,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "export PYTORCH_ROCM_ARCH=gfx942",
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-mi3xx.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-mi3xx.txt": {
+            "sha256": "5ca056cc667541ae63234c2149b0560178a1b4d9f8634e49b0cc1ff8289542c9",
+            "text": "DeepSeek-R1-TP_MI325.yaml\nDeepSeek-R1-DP_MI325.yaml\nDeepSeek-V3.2-TP_MI325.yaml\nDeepSeek-V3.2-DP_MI325.yaml\nQwen3-30B-A3B-NVFP4.yaml\nQwen3-30B-A3B-NVFP4-quark.yaml\nQwen3.5-35B-A3B-MXFP4-AITER-TP2.yaml\nQwen3.5-35B-A3B-MXFP4-EMU-TP2.yaml\nQwen-1.5-MOE-W-MXFP4-A-MXFP6.yaml\nQwen-1.5-MOE-W-MXFP6-A-MXFP6.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 69,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Large Models ROCm Harness",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "num_gpus": 8,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-large-rocm.txt --tp-size=8"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-large-rocm.txt": {
+            "sha256": "78639457e23292608a962489794612669487e05efdecf80a39971ff8281cb076",
+            "text": "Meta-Llama-4-Maverick-17B-128E-Instruct-FP8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 70,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) LM Eval Large Models FP8",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "export VLLM_USE_DEEP_GEMM=0",
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-large-rocm-tp4.txt --tp-size=4"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-large-rocm-tp4.txt": {
+            "sha256": "39a32755f88c06f663f60da0b1a3d3068d134e706a10e7aa6d3e4043e8a60d2f",
+            "text": "Qwen3-235B-A22B-Instruct-2507-FP8.yaml\nDeepSeek-V4-Flash-MXFP4.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 161,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) LM Eval Qwen3-5 Models",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "num_gpus": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-qwen35-mi355.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-qwen35-mi355.txt": {
+            "sha256": "bceb138c2adf2f48a461f833f92f7619a0419bf69de96e16201546fda2a3156b",
+            "text": "Qwen3.5-35B-A3B-DEP2.yaml\nQwen3.5-35B-A3B-MXFP4-AITER-TP2.yaml\nQwen3.5-35B-A3B-MXFP4-EMU-TP2.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 162,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) LM Eval Small Models",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "num_gpus": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-mi3xx-fp8-and-mixed.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-mi3xx-fp8-and-mixed.txt": {
+            "sha256": "39feb99799ac0bf856cb180ba6e13aff1f8edb79c962022fd66a7ad3c2a1ff0d",
+            "text": "Qwen3-0.6B-FP8.yaml\nQwen2.5-VL-3B-Instruct-FP8-dynamic.yaml\nQwen1.5-MoE-W4A16-CT.yaml\nQwen1.5-MoE-A2.7B-Chat-INT8.yaml\nDeepSeek-V2-Lite-Instruct-FP8.yaml\nQwen3-Next-FP8-EP2_MI355.yaml\nQwen3-30B-A3B-Thinking-2507-FP8.yaml\nQwen3-30B-A3B-Thinking-2507-PTPC-FP8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 164,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) LM Eval Large Models FP8",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "export VLLM_USE_DEEP_GEMM=0",
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-large-rocm-tp4.txt --tp-size=4"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-large-rocm-tp4.txt": {
+            "sha256": "39a32755f88c06f663f60da0b1a3d3068d134e706a10e7aa6d3e4043e8a60d2f",
+            "text": "Qwen3-235B-A22B-Instruct-2507-FP8.yaml\nDeepSeek-V4-Flash-MXFP4.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 165,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) LM Eval Large Models",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "num_gpus": 8,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-gfx950-large.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-gfx950-large.txt": {
+            "sha256": "1663a37a0a8153bcd919ecdc1589de5e73bbf82063fc45caae3e43789045745b",
+            "text": "# GFX950 model configurations for GSM8K evaluation\n# TP8 models only\n# DeepSeek-V4-Pro-NVFP4.yaml is temporarily disabled: repeated CI failures due to\n# cold NFS reads of the 850GiB checkpoint exceeding startup_max_wait_seconds\n# (see https://github.com/vllm-project/vllm/pull/47972). Re-enable once the\n# startup timeout fix has landed and is verified green.\n# DeepSeek-V4-Pro-NVFP4.yaml\nDeepSeek-V4-Flash-NVFP4.yaml\nQwen3-30B-A3B-NVFP4-quark.yaml\nQwen-1.5-MOE-W-MXFP4-A-MXFP6.yaml\nQwen-1.5-MOE-W-MXFP6-A-MXFP6.yaml"
+          }
+        }
+      }
+    ],
+    "qwen3": [
+      {
+        "file": ".buildkite/test_areas/e2e_integration.yaml",
+        "file_sha256": "087f73da9e54915bc66a9b13438f4469052875482dc1db9ccb37aaffb7865d10",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "matching_label",
+        "group": "E2E Integration",
+        "step": {
+          "label": ":nvidia: (H100) Qwen3-30B-A3B-FP8-block Sync EPLB Accuracy",
+          "key": "qwen3-30b-a3b-fp8-block-sync-eplb-accuracy-4xh100",
+          "timeout_in_minutes": 25,
+          "device": "h100",
+          "optional": true,
+          "num_devices": 4,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen30b_a3b_fp8_block_ep_eplb.sh 0.8 200 8020"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/e2e_integration.yaml",
+        "file_sha256": "087f73da9e54915bc66a9b13438f4469052875482dc1db9ccb37aaffb7865d10",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "matching_label",
+        "group": "E2E Integration",
+        "step": {
+          "label": ":nvidia: (B200) Qwen3-30B-A3B-FP8-block Sync EPLB Accuracy",
+          "key": "qwen3-30b-a3b-fp8-block-sync-eplb-accuracy-2xb200",
+          "timeout_in_minutes": 20,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen30b_a3b_fp8_block_ep_eplb.sh 0.8 200 8020 2 1"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/e2e_integration.yaml",
+        "file_sha256": "087f73da9e54915bc66a9b13438f4469052875482dc1db9ccb37aaffb7865d10",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "matching_label",
+        "group": "E2E Integration",
+        "step": {
+          "label": ":nvidia: (H100) Qwen3-30B-A3B-FP8 DP4 Async EPLB Accuracy",
+          "key": "qwen3-30b-a3b-fp8-dp4-async-eplb-accuracy",
+          "timeout_in_minutes": 25,
+          "device": "h100",
+          "optional": true,
+          "num_devices": 4,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen30b_a3b_fp8_dp4_async_eplb.sh 0.8 200 8050"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 7,
+        "selection": "matching_label",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Qwen3.5 Models",
+          "key": "lm-eval-qwen3-5-models-2xb200",
+          "timeout_in_minutes": 45,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-qwen35-blackwell.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-qwen35-blackwell.txt": {
+            "sha256": "cdb9eb36cbe70ceeab2b750a39dbf96dc24b510a780a08e5e6cf5706a76a3618",
+            "text": "Qwen3.5-35B-A3B-DEP2.yaml\nQwen3.5-35B-A3B-FP8-DEP2.yaml\nQwen3.5-397B-A17B-NVFP4-DEP2.yaml\nQwen3.5-397B-A17B-NVFP4-DEP2-MTP.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 21,
+        "selection": "matching_label",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) Qwen3.8-Flash-Next-FP8 Accuracy Eval",
+          "key": "accuracy-eval-qwen3-8-flash-next-fp8-b200",
+          "timeout_in_minutes": 60,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 4,
+          "commands": [
+            "uv pip install --system 'evalscope==1.10.0'",
+            "pytest -s -v evals/qwen4_exp/test_accuracy.py --config-list-file=configs/models-b200.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/qwen4_exp/configs/models-b200.txt": {
+            "sha256": "21b2260cb52982d8f5a88432b0265bb1de8d3c59d56f7256e996e4414044abf8",
+            "text": "# B200 configuration for Qwen3.8-Flash-Next-FP8 accuracy evaluation\nQwen3.8-Flash-Next-FP8.yaml\n"
+          },
+          "tests/evals/gpt_oss/configs/models-b200.txt": {
+            "sha256": "1e9e72e90ab07ab3d15b433baab167316a7f5ced798b0b67214f24e16e948e6b",
+            "text": "# B200 model configurations for GPQA evaluation\n# Tests different environment variable combinations\ngpt-oss-20b-flashinfer-mxfp4-bf16-trtllm.yaml\ngpt-oss-20b-flashinfer-mxfp4-mxfp8-cutlass.yaml\ngpt-oss-20b-sm100-fi-mxfp4-mxfp8-trtllm.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 22,
+        "selection": "matching_label",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (H200) Qwen3.8-Flash-Next-FP8 Accuracy Eval",
+          "key": "accuracy-eval-qwen3-8-flash-next-fp8-h200",
+          "timeout_in_minutes": 60,
+          "device": "h200",
+          "optional": true,
+          "num_devices": 4,
+          "commands": [
+            "uv pip install --system 'evalscope==1.10.0'",
+            "pytest -s -v evals/qwen4_exp/test_accuracy.py --config-list-file=configs/models-h200.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/qwen4_exp/configs/models-h200.txt": {
+            "sha256": "60ea3245b4e19ff731c60f19e0dd2f12d823c3f4f131f7546aaeaf8621de62fa",
+            "text": "# H200 configuration for Qwen3.8-Flash-Next-FP8 accuracy evaluation\nQwen3.8-Flash-Next-FP8.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/models-h200.txt": {
+            "sha256": "b2450f9bbb159da1a3bdcb7c9a63becffd37ed5bae48a5239b1bf60b518c881d",
+            "text": "DeepSeek-R1-TP.yaml\nDeepSeek-R1-DP.yaml\nDeepSeek-V3.2-TP.yaml\nDeepSeek-V3.2-DP.yaml\nNemotron-3-Super-120B-A12B-BF16.yaml\nNemotron-3-Super-120B-A12B-FP8.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 65,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Qwen3-30B-A3B-FP8-block Sync EPLB Accuracy",
+          "timeout_in_minutes": 30,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen30b_a3b_fp8_block_ep_eplb.sh 0.8 200 8020"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 66,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Qwen3-30B-A3B-FP8 DP4 Async EPLB Accuracy",
+          "timeout_in_minutes": 30,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen30b_a3b_fp8_dp4_async_eplb.sh 0.8 200 8050"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 67,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Qwen3-Next-80B-A3B-Instruct MTP Async EPLB Accuracy",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen3_next_mtp_async_eplb.sh 0.8 1319 8040"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 161,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) LM Eval Qwen3-5 Models",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "num_gpus": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-qwen35-mi355.txt"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-qwen35-mi355.txt": {
+            "sha256": "bceb138c2adf2f48a461f833f92f7619a0419bf69de96e16201546fda2a3156b",
+            "text": "Qwen3.5-35B-A3B-DEP2.yaml\nQwen3.5-35B-A3B-MXFP4-AITER-TP2.yaml\nQwen3.5-35B-A3B-MXFP4-EMU-TP2.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 163,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Qwen3-30B-A3B-FP8-block Sync EPLB Accuracy",
+          "timeout_in_minutes": 25,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "num_gpus": 2,
+          "working_dir": "/vllm-workspace",
+          "commands": [
+            "bash .buildkite/scripts/scheduled_integration_test/qwen30b_a3b_fp8_block_ep_eplb.sh 0.8 200 8020 2 1"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ],
+    "language": [
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Language Models (Standard)",
+          "key": "language-models-tests-standard",
+          "timeout_in_minutes": 30,
+          "device": "h200_18gb",
+          "commands": [
+            "pip freeze | grep -E 'torch'",
+            "pytest -v -s models/language -m 'core_model and (not slow_test)'"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Language Models (Standard)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 45
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Language Models (Extra Standard) Shard %N",
+          "device": "h200_35gb",
+          "key": "language-models-tests-extra-standard",
+          "timeout_in_minutes": 40,
+          "commands": [
+            "pip freeze | grep -E 'torch'",
+            "pytest -v -s models/language -m 'core_model and slow_test' --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "parallelism": 2,
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Language Models (Extra Standard) Shard %N",
+              "device": "mi300_1",
+              "timeout_in_minutes": 40
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Language Models (Hybrid) Shard %N",
+          "device": "h200_35gb",
+          "key": "language-models-tests-hybrid",
+          "timeout_in_minutes": 65,
+          "env": {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "http.version",
+            "GIT_CONFIG_VALUE_0": "HTTP/1.1"
+          },
+          "commands": [
+            "rm -rf /tmp/mamba-src && git clone --depth 1 --branch v2.3.0 https://github.com/state-spaces/mamba /tmp/mamba-src && sed -i 's/-std=c++17/-std=c++20/g' /tmp/mamba-src/setup.py && MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation /tmp/mamba-src",
+            "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+            "pytest -v -s models/language/generation -m hybrid_model -k 'not granite-4.0-tiny-preview' --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "parallelism": 2,
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Language Models (Hybrid) Shard %N",
+              "device": "mi300_1",
+              "timeout_in_minutes": 60,
+              "commands": [
+                "MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/AndreasKaratzas/mamba@fix-rocm-7.0-warp-size-constexpr'",
+                "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+                "pytest -v -s models/language/generation -m hybrid_model --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+              ]
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (L4) Granite Language Model Compatibility",
+          "key": "language-models-tests-granite-l4-compatibility",
+          "device": "l4",
+          "num_devices": 1,
+          "timeout_in_minutes": 65,
+          "commands": [
+            "rm -rf /tmp/mamba-src && git clone --depth 1 --branch v2.3.0 https://github.com/state-spaces/mamba /tmp/mamba-src && sed -i 's/-std=c++17/-std=c++20/g' /tmp/mamba-src/setup.py && MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation /tmp/mamba-src",
+            "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+            "pytest -v -s models/language/generation -m hybrid_model -k 'granite-4.0-tiny-preview'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 4,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Language Models (Extended Generation)",
+          "device": "h200_35gb",
+          "key": "language-models-test-extended-generation",
+          "timeout_in_minutes": 80,
+          "optional": true,
+          "commands": [
+            "rm -rf /tmp/mamba-src && git clone --depth 1 --branch v2.3.0 https://github.com/state-spaces/mamba /tmp/mamba-src && sed -i 's/-std=c++17/-std=c++20/g' /tmp/mamba-src/setup.py && MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation /tmp/mamba-src",
+            "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+            "pytest -v -s models/language/generation -m '(not core_model) and (not hybrid_model)'"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) Language Models (Extended Generation)",
+              "device": "mi355_1",
+              "timeout_in_minutes": 70,
+              "commands": [
+                "MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/AndreasKaratzas/mamba@fix-rocm-7.0-warp-size-constexpr'",
+                "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+                "pytest -v -s models/language/generation -m '(not core_model) and (not hybrid_model)'"
+              ]
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Language Models (PPL)",
+          "key": "language-models-test-ppl",
+          "timeout_in_minutes": 30,
+          "device": "h200_18gb",
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/language/generation_ppl_test"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI250) Language Models (PPL)",
+              "device": "mi250_1",
+              "timeout_in_minutes": 65
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 6,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Language Models (Extended Pooling) Shard %N",
+          "device": "h200_35gb",
+          "key": "language-models-test-extended-pooling",
+          "timeout_in_minutes": 120,
+          "parallelism": 4,
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/language/pooling -m 'not core_model' --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Language Models (Extended Pooling) Shard %N",
+              "device": "mi300_1",
+              "timeout_in_minutes": 95,
+              "parallelism": 2,
+              "commands": [
+                "pytest -v -s models/language/pooling -m 'not core_model' --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+              ]
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_language.yaml",
+        "file_sha256": "adb50659dce72fd2aaf8107330902081edd05848cb65085e2207c078518c202f",
+        "source_form": "area",
+        "step_index": 7,
+        "selection": "whole_area",
+        "group": "Models - Language",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Language Models (MTEB)",
+          "key": "language-models-test-mteb",
+          "timeout_in_minutes": 68,
+          "device": "h200_18gb",
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/language/pooling_mteb_test"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI250) Language Models (MTEB)",
+              "device": "mi250_1",
+              "timeout_in_minutes": 60
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 10,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI250) Language Models (PPL)",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx90anightly",
+            "amdmi250"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/language/generation_ppl_test"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 93,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Language Models (MTEB)",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/language/pooling_mteb_test"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 94,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Language Models (Extended Pooling)",
+          "timeout_in_minutes": 80,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/language/pooling -m 'not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 95,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Language Models (Standard)",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pip freeze | grep -E 'torch'",
+            "pytest -v -s models/language -m 'core_model and (not slow_test)'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 96,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Language Models (Extra Standard) Shard %N",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "parallelism": 2,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pip freeze | grep -E 'torch'",
+            "pytest -v -s models/language -m 'core_model and slow_test' --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 97,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Language Models (Extended Generation)",
+          "timeout_in_minutes": 95,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/AndreasKaratzas/mamba@fix-rocm-7.0-warp-size-constexpr'",
+            "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+            "pytest -v -s models/language/generation -m '(not core_model) and (not hybrid_model)'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 98,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Language Models (Hybrid) Shard %N",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "parallelism": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/AndreasKaratzas/mamba@fix-rocm-7.0-warp-size-constexpr'",
+            "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+            "pytest -v -s models/language/generation -m hybrid_model --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 177,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Language Models (Extended Generation)",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "MAMBA_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/AndreasKaratzas/mamba@rocm-7.0-v2.3.0'",
+            "CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --system --no-build-isolation 'git+https://github.com/Dao-AILab/causal-conv1d@v1.6.0'",
+            "pytest -v -s models/language/generation -m '(not core_model) and (not hybrid_model)'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 178,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Language Models (Extended Pooling)",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/language/pooling -m 'not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 179,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Language Models (PPL)",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/language/generation_ppl_test"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 180,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Language Models (Standard)",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pip freeze | grep -E 'torch'",
+            "pytest -v -s models/language -m 'core_model and (not slow_test)'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ],
+    "multimodal": [
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Multimodal Models (Standard) 1: qwen2",
+          "key": "multi-modal-models-standard-1-qwen2",
+          "timeout_in_minutes": 68,
+          "device": "h200_18gb",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"qwen2\"",
+            "pytest -v -s models/multimodal/generation/test_ultravox.py -m core_model"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Models (Standard) 1: qwen2",
+              "device": "mi300_1",
+              "timeout_in_minutes": 65
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Multimodal Models (Standard) 2: qwen3 + gemma",
+          "key": "multi-modal-models-standard-2-qwen3-gemma",
+          "timeout_in_minutes": 75,
+          "device": "h200_18gb",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"qwen3 or gemma\"",
+            "pytest -v -s models/multimodal/generation/test_mm_prefix_lm.py -m core_model",
+            "pytest -v -s models/multimodal/generation/test_qwen2_5_vl.py -m core_model"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Models (Standard) 2: qwen3 + gemma",
+              "device": "mi300_1",
+              "timeout_in_minutes": 55
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Models (Standard) 3: llava + qwen2_vl",
+          "device": "h200_35gb",
+          "key": "multi-modal-models-standard-3-llava-qwen2-vl",
+          "timeout_in_minutes": 40,
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"not qwen2 and not qwen3 and not gemma\"",
+            "pytest -v -s models/multimodal/generation/test_qwen2_vl.py -m core_model"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI250) Multimodal Models (Standard) 3: llava + qwen2_vl",
+              "device": "mi250_1",
+              "timeout_in_minutes": 55
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Models (Standard) 4: other + whisper",
+          "device": "h200_35gb",
+          "key": "multi-modal-models-standard-4-other-whisper",
+          "timeout_in_minutes": 75,
+          "commands": [
+            "pytest -v -s models/multimodal -m core_model --ignore models/multimodal/generation/test_common.py --ignore models/multimodal/generation/test_ultravox.py --ignore models/multimodal/generation/test_qwen2_5_vl.py --ignore models/multimodal/generation/test_qwen2_vl.py --ignore models/multimodal/generation/test_whisper.py --ignore models/multimodal/generation/test_mm_prefix_lm.py --ignore models/multimodal/generation/test_memory_leak.py --ignore models/multimodal/generation/test_vit_cudagraph.py --ignore models/multimodal/processing",
+            "pytest -v -s models/multimodal/generation/test_vit_cudagraph.py -m core_model",
+            "pytest models/multimodal/generation/test_memory_leak.py -m core_model",
+            "cd .. && VLLM_WORKER_MULTIPROC_METHOD=spawn pytest -v -s tests/models/multimodal/generation/test_whisper.py -m core_model"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Models (Standard) 4: other + whisper",
+              "device": "mi300_1",
+              "timeout_in_minutes": 70
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 4,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":computer: (CPU) Multimodal Processor Shard %N",
+          "key": "multi-modal-processor-cpu",
+          "timeout_in_minutes": 125,
+          "device": "cpu-medium",
+          "commands": [
+            "pytest -v -s models/multimodal/processing --ignore models/multimodal/processing/test_tensor_schema.py --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "parallelism": 4,
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Multimodal Processor",
+          "key": "multi-modal-processor",
+          "timeout_in_minutes": 98,
+          "device": "h200_18gb",
+          "commands": [
+            "pytest -v -s models/multimodal/processing/test_tensor_schema.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) Multimodal Processor",
+              "device": "mi355_1",
+              "timeout_in_minutes": 115
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 6,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Accuracy Eval (Small Models)",
+          "device": "h200_35gb",
+          "key": "multi-modal-accuracy-eval-small-models",
+          "timeout_in_minutes": 30,
+          "working_dir": "/vllm-workspace/.buildkite/lm-eval-harness",
+          "commands": [
+            "pytest -s -v test_lm_eval_correctness.py --config-list-file=configs/models-mm-small.txt --tp-size=1"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Accuracy Eval (Small Models)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 35
+            }
+          }
+        },
+        "config_lists": {
+          ".buildkite/lm-eval-harness/configs/models-mm-small.txt": {
+            "sha256": "ed32f81260809c6a6a7a4caf875498757a10d81f7826a34818872d500b42d084",
+            "text": "Qwen2.5-VL-7B-Instruct.yaml"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 7,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Models (Extended Generation 1)",
+          "device": "h200_35gb",
+          "key": "multi-modal-models-extended-generation-1",
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/multimodal/generation -m 'not core_model' --ignore models/multimodal/generation/test_common.py",
+            "pytest -v -s models/multimodal/test_mapping.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Models (Extended Generation 1)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 90
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 8,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Models (PPL)",
+          "device": "h200_35gb",
+          "key": "multi-modal-models-extended-ppl",
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/multimodal/generation_ppl_test/"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Models (PPL)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 90
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 9,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Models (Extended Generation 2) Shard %N",
+          "device": "h200_35gb",
+          "key": "multi-modal-models-extended-generation-2",
+          "parallelism": 4,
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m 'split(group=0) and not core_model' --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT --shard-id=$$BUILDKITE_PARALLEL_JOB"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) Multimodal Models (Extended Generation 2) Shard %N",
+              "device": "mi355_1",
+              "timeout_in_minutes": 100
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 10,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Multimodal Models (Extended Generation 3)",
+          "device": "h200_35gb",
+          "key": "multi-modal-models-extended-generation-3",
+          "optional": true,
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m 'split(group=1) and not core_model'"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) Multimodal Models (Extended Generation 3)",
+              "device": "mi355_1",
+              "timeout_in_minutes": 90
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/models_multimodal.yaml",
+        "file_sha256": "f5bb3d41b54b1ca9542ea741b7c6e0487b4c644ac57548f50fc0442fec6eb8d2",
+        "source_form": "area",
+        "step_index": 11,
+        "selection": "whole_area",
+        "group": "Models - Multimodal",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Multimodal Models (Extended Pooling)",
+          "key": "multi-modal-models-extended-pooling",
+          "optional": true,
+          "device": "h200_18gb",
+          "commands": [
+            "pytest -v -s models/multimodal/pooling -m 'not core_model'"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Multimodal Models (Extended Pooling)",
+              "device": "mi300_1",
+              "timeout_in_minutes": 60
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 11,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI250) Multimodal Models (Standard) 3: llava + qwen2_vl",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx90anightly",
+            "amdmi250"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"not qwen2 and not qwen3 and not gemma\"",
+            "pytest -v -s models/multimodal/generation/test_qwen2_vl.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 99,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Extended Generation 1)",
+          "timeout_in_minutes": 90,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation -m 'not core_model' --ignore models/multimodal/generation/test_common.py",
+            "pytest -v -s models/multimodal/test_mapping.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 100,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Extended Generation 2)",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m 'split(group=0) and not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 101,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Extended Generation 3)",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m 'split(group=1) and not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 102,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Standard) 1: qwen2",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"qwen2\"",
+            "pytest -v -s models/multimodal/generation/test_ultravox.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 103,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Standard) 3: llava + qwen2_vl",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"not qwen2 and not qwen3 and not gemma\"",
+            "pytest -v -s models/multimodal/generation/test_qwen2_vl.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 104,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Standard) 4: other + whisper",
+          "timeout_in_minutes": 70,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal -m core_model --ignore models/multimodal/generation/test_common.py --ignore models/multimodal/generation/test_ultravox.py --ignore models/multimodal/generation/test_qwen2_5_vl.py --ignore models/multimodal/generation/test_qwen2_vl.py --ignore models/multimodal/generation/test_whisper.py --ignore models/multimodal/generation/test_mm_prefix_lm.py --ignore models/multimodal/generation/test_memory_leak.py --ignore models/multimodal/generation/test_vit_cudagraph.py --ignore models/multimodal/processing",
+            "pytest -v -s models/multimodal/generation/test_vit_cudagraph.py -m core_model",
+            "pytest -v -s models/multimodal/generation/test_memory_leak.py -m core_model",
+            "cd .. && VLLM_WORKER_MULTIPROC_METHOD=spawn pytest -v -s tests/models/multimodal/generation/test_whisper.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 106,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Extended Pooling)",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/pooling -m 'not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 107,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Multimodal Models (Standard) 2: qwen3 + gemma",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"qwen3 or gemma\"",
+            "pytest -v -s models/multimodal/generation/test_mm_prefix_lm.py -m core_model",
+            "pytest -v -s models/multimodal/generation/test_qwen2_5_vl.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 181,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Multimodal Models (Extended Generation 1)",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation -m 'not core_model' --ignore models/multimodal/generation/test_common.py",
+            "pytest -v -s models/multimodal/test_mapping.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 182,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Multimodal Models (Extended Generation 3)",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m 'split(group=1) and not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 183,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Multimodal Models (Extended Pooling)",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/pooling -m 'not core_model'"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 184,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Multimodal Models (Standard) 1: qwen2",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal/generation/test_common.py -m core_model -k \"qwen2\"",
+            "pytest -v -s models/multimodal/generation/test_ultravox.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 185,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Multimodal Models (Standard) 4: other + whisper",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/multimodal -m core_model --ignore models/multimodal/generation/test_common.py --ignore models/multimodal/generation/test_ultravox.py --ignore models/multimodal/generation/test_qwen2_5_vl.py --ignore models/multimodal/generation/test_qwen2_vl.py --ignore models/multimodal/generation/test_whisper.py --ignore models/multimodal/generation/test_mm_prefix_lm.py --ignore models/multimodal/generation/test_memory_leak.py --ignore models/multimodal/generation/test_vit_cudagraph.py --ignore models/multimodal/processing",
+            "pytest -v -s models/multimodal/generation/test_vit_cudagraph.py -m core_model",
+            "pytest -v -s models/multimodal/generation/test_memory_leak.py -m core_model",
+            "cd .. && VLLM_WORKER_MULTIPROC_METHOD=spawn pytest -v -s tests/models/multimodal/generation/test_whisper.py -m core_model"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ],
+    "quantized": [
+      {
+        "file": ".buildkite/test_areas/quantization.yaml",
+        "file_sha256": "9c06c891ff9942b089e5f2c7f609e5cc0823d0937639b51f0ad7b1287f7ab428",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "matching_label",
+        "group": "Quantization",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Quantized Models",
+          "device": "h200_35gb",
+          "key": "quantized-models-test",
+          "timeout_in_minutes": 65,
+          "env": {
+            "VLLM_USE_V2_MODEL_RUNNER": "0"
+          },
+          "commands": [
+            "pytest -v -s models/quantization"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 108,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Quantized Models",
+          "timeout_in_minutes": 80,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/quantization"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 186,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Quantized Models",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s models/quantization"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ],
+    "spec_decode": [
+      {
+        "file": ".buildkite/test_areas/disaggregated.yaml",
+        "file_sha256": "c98d1d6bf742d775bbcbc6e70a674eb002bad8f11a62e25c072e4c3cb16beec4",
+        "source_form": "area",
+        "step_index": 9,
+        "selection": "matching_label",
+        "group": "Disaggregated",
+        "step": {
+          "label": ":nvidia: (A100) NixlConnector PD + Spec Decode acceptance",
+          "key": "nixlconnector-pd-spec-decode-acceptance-2-gpus",
+          "timeout_in_minutes": 45,
+          "device": "a100",
+          "working_dir": "/vllm-workspace/tests",
+          "num_devices": 2,
+          "commands": [
+            "bash /vllm-workspace/.buildkite/scripts/install-kv-connectors.sh",
+            "bash v1/kv_connector/nixl_integration/config_sweep_spec_decode_test.sh"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) NixlConnector PD + Spec Decode acceptance",
+              "device": "mi300_2",
+              "timeout_in_minutes": 45,
+              "commands": [
+                "uv pip install --system -r /vllm-workspace/requirements/kv_connectors_rocm.txt",
+                "KV_CACHE_MEMORY_BYTES=8G ATTENTION_BACKEND=TRITON_ATTN bash v1/kv_connector/nixl_integration/config_sweep_spec_decode_test.sh"
+              ]
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/lm_eval.yaml",
+        "file_sha256": "20b2b146318aca6829baa51a8e8b9f3bb028d44545ce3380970d6f5719b6c7ba",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "matching_label",
+        "group": "LM Eval",
+        "step": {
+          "label": ":nvidia: (B200) LM Eval Spec Decode",
+          "key": "lm-eval-spec-decode-4xb200",
+          "timeout_in_minutes": 120,
+          "device": "b200-k8s",
+          "num_devices": 4,
+          "optional": true,
+          "commands": [
+            "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-spec-decode.txt"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI355) LM Eval Spec Decode",
+              "device": "mi355_4",
+              "timeout_in_minutes": 120,
+              "commands": [
+                "pytest -s -v evals/gsm8k/test_gsm8k_correctness.py --config-list-file=configs/models-spec-decode-rocm.txt"
+              ]
+            }
+          }
+        },
+        "config_lists": {
+          "tests/evals/gsm8k/configs/models-spec-decode.txt": {
+            "sha256": "e9fe3e8a0a426c652f7b5641900a24cdabd1fb4b6cc1654e6f212ee5e48779e5",
+            "text": "DeepSeek-V4-Flash-DSpark-confidence-TEP4.yaml\nKimi-K3-pruned75-DSpark-TP4.yaml\n"
+          },
+          "tests/evals/gsm8k/configs/models-spec-decode-rocm.txt": {
+            "sha256": "b9ddbfc8261156f3cb188974dcf4e1504068a2944b11a15459507d81c28af75e",
+            "text": "Kimi-K3-pruned75-DSpark-AITER-TP4.yaml\nDeepSeek-V4-Flash-DSpark-AITER-TEP4.yaml\n"
+          }
+        }
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) V1 Spec Decode",
+          "device": "h200_35gb",
+          "key": "v1-spec-decode",
+          "timeout_in_minutes": 40,
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s -m 'not slow_test' v1/spec_decode"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 Spec Decode",
+              "device": "mi300_1",
+              "timeout_in_minutes": 50
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode Eagle 1: DeepSeek + Qwen",
+          "key": "spec-decode-eagle-1-deepseek-qwen",
+          "timeout_in_minutes": 25,
+          "device": "h200_35gb",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/eagle/ -k \"deepseek_eagle or qwen3_eagle3\""
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode Eagle 1: DeepSeek + Qwen",
+              "device": "mi300_1",
+              "timeout_in_minutes": 35
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode Eagle 2: Llama 3 + Qwen VL + Other",
+          "key": "spec-decode-eagle-2-llama3-qwen-vl-other",
+          "timeout_in_minutes": 25,
+          "device": "h200_35gb",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/eagle/ -k \"not deepseek_eagle and not qwen3_eagle3\""
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode Eagle 2: Llama 3 + Qwen VL + Other",
+              "device": "mi300_1",
+              "timeout_in_minutes": 25
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 3,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (B200) Spec Decode Eagle Nightly",
+          "key": "spec-decode-eagle-nightly-b200",
+          "timeout_in_minutes": 25,
+          "device": "b200-k8s",
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/eagle/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 4,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode Speculators + MTP",
+          "key": "spec-decode-speculators-mtp",
+          "timeout_in_minutes": 50,
+          "device": "h200_35gb",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/speculators/",
+            "pytest -v -s v1/e2e/spec_decode/mtp/"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode Speculators + MTP",
+              "device": "mi300_1",
+              "timeout_in_minutes": 75
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (B200) Spec Decode Speculators + MTP Nightly",
+          "key": "spec-decode-speculators-mtp-nightly-b200",
+          "timeout_in_minutes": 30,
+          "device": "b200-k8s",
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/speculators/",
+            "pytest -v -s v1/e2e/spec_decode/mtp/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 6,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode N-Gram + Suffix",
+          "key": "spec-decode-ngram-suffix",
+          "timeout_in_minutes": 20,
+          "device": "h200_35gb",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/ngram_suffix/",
+            "python3 spec_decode/test_custom_proposer.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode N-Gram + Suffix",
+              "device": "mi300_1",
+              "timeout_in_minutes": 35
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 7,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) Spec Decode Draft Model",
+          "key": "spec-decode-draft-model",
+          "timeout_in_minutes": 45,
+          "device": "h200_18gb",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/draft_model/"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode Draft Model",
+              "device": "mi300_1",
+              "timeout_in_minutes": 55
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 8,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (B200) Spec Decode Draft Model Nightly",
+          "key": "spec-decode-draft-model-nightly-b200",
+          "timeout_in_minutes": 40,
+          "device": "b200-k8s",
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/draft_model/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 9,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H100) Speculators Correctness Nightly",
+          "key": "speculators-correctness",
+          "timeout_in_minutes": 30,
+          "device": "h100",
+          "optional": true,
+          "num_devices": 1,
+          "commands": [
+            "export VLLM_ALLOW_INSECURE_SERIALIZATION=1",
+            "pytest -v -s v1/spec_decode/test_speculators_correctness.py -m slow_test"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Speculators Correctness Nightly",
+              "device": "mi300_1",
+              "timeout_in_minutes": 40
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 10,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (B200) Spec Decode DeepSeek MTP Parallel Load",
+          "key": "spec-decode-deepseek-mtp-parallel-load-2xb200-2xmi300",
+          "timeout_in_minutes": 30,
+          "device": "b200-k8s",
+          "optional": true,
+          "num_devices": 2,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/test_mtp_parallel_load.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode DeepSeek MTP Parallel Load",
+              "device": "mi300_2",
+              "timeout_in_minutes": 45
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 11,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode AL DFlash Nightly",
+          "key": "spec-decode-dflash-nightly",
+          "timeout_in_minutes": 90,
+          "device": "h200_35gb",
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/acceptance_rates/dflash/"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode AL DFlash Nightly",
+              "device": "mi300_1",
+              "timeout_in_minutes": 120
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 12,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode AL DSpark Nightly",
+          "key": "spec-decode-dspark-nightly",
+          "timeout_in_minutes": 60,
+          "device": "h200_35gb",
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/acceptance_rates/dspark/"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) Spec Decode AL DSpark Nightly",
+              "device": "mi300_1",
+              "timeout_in_minutes": 90
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 13,
+        "selection": "whole_area",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) Spec Decode AL MTP + Other Acceptance Nightly",
+          "key": "spec-decode-mtp-other-acceptance-nightly",
+          "timeout_in_minutes": 35,
+          "device": "h200_35gb",
+          "optional": true,
+          "parallelism": 3,
+          "commands": [
+            "test \"$$BUILDKITE_PARALLEL_JOB\" != \"0\" || pytest -v -s v1/e2e/spec_decode/acceptance_rates/mtp_other/ --deselect \"tests/v1/e2e/spec_decode/acceptance_rates/mtp_other/test_mtp.py::test_gemma4_mtp_acceptance_lengths[False]\" --deselect \"tests/v1/e2e/spec_decode/acceptance_rates/mtp_other/test_mtp.py::test_gemma4_mtp_acceptance_lengths[True]\"",
+            "test \"$$BUILDKITE_PARALLEL_JOB\" != \"1\" || pytest -v -s \"v1/e2e/spec_decode/acceptance_rates/mtp_other/test_mtp.py::test_gemma4_mtp_acceptance_lengths[False]\"",
+            "test \"$$BUILDKITE_PARALLEL_JOB\" != \"2\" || pytest -v -s \"v1/e2e/spec_decode/acceptance_rates/mtp_other/test_mtp.py::test_gemma4_mtp_acceptance_lengths[True]\""
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 17,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI250) Spec Decode Draft Model",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx90anightly",
+            "amdmi250"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/draft_model/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 18,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI250) Spec Decode Speculators + MTP",
+          "timeout_in_minutes": 65,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx90anightly",
+            "amdmi250"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/speculators/",
+            "pytest -v -s v1/e2e/spec_decode/mtp/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 89,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Model Runner V2 Spec Decode",
+          "timeout_in_minutes": 90,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "set -x",
+            "export VLLM_USE_V2_MODEL_RUNNER=1",
+            "pytest -v -s v1/spec_decode/test_max_len.py -k \"eagle or mtp\"",
+            "pytest -v -s v1/spec_decode/test_rejection_sampler_utils.py",
+            "pytest -v -s v1/spec_decode/test_synthetic_rejection_sampler_utils.py",
+            "pytest -v -s v1/e2e/spec_decode/eagle/",
+            "pytest -v -s v1/e2e/spec_decode/speculators/",
+            "pytest -v -s v1/e2e/spec_decode/mtp/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 126,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Spec Decode Draft Model",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/draft_model/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 127,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Spec Decode Eagle",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/eagle/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 128,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Spec Decode N-Gram + Suffix",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/ngram_suffix/",
+            "python3 spec_decode/test_custom_proposer.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 129,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) Spec Decode Speculators + MTP",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/speculators/",
+            "pytest -v -s v1/e2e/spec_decode/mtp/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 131,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 Spec Decode",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s -m 'not slow_test' v1/spec_decode"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 139,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) NixlConnector PD + Spec Decode acceptance",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "uv pip install --system -r /vllm-workspace/requirements/kv_connectors_rocm.txt",
+            "KV_CACHE_MEMORY_BYTES=8G ATTENTION_BACKEND=TRITON_ATTN bash v1/kv_connector/nixl_integration/config_sweep_spec_decode_test.sh"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 191,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) V1 Spec Decode",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s -m 'not slow_test' v1/spec_decode"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 192,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) Spec Decode AL MTP + Other Acceptance",
+          "timeout_in_minutes": 180,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/acceptance_rates/mtp_other/"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ],
+    "v1": [
+      {
+        "file": ".buildkite/test_areas/attention.yaml",
+        "file_sha256": "f1b14c9e51c8338a2c74303e7ead726721b36ef96e527ed613963c690000015b",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "matching_label",
+        "group": "Attention",
+        "step": {
+          "label": ":nvidia: (H100) V1 Attention Shard %N",
+          "key": "v1-attention-h100-mi300",
+          "timeout_in_minutes": 85,
+          "device": "h100",
+          "commands": [
+            "pytest -v -s v1/attention --shard-id=$$BUILDKITE_PARALLEL_JOB --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT"
+          ],
+          "parallelism": 2,
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 Attention Shard %N",
+              "device": "mi300_1",
+              "timeout_in_minutes": 125
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/attention.yaml",
+        "file_sha256": "f1b14c9e51c8338a2c74303e7ead726721b36ef96e527ed613963c690000015b",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "matching_label",
+        "group": "Attention",
+        "step": {
+          "label": ":nvidia: (B200) V1 Attention Shard %N",
+          "key": "v1-attention-b200",
+          "timeout_in_minutes": 80,
+          "device": "b200-k8s",
+          "commands": [
+            "pytest -v -s v1/attention --shard-id=$$BUILDKITE_PARALLEL_JOB --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT"
+          ],
+          "parallelism": 2,
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/engine.yaml",
+        "file_sha256": "b23309137be1fbb66dff42c2b5be4347d124c636b571d979a039a7832bfc5b30",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "matching_label",
+        "group": "Engine",
+        "step": {
+          "label": ":nvidia: (L4) V1 Engine",
+          "key": "engine-1-gpu",
+          "device": "l4",
+          "num_devices": 1,
+          "timeout_in_minutes": 45,
+          "commands": [
+            "pytest -v -s v1/engine/test_preprocess_error_handling.py",
+            "pytest -v -s v1/engine --ignore v1/engine/test_preprocess_error_handling.py",
+            "pytest -v -s v1/test_tensor_ipc_queue.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI250) V1 Engine",
+              "device": "mi250_1",
+              "timeout_in_minutes": 45
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/engine.yaml",
+        "file_sha256": "b23309137be1fbb66dff42c2b5be4347d124c636b571d979a039a7832bfc5b30",
+        "source_form": "area",
+        "step_index": 4,
+        "selection": "matching_label",
+        "group": "Engine",
+        "step": {
+          "label": ":nvidia: (L4) V1 E2E",
+          "key": "v1-e2e-2-gpus",
+          "timeout_in_minutes": 25,
+          "optional": true,
+          "device": "l4",
+          "num_devices": 2,
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/draft_model/test_draft_model.py::test_draft_model_tensor_parallelism v1/e2e/spec_decode/draft_model/test_draft_model.py::test_draft_model_engine_args_tensor_parallelism"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 E2E",
+              "device": "mi300_2",
+              "timeout_in_minutes": 30
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/engine.yaml",
+        "file_sha256": "b23309137be1fbb66dff42c2b5be4347d124c636b571d979a039a7832bfc5b30",
+        "source_form": "area",
+        "step_index": 5,
+        "selection": "matching_label",
+        "group": "Engine",
+        "step": {
+          "label": ":nvidia: (B200) V1 E2E Hybrid Chunked Prefill",
+          "key": "v1-e2e-hybrid-chunked-prefill-b200",
+          "timeout_in_minutes": 35,
+          "device": "b200-k8s",
+          "num_devices": 1,
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/test_hybrid_chunked_prefill.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 E2E Hybrid Chunked Prefill",
+              "device": "mi300_1",
+              "timeout_in_minutes": 35
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/misc.yaml",
+        "file_sha256": "deff1aebe2f3af9894115b06fc38571d956a6b57733b430c3f7f95591461519c",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "matching_label",
+        "group": "Miscellaneous",
+        "step": {
+          "label": ":nvidia: (H200 MIG 18GB) V1 Sample + Logits",
+          "key": "v1-sample-logits",
+          "timeout_in_minutes": 83,
+          "device": "h200_18gb",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s v1/sample",
+            "pytest -v -s v1/logits_processors",
+            "pytest -v -s v1/test_oracle.py",
+            "pytest -v -s v1/test_request.py",
+            "pytest -v -s v1/test_outputs.py"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 Sample + Logits",
+              "device": "mi300_1",
+              "timeout_in_minutes": 70
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/misc.yaml",
+        "file_sha256": "deff1aebe2f3af9894115b06fc38571d956a6b57733b430c3f7f95591461519c",
+        "source_form": "area",
+        "step_index": 1,
+        "selection": "matching_label",
+        "group": "Miscellaneous",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) V1 Core + KV + Metrics",
+          "device": "h200_35gb",
+          "key": "v1-core-kv-metrics",
+          "timeout_in_minutes": 100,
+          "env": {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "http.version",
+            "GIT_CONFIG_VALUE_0": "HTTP/1.1"
+          },
+          "commands": [
+            "bash /vllm-workspace/.buildkite/scripts/install-kv-connectors.sh",
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s -m 'not cpu_test' v1/core",
+            "pytest -v -s v1/executor",
+            "pytest -v -s v1/kv_offload",
+            "pytest -v -s v1/simple_kv_offload",
+            "pytest -v -s v1/worker",
+            "pytest -v -s v1/streaming_input",
+            "pytest -v -s -m 'not cpu_test' v1/kv_connector/unit",
+            "pytest -v -s -m 'not cpu_test' v1/ec_connector/unit",
+            "pytest -v -s -m 'not cpu_test' v1/metrics",
+            "pip install -U git+https://github.com/vllm-project/lm-evaluation-harness.git@streaming-api",
+            "pytest -v -s entrypoints/openai/correctness/test_lmeval.py::test_lm_eval_accuracy_v1_engine"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 Core + KV + Metrics",
+              "device": "mi300_1",
+              "timeout_in_minutes": 65
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/misc.yaml",
+        "file_sha256": "deff1aebe2f3af9894115b06fc38571d956a6b57733b430c3f7f95591461519c",
+        "source_form": "area",
+        "step_index": 2,
+        "selection": "matching_label",
+        "group": "Miscellaneous",
+        "step": {
+          "label": ":computer: (CPU) V1 Others",
+          "key": "v1-others-cpu",
+          "device": "cpu-small",
+          "commands": [
+            "pytest -v -s -m 'cpu_test' v1/core",
+            "pytest -v -s v1/structured_output",
+            "pytest -v -s v1/test_serial_utils.py",
+            "pytest -v -s v1/test_kv_cache_spec_registry.py",
+            "pytest -v -s v1/cudagraph/test_cudagraph_manager.py",
+            "pytest -v -s -m 'cpu_test' v1/kv_connector/unit",
+            "pytest -v -s -m 'cpu_test' v1/ec_connector/unit",
+            "pytest -v -s -m 'cpu_test' v1/metrics"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test_areas/spec_decode.yaml",
+        "file_sha256": "9516f297e4ed303440d9d7d629afee4097b69b78ff4fec2923672cf5aaed4e5c",
+        "source_form": "area",
+        "step_index": 0,
+        "selection": "matching_label",
+        "group": "Spec Decode",
+        "step": {
+          "label": ":nvidia: (H200 MIG 35GB) V1 Spec Decode",
+          "device": "h200_35gb",
+          "key": "v1-spec-decode",
+          "timeout_in_minutes": 40,
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s -m 'not slow_test' v1/spec_decode"
+          ],
+          "mirror": {
+            "amd": {
+              "label": ":amd: (MI300) V1 Spec Decode",
+              "device": "mi300_1",
+              "timeout_in_minutes": 50
+            }
+          }
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 2,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":computer: (CPU) V1 Others",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx90anightly",
+            "amdmi250"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s -m 'cpu_test' v1/core",
+            "pytest -v -s v1/structured_output",
+            "pytest -v -s v1/test_serial_utils.py",
+            "pytest -v -s v1/test_kv_cache_spec_registry.py",
+            "pytest -v -s v1/cudagraph/test_cudagraph_manager.py",
+            "pytest -v -s -m 'cpu_test' v1/kv_connector/unit",
+            "pytest -v -s -m 'cpu_test' v1/ec_connector/unit",
+            "pytest -v -s -m 'cpu_test' v1/metrics"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 16,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI250) V1 Engine",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx90anightly",
+            "amdmi250"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/engine/test_preprocess_error_handling.py",
+            "pytest -v -s v1/engine --ignore v1/engine/test_preprocess_error_handling.py",
+            "pytest -v -s v1/test_tensor_ipc_queue.py",
+            "pytest -v -s config/test_mp_reducer.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 125,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 Engine",
+          "timeout_in_minutes": 40,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/engine/test_preprocess_error_handling.py",
+            "pytest -v -s v1/engine --ignore v1/engine/test_preprocess_error_handling.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 131,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 Spec Decode",
+          "timeout_in_minutes": 50,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s -m 'not slow_test' v1/spec_decode"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 133,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 Attention Shard %N",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "parallelism": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/attention --shard-id=$$BUILDKITE_PARALLEL_JOB --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 134,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 Core + KV + Metrics",
+          "timeout_in_minutes": 60,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "uv pip install --system -r /vllm-workspace/requirements/kv_connectors_rocm.txt",
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s -m 'not cpu_test' v1/core",
+            "pytest -v -s v1/executor",
+            "pytest -v -s v1/kv_offload",
+            "pytest -v -s v1/simple_kv_offload",
+            "pytest -v -s v1/worker",
+            "pytest -v -s v1/streaming_input",
+            "pytest -v -s -m 'not cpu_test' v1/kv_connector/unit",
+            "pytest -v -s -m 'not cpu_test' v1/ec_connector/unit",
+            "pytest -v -s -m 'not cpu_test' v1/metrics",
+            "pip install -U git+https://github.com/vllm-project/lm-evaluation-harness.git@streaming-api",
+            "pytest -v -s entrypoints/openai/correctness/test_lmeval.py::test_lm_eval_accuracy_v1_engine"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 135,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 Sample + Logits",
+          "timeout_in_minutes": 70,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "export VLLM_WORKER_MULTIPROC_METHOD=spawn",
+            "pytest -v -s v1/sample",
+            "pytest -v -s v1/logits_processors",
+            "pytest -v -s v1/test_oracle.py",
+            "pytest -v -s v1/test_request.py",
+            "pytest -v -s v1/test_outputs.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 138,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 E2E",
+          "timeout_in_minutes": 25,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 2,
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/e2e/spec_decode/draft_model/test_draft_model.py::test_draft_model_tensor_parallelism v1/e2e/spec_decode/draft_model/test_draft_model.py::test_draft_model_engine_args_tensor_parallelism"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 148,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI300) V1 E2E Hybrid Chunked Prefill",
+          "timeout_in_minutes": 30,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx942nightly",
+            "amdmi300"
+          ],
+          "num_gpus": 4,
+          "optional": true,
+          "commands": [
+            "pytest -v -s v1/e2e/test_hybrid_chunked_prefill.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 188,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) V1 Attention Shard %N",
+          "timeout_in_minutes": 35,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "parallelism": 2,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/attention --shard-id=$$BUILDKITE_PARALLEL_JOB --num-shards=$$BUILDKITE_PARALLEL_JOB_COUNT"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 189,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) V1 Core + KV + Metrics",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "uv pip install --system -r /vllm-workspace/requirements/kv_connectors_rocm.txt",
+            "pytest -v -s -m 'not cpu_test' v1/core",
+            "pytest -v -s v1/executor",
+            "pytest -v -s v1/kv_offload",
+            "pytest -v -s v1/worker",
+            "pytest -v -s v1/cudagraph/test_encoder_cudagraph.py",
+            "pytest -v -s -m 'not cpu_test' v1/kv_connector/unit",
+            "pytest -v -s -m 'not cpu_test' v1/metrics",
+            "pip install -U git+https://github.com/vllm-project/lm-evaluation-harness.git@streaming-api",
+            "pytest -v -s entrypoints/openai/correctness/test_lmeval.py::test_lm_eval_accuracy_v1_engine"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 190,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) V1 Sample + Logits",
+          "timeout_in_minutes": 55,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "optional": true,
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s v1/sample",
+            "pytest -v -s v1/logits_processors",
+            "pytest -v -s v1/test_oracle.py",
+            "pytest -v -s v1/test_request.py",
+            "pytest -v -s v1/test_outputs.py"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      },
+      {
+        "file": ".buildkite/test-amd.yaml",
+        "file_sha256": "d66efb313fd855d789670e64556aadfda2cd1a9715f7c74435a86ed6ae6bfe9b",
+        "source_form": "legacy_amd",
+        "step_index": 191,
+        "selection": "matching_label",
+        "group": null,
+        "step": {
+          "label": ":amd: (MI355) V1 Spec Decode",
+          "timeout_in_minutes": 45,
+          "mirror_hardwares": [
+            "amdexperimental",
+            "amdproduction",
+            "amdgfx950nightly",
+            "amdmi355"
+          ],
+          "working_dir": "/vllm-workspace/tests",
+          "commands": [
+            "pytest -v -s -m 'not slow_test' v1/spec_decode"
+          ],
+          "mirror": {}
+        },
+        "config_lists": {}
+      }
+    ]
+  }
+}

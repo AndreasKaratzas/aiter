@@ -1,0 +1,2 @@
+# Shared legacy Kimi model evaluation addition.
+lm-eval[api]

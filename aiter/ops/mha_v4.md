@@ -64,8 +64,8 @@ subpackage split is not part of the design. It exports:
 
 - API and preprocessing ownership: `aiter/ops/mha_v4.py`.
 - Host launcher: `csrc/py_itfs_cu/asm_mha_v4_fwd.cu`.
-- Manifests and binaries: `hsa/<arch>/fmha_v4_fwd/`.
-- Benchmark integration: `op_tests/op_benchmarks/triton/bench_sage.py`.
+- Manifests and binaries: `kernels/<arch>/fmha_v4_fwd/`.
+- Benchmark integration: `benchmarks/operators/triton/bench_sage.py`.
 
 ## Validated Baseline
 
@@ -77,7 +77,7 @@ communication overlap.
 Validation includes eager accuracy for all eight combinations, fullgraph eager/compiled parity,
 finite outputs, allocator churn with downstream consumers, explicit code-object dispatch,
 unaligned and unequal sequence lengths, retained model captures, and balanced multi-GPU target-shape
-benchmarks. Focused coverage lives in `op_tests/test_mha_v4.py`.
+benchmarks. Focused coverage lives in `tests/operators/hip/test_mha_v4.py`.
 
 Still deferred:
 
@@ -324,7 +324,7 @@ code_object
 Kernel cache identity is `(kernel_symbol, code_object)`, never the symbol alone.
 
 BF16 dispatch uses the same explicit format and scale-mode key as other rows. Each architecture
-owns its manifest row and code object under `hsa/<arch>/fmha_v4_fwd/`; adding gfx942 BF16 support
+owns its manifest row and code object under `kernels/<arch>/fmha_v4_fwd/`; adding gfx942 BF16 support
 does not require a Python-side architecture branch.
 
 ## Sparse Contract
@@ -364,8 +364,8 @@ read speculatively up to one entry past the row they traverse). Set `AITER_MHA_V
 also check starts, counts, and index ranges device-side, which costs a synchronization per launch
 and is off by default.
 
-Sparse code objects live next to dense ones: `hsa/gfx950/fmha_v4_fwd/` (for example
-`fwd_hd128_fp8_sparse.co`) and `hsa/gfx942/fmha_v4_fwd/MI300/` for the two gfx942 recipes.
+Sparse code objects live next to dense ones: `kernels/gfx950/fmha_v4_fwd/` (for example
+`fwd_hd128_fp8_sparse.co`) and `kernels/gfx942/fmha_v4_fwd/MI300/` for the two gfx942 recipes.
 
 Do not add optional LUT arguments to the dense MXFP4/MXFP6 launch custom ops; sparse MX goes
 through `mha_v4_packed` after reconstructing views.

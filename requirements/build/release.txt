@@ -1,0 +1,4 @@
+# Existing release builder toolchain constraints.
+setuptools_scm<10
+ninja
+cmake>=3.21,<5

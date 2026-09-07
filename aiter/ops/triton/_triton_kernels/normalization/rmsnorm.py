@@ -120,7 +120,8 @@ def _rms_norm_kernel(
             norm_factor = tl.rsqrt(mean_square + epsilon)
 
             # Store rsigma (norm_factor)
-            tl.store(rsigma_ptr + row_idx, norm_factor)
+            if rsigma_ptr is not None:
+                tl.store(rsigma_ptr + row_idx, norm_factor)
 
             # Normalize and write output
             for blk_idx in tl.range(0, n_cols_blks, num_stages=2):
@@ -161,7 +162,8 @@ def _rms_norm_kernel(
             norm_factor = tl.math.rsqrt((row_norm / n_cols) + epsilon)
 
             # Store rsigma (norm_factor)
-            tl.store(rsigma_ptr + row_idx, norm_factor)
+            if rsigma_ptr is not None:
+                tl.store(rsigma_ptr + row_idx, norm_factor)
 
             rms_norm = row * norm_factor * g
 

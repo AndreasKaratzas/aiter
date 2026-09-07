@@ -7,7 +7,7 @@ def _ck_targets_flag() -> str:
     keep the default (covers both gfx942 and gfx950 like before).
     """
     try:
-        from chip_info import get_gfx
+        from aiter.jit.utils.chip_info import get_gfx
 
         gfx = get_gfx()
     except Exception:  # noqa: BLE001
@@ -120,8 +120,8 @@ def get_mha_varlen_prebuild_variants_by_names(
             has_qscale=has_qscale,
         )
         blob_gen_cmd = [
-            f"{ck_dir}/example/ck_tile/01_fmha/generate.py -d fwd --receipt {receipt} --filter {filter_pattern} --output_dir {{}}{_ck_targets_flag()}",
-            f'{ck_dir}/example/ck_tile/01_fmha/generate.py -d fwd_splitkv --receipt {receipt} --filter " @ " --output_dir {{}}{_ck_targets_flag()}',
+            f"-m aiter.codegen ck.attention -d fwd --receipt {receipt} --filter {filter_pattern} --output_dir {{}}{_ck_targets_flag()}",
+            f'-m aiter.codegen ck.attention -d fwd_splitkv --receipt {receipt} --filter " @ " --output_dir {{}}{_ck_targets_flag()}',
         ]
         variants.append(
             {"md_name": f"mha_varlen_fwd{suffix}", "blob_gen_cmd": blob_gen_cmd}

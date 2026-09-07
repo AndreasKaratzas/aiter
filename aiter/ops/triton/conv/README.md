@@ -50,7 +50,7 @@ behavior on your stack.
 To measure on your stack:
 
 ```bash
-python -m op_tests.op_benchmarks.triton.bench_conv2d \
+python -m benchmarks.operators.triton.bench_conv2d \
     --model <resnet50|"stable-diffusion-3.5-medium"|"FLUX.2-klein-9B"> \
     --dtype <fp16|bf16> \
     [--miopen-solvers]   # opt-in; ~60-120s upfront subprocess
@@ -133,9 +133,9 @@ Run from the AITER repo root (`/app/aiter` in this tree, or `PYTHONPATH=/app/ait
 ### Correctness (CI-collected; skipped on unsupported archs)
 
 ```bash
-pytest op_tests/triton_tests/conv/                                # full matrix, 81 tests
-pytest op_tests/triton_tests/conv/ -k "no_bias and fp16_nchw"     # subset
-pytest op_tests/triton_tests/conv/ -k "test_edge"                 # one test family
+pytest tests/operators/triton/conv/                                # full matrix, 81 tests
+pytest tests/operators/triton/conv/ -k "no_bias and fp16_nchw"     # subset
+pytest tests/operators/triton/conv/ -k "test_edge"                 # one test family
 ```
 
 Tests are parametrized over `(dtype, layout, method)`. Every kernel in
@@ -150,23 +150,23 @@ Three modes, all in `bench_conv2d.py`.
 **Single shape** (one parseable result line — for ad-hoc measurements):
 
 ```bash
-python -m op_tests.op_benchmarks.triton.bench_conv2d \
+python -m benchmarks.operators.triton.bench_conv2d \
     --N 1 --C 64 --H 56 --W 56 --K 64 --R 3 --S 3 --pad-h 1 --pad-w 1
 ```
 
 **Real-model sweep** (default — uses ResNet50 if no `--model` given):
 
 ```bash
-python -m op_tests.op_benchmarks.triton.bench_conv2d --dtype fp16              # default = resnet50
-python -m op_tests.op_benchmarks.triton.bench_conv2d --model resnet50
-python -m op_tests.op_benchmarks.triton.bench_conv2d --model "FLUX.2-klein-9B" --miopen-solvers
+python -m benchmarks.operators.triton.bench_conv2d --dtype fp16              # default = resnet50
+python -m benchmarks.operators.triton.bench_conv2d --model resnet50
+python -m benchmarks.operators.triton.bench_conv2d --model "FLUX.2-klein-9B" --miopen-solvers
 ```
 
 **Edge-case smoke sweep** (degenerate paths: `C=1`, dilation>1, asymmetric dims —
 NOT representative of production):
 
 ```bash
-python -m op_tests.op_benchmarks.triton.bench_conv2d --dtype fp16 --smoke
+python -m benchmarks.operators.triton.bench_conv2d --dtype fp16 --smoke
 ```
 
 Cross-axis flags:
@@ -253,11 +253,11 @@ aiter/ops/triton/_triton_kernels/conv/   @triton.jit kernels
   (1x1, direct NCHW/cblocked/NHWC 3x3, general, 4 Winograd kernels)
   nchw_to_cblocked.py                    Fused NCHW-to-NCHWc layout kernel
 
-op_tests/triton_tests/conv/           Pytest unit tests (CI-collected; skipped on unsupported archs)
+tests/operators/triton/conv/           Pytest unit tests (CI-collected; skipped on unsupported archs)
   test_conv2d.py                      The only collected test file
   _helpers.py                         TestSuite, registry, shape generators
 
-op_tests/op_benchmarks/triton/
+benchmarks/operators/triton/
   bench_conv2d.py                     Self-contained bench tool (single + sweep)
   conv_shapes.json                    Pre-extracted conv shapes (resnet50, SD3.5, FLUX2)
 ```

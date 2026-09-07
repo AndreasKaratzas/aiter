@@ -1,167 +1,24 @@
-Attention Operations
-====================
+Attention and cache boundaries
+================================
 
-AITER provides highly optimized attention kernels for AMD GPUs with ROCm.
+Prepared dense attention uses sequence-first tensors: ``q[Sq,B,Hq,D]`` and ``k/v[Sk,B,Hkv,D]``. The number of query heads must be a multiple of key/value heads. Its operation is ``softmax(scale * Q @ K.T) @ V``; the default scale is ``1/sqrt(D)``.
 
-Flash Attention
----------------
-
-.. autofunction:: aiter.flash_attn_func
-
-Standard flash attention implementation with optional causal masking.
-
-**Parameters:**
-
-* **query** (*torch.Tensor*) - Query tensor of shape ``(batch, seq_len, num_heads, head_dim)``
-* **key** (*torch.Tensor*) - Key tensor of shape ``(batch, seq_len, num_heads, head_dim)``
-* **value** (*torch.Tensor*) - Value tensor of shape ``(batch, seq_len, num_heads, head_dim)``
-* **causal** (*bool*, optional) - Whether to apply causal masking. Default: ``False``
-* **softmax_scale** (*float*, optional) - Scaling factor for softmax. Default: ``1/sqrt(head_dim)``
-
-**Returns:**
-
-* **output** (*torch.Tensor*) - Attention output of shape ``(batch, seq_len, num_heads, head_dim)``
-
-**Example:**
+The caller supplies an output matching ``q`` and an FP32 ``lse[B,Hq,Sq]`` buffer. LSE is the natural logarithm of the exponential sum. FP16/BF16 head widths 16, 32, 64 and 128 are declared by the current adapter. Causal mode includes the query's own position and requires equal query/key lengths.
 
 .. code-block:: python
 
    import torch
-   import aiter
+   from aiter.runtime import Runtime
 
-   q = torch.randn(2, 1024, 16, 64, device='cuda', dtype=torch.float16)
-   k = torch.randn(2, 1024, 16, 64, device='cuda', dtype=torch.float16)
-   v = torch.randn(2, 1024, 16, 64, device='cuda', dtype=torch.float16)
+   q = torch.randn(33, 1, 4, 64, device="cuda", dtype=torch.bfloat16)
+   k = torch.randn(33, 1, 2, 64, device="cuda", dtype=q.dtype)
+   v = torch.randn_like(k)
+   out = torch.empty_like(q)
+   lse = torch.empty(1, 4, 33, device="cuda", dtype=torch.float32)
+   plan = Runtime().prepare_attention(q, k, v, out, lse, causal=True,
+                                      backend="triton")
+   plan.execute({"q": q, "k": k, "v": v, "out": out, "lse": lse})
 
-   output = aiter.flash_attn_func(q, k, v, causal=True)
+Dense attention does not create or update a KV cache. Paged attention, MLA, sparse attention and variable-length native FMHA keep their separate existing descriptors and entry points. A page table, sequence schedule or shuffled KV layout cannot be passed as an ordinary dense tensor.
 
-Flash Attention with KV Cache
-------------------------------
-
-.. autofunction:: aiter.flash_attn_with_kvcache
-
-Optimized attention with paged KV cache support for inference.
-
-**Parameters:**
-
-* **query** (*torch.Tensor*) - Query tensor ``(batch, seq_len, num_heads, head_dim)``
-* **kv_cache** (*torch.Tensor*) - Paged KV cache ``(num_blocks, num_heads, block_size, head_dim)``
-* **page_table** (*torch.Tensor*) - Page table mapping ``(batch, max_blocks_per_seq)``
-* **block_size** (*int*) - Size of each page block (e.g., 128)
-* **causal** (*bool*, optional) - Causal masking. Default: ``True``
-
-**Returns:**
-
-* **output** (*torch.Tensor*) - Attention output ``(batch, seq_len, num_heads, head_dim)``
-
-**Example:**
-
-.. code-block:: python
-
-   query = torch.randn(4, 128, 16, 64, device='cuda', dtype=torch.float16)
-   kv_cache = torch.randn(256, 16, 128, 64, device='cuda', dtype=torch.float16)
-   page_table = torch.randint(0, 256, (4, 32), device='cuda', dtype=torch.int32)
-
-   output = aiter.flash_attn_with_kvcache(
-       query, kv_cache, page_table, block_size=128
-   )
-
-Grouped Query Attention (GQA)
-------------------------------
-
-.. autofunction:: aiter.grouped_query_attention
-
-Efficient grouped query attention for models like Llama 2.
-
-**Parameters:**
-
-* **query** (*torch.Tensor*) - ``(batch, seq_len, num_q_heads, head_dim)``
-* **key** (*torch.Tensor*) - ``(batch, seq_len, num_kv_heads, head_dim)``
-* **value** (*torch.Tensor*) - ``(batch, seq_len, num_kv_heads, head_dim)``
-* **num_groups** (*int*) - Number of query heads per KV head
-* **causal** (*bool*, optional) - Causal masking. Default: ``False``
-
-**Returns:**
-
-* **output** (*torch.Tensor*) - ``(batch, seq_len, num_q_heads, head_dim)``
-
-Multi-Query Attention (MQA)
-----------------------------
-
-.. autofunction:: aiter.multi_query_attention
-
-Multi-query attention where all query heads share single key/value heads.
-
-**Parameters:**
-
-* **query** (*torch.Tensor*) - ``(batch, seq_len, num_heads, head_dim)``
-* **key** (*torch.Tensor*) - ``(batch, seq_len, 1, head_dim)``
-* **value** (*torch.Tensor*) - ``(batch, seq_len, 1, head_dim)``
-* **causal** (*bool*, optional) - Causal masking. Default: ``False``
-
-**Returns:**
-
-* **output** (*torch.Tensor*) - ``(batch, seq_len, num_heads, head_dim)``
-
-Variable Sequence Attention
-----------------------------
-
-.. autofunction:: aiter.variable_length_attention
-
-Attention with variable-length sequences using page tables.
-
-**Parameters:**
-
-* **query** (*torch.Tensor*) - Query tensor
-* **key** (*torch.Tensor*) - Key tensor
-* **value** (*torch.Tensor*) - Value tensor
-* **seq_lengths** (*torch.Tensor*) - Actual sequence lengths ``(batch,)``
-* **max_seq_len** (*int*) - Maximum sequence length
-
-**Returns:**
-
-* **output** (*torch.Tensor*) - Attention output
-
-Supported Architectures
-------------------------
-
-AITER attention kernels are optimized for:
-
-* **AMD Instinct MI300X** (gfx942) - Best performance
-* **AMD Instinct MI250X** (gfx90a) - Fully supported
-* **AMD Instinct MI300A** (gfx950) - Experimental
-
-Performance Characteristics
-----------------------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 30
-
-   * - Operation
-     - Typical Speedup
-     - Memory Efficient
-     - Best For
-   * - flash_attn_func
-     - 2-4x vs PyTorch
-     - Yes
-     - Training & Inference
-   * - flash_attn_with_kvcache
-     - 3-6x vs naive
-     - Yes
-     - LLM Inference
-   * - grouped_query_attention
-     - 2-3x vs unfused
-     - Moderate
-     - Llama-style models
-   * - variable_length_attention
-     - 4-8x vs padded
-     - High
-     - Variable batches
-
-See Also
---------
-
-* :doc:`../tutorials/attention` - Attention tutorial
-* :doc:`../tutorials/variable_length` - Variable-length sequences
-* :doc:`../benchmarks` - Performance benchmarks
+Follow ``aiter/ops/mha.py`` for native FMHA, ``aiter/ops/attention/native.py`` for paged native dispatch, ``aiter/ops/attention/paged.py`` for paged composition, ``aiter/ops/cache.py`` for cache writes, and ``aiter/ops/attention/mla.py`` for MLA composition. Padding helpers live in ``aiter/ops/attention/padding.py``. Their matching ``tests/operators`` scripts define real input layouts and arguments. The :doc:`runtime guide </use/runtime>` shows a prepared rotary-to-dense-attention connection.

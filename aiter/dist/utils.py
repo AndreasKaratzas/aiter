@@ -1,4 +1,3 @@
-# NOTE: vendored from vLLM; `envs` / `current_platform` / `enable_trace_function_call` live in vllm modules that were not carried over, so these helpers are unusable here as-is.
 """
 * Copyright (C) Advanced Micro Devices, Inc. All rights reserved.
 * Copyright (C) 2024-2025, The vLLM team.
@@ -24,6 +23,7 @@ import enum
 import gc
 import inspect
 import ipaddress
+import math
 import os
 import random
 import socket
@@ -445,22 +445,16 @@ def is_hip() -> bool:
 
 @cache
 def is_cpu() -> bool:
-    from importlib.metadata import PackageNotFoundError, version
-
-    try:
-        return "cpu" in version("vllm")
-    except PackageNotFoundError:
-        return False
+    """Whether this Torch process has no available GPU backend."""
+    return not torch.cuda.is_available() and not is_xpu()
 
 
 @cache
 def is_openvino() -> bool:
-    from importlib.metadata import PackageNotFoundError, version
+    """Whether the optional OpenVINO package is installed."""
+    from importlib.util import find_spec
 
-    try:
-        return "openvino" in version("vllm")
-    except PackageNotFoundError:
-        return False
+    return find_spec("openvino") is not None
 
 
 @cache
@@ -474,35 +468,17 @@ def is_neuron() -> bool:
 
 @cache
 def is_xpu() -> bool:
-    from importlib.metadata import PackageNotFoundError, version
-
-    try:
-        is_xpu_flag = "xpu" in version("vllm")
-    except PackageNotFoundError:
-        return False
-    # vllm is not build with xpu
-    if not is_xpu_flag:
-        return False
-    try:
-        import intel_extension_for_pytorch as ipex  # noqa: F401
-
-        _import_ipex = True
-    except ImportError as e:
-        logger.warning("Import Error for IPEX: %s", e.msg)
-        _import_ipex = False
-    # ipex dependency is not ready
-    if not _import_ipex:
-        logger.warning("not found ipex lib")
-        return False
     return hasattr(torch, "xpu") and torch.xpu.is_available()
 
 
 @cache
 def get_max_shared_memory_bytes(gpu: int = 0) -> int:
     """Returns the maximum shared memory per thread block in bytes."""
-    from vllm import _custom_ops as ops
-
-    max_shared_mem = ops.get_max_shared_memory_per_block_device_attribute(gpu)
+    properties = torch.cuda.get_device_properties(gpu)
+    max_shared_mem = max(
+        properties.shared_memory_per_block,
+        getattr(properties, "shared_memory_per_block_optin", 0),
+    )
     # value 0 will cause MAX_SEQ_LEN become negative and test_attention.py
     # will fail
     assert max_shared_mem > 0, "max_shared_mem can not be zero"
@@ -522,12 +498,7 @@ def seed_everything(seed: int) -> None:
     """
     random.seed(seed)
     np.random.seed(seed)
-
-    if current_platform.is_cuda_alike():  # noqa: F821
-        torch.cuda.manual_seed_all(seed)
-
-    if is_xpu():
-        torch.xpu.manual_seed_all(seed)
+    torch.manual_seed(seed)
 
 
 def random_uuid() -> str:
@@ -535,14 +506,21 @@ def random_uuid() -> str:
 
 
 @cache
-def get_vllm_instance_id() -> str:
+def get_instance_id() -> str:
     """
-    If the environment variable VLLM_INSTANCE_ID is set, return it.
-    Otherwise, return a random UUID.
-    Instance id represents an instance of the VLLM. All processes in the same
-    instance should have the same instance id.
+    Return AITER_INSTANCE_ID, accepting VLLM_INSTANCE_ID as a legacy alias.
+    Otherwise generate a process-local identifier. Processes sharing an
+    instance must receive the same explicit environment value.
     """
-    return envs.VLLM_INSTANCE_ID or f"vllm-instance-{random_uuid()}"  # noqa: F821
+    return (
+        os.getenv("AITER_INSTANCE_ID")
+        or os.getenv("VLLM_INSTANCE_ID")
+        or f"aiter-instance-{random_uuid()}"
+    )
+
+
+# Historical import retained for callers of the inherited utility API.
+get_vllm_instance_id = get_instance_id
 
 
 @cache
@@ -776,20 +754,32 @@ def _generate_random_fp8(
     low: float,
     high: float,
 ) -> None:
-    # NOTE(zhaoyang): Due to NaN and Inf representation for fp8 data type,
-    # it may occur Inf or NaN if we directly use torch.randint
-    # to generate random data for fp8 data.
-    # For example, s.11111.00 in fp8e5m2 format represents Inf.
-    #     | E4M3        | E5M2
-    # -----|-------------|-------------------
-    # Inf | N/A         | s.11111.00
-    # NaN | s.1111.111  | s.11111.{01,10,11}
-    from vllm import _custom_ops as ops
-
-    tensor_tmp = torch.empty_like(tensor, dtype=torch.float16)
-    tensor_tmp.uniform_(low, high)
-    ops.convert_fp8(tensor, tensor_tmp)
-    del tensor_tmp
+    """Fill FP8 values using Torch; uint8 preserves the native E4M3 encoding."""
+    dtype = tensor.dtype
+    if dtype == torch.uint8:
+        target = ""
+        if tensor.is_cuda and torch.version.hip:
+            target = torch.cuda.get_device_properties(tensor.device).gcnArchName
+        dtype = (
+            torch.float8_e4m3fnuz
+            if target.split(":")[0] == "gfx942"
+            else torch.float8_e4m3fn
+        )
+    if dtype not in (
+        torch.float8_e4m3fn,
+        torch.float8_e4m3fnuz,
+        torch.float8_e5m2,
+        torch.float8_e5m2fnuz,
+    ):
+        raise ValueError("FP8 generation requires an FP8 or raw uint8 tensor")
+    limit = torch.finfo(dtype).max
+    if not (
+        math.isfinite(low) and math.isfinite(high) and -limit <= low <= high <= limit
+    ):
+        raise ValueError("FP8 bounds must be finite, ordered, and representable")
+    values = torch.empty_like(tensor, dtype=torch.float32).uniform_(low, high)
+    packed = values.to(dtype)
+    tensor.copy_(packed.view(torch.uint8) if tensor.dtype == torch.uint8 else packed)
 
 
 def get_kv_cache_torch_dtype(
@@ -926,7 +916,7 @@ def is_pin_memory_available() -> bool:
     elif is_neuron():
         print_warning_once("Pin memory is not supported on Neuron.")
         return False
-    elif is_cpu() or is_openvino():
+    elif is_cpu():
         return False
     return True
 
@@ -938,12 +928,14 @@ class DeviceMemoryProfiler:
 
     def current_memory_usage(self) -> float:
         # Return the memory usage in bytes.
-        if current_platform.is_cuda_alike():  # noqa: F821
+        if torch.cuda.is_available():
             torch.cuda.reset_peak_memory_stats(self.device)
             mem = torch.cuda.max_memory_allocated(self.device)
         elif is_xpu():
             torch.xpu.reset_peak_memory_stats(self.device)  # type: ignore
             mem = torch.xpu.max_memory_allocated(self.device)  # type: ignore
+        else:
+            mem = psutil.Process().memory_info().rss
         return mem
 
     def __enter__(self):
@@ -1118,7 +1110,7 @@ def find_library(lib_name: str) -> str:
     # libcuda.so.1 (libc6,x86-64) => /lib/x86_64-linux-gnu/libcuda.so.1
     locs = [line.split()[-1] for line in libs.splitlines() if lib_name in line]
     # `LD_LIBRARY_PATH` searches the library in the user-defined paths
-    env_ld_library_path = envs.LD_LIBRARY_PATH  # noqa: F821
+    env_ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
     if not locs and env_ld_library_path:
         locs = [
             os.path.join(dir, lib_name)
@@ -1132,18 +1124,16 @@ def find_library(lib_name: str) -> str:
 
 def find_nccl_library() -> str:
     """
-    We either use the library file specified by the `VLLM_NCCL_SO_PATH`
-    environment variable, or we find the library file brought by PyTorch.
+    Use AITER_NCCL_SO_PATH (or its legacy VLLM_NCCL_SO_PATH alias),
+    otherwise find the library file brought by PyTorch.
     After importing `torch`, `libnccl.so.2` or `librccl.so.1` can be
     found by `ctypes` automatically.
     """
-    so_file = envs.VLLM_NCCL_SO_PATH  # noqa: F821
+    so_file = os.getenv("AITER_NCCL_SO_PATH") or os.getenv("VLLM_NCCL_SO_PATH")
 
     # manually load the nccl library
     if so_file:
-        logger.info(
-            "Found nccl from environment variable VLLM_NCCL_SO_PATH=%s", so_file
-        )
+        logger.info("Found nccl from explicit library path %s", so_file)
     else:
         if torch.version.cuda is not None:
             so_file = "libnccl.so.2"
@@ -1157,19 +1147,27 @@ def find_nccl_library() -> str:
 
 def enable_trace_function_call_for_thread() -> None:
     """Set up function tracing for the current thread,
-    if enabled via the VLLM_TRACE_FUNCTION environment variable
+    if enabled via AITER_TRACE_FUNCTION (or legacy VLLM_TRACE_FUNCTION).
     """
 
-    if envs.VLLM_TRACE_FUNCTION:  # noqa: F821
+    if os.getenv("AITER_TRACE_FUNCTION", os.getenv("VLLM_TRACE_FUNCTION", "0")) == "1":
         tmp_dir = tempfile.gettempdir()
         filename = (
-            f"VLLM_TRACE_FUNCTION_for_process_{os.getpid()}"
+            f"AITER_TRACE_FUNCTION_for_process_{os.getpid()}"
             f"_thread_{threading.get_ident()}_"
             f"at_{datetime.datetime.now(datetime.timezone.utc)}.log"
         ).replace(" ", "_")
-        log_path = os.path.join(tmp_dir, "vllm", get_vllm_instance_id(), filename)
+        log_path = os.path.join(tmp_dir, "aiter", get_instance_id(), filename)
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
-        enable_trace_function_call(log_path)  # noqa: F821
+
+        def trace_call(frame, event, arg):
+            if event == "call":
+                with open(log_path, "a", encoding="utf-8") as log:
+                    code = frame.f_code
+                    log.write(f"{code.co_filename}:{frame.f_lineno}: {code.co_name}\n")
+            return trace_call
+
+        sys.settrace(trace_call)
 
 
 # `functools` helpers

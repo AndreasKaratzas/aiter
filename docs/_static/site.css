@@ -1,0 +1,94 @@
+/* SPDX-License-Identifier: MIT */
+.main { min-width: 0; container-type: inline-size; }
+body { font-feature-settings: "ss01"; }
+.content { min-width: 0; box-sizing: border-box; width: 100%; max-width: 52rem; flex: 1; }
+article { line-height: 1.65; }
+article h1 { letter-spacing: -.035em; line-height: 1.12; }
+article h2 { letter-spacing: -.02em; margin-top: 2.2rem; }
+article h1, article h2, article h3, article p, article li { overflow-wrap: anywhere; }
+article code.literal { white-space: normal; overflow-wrap: anywhere; }
+.sidebar-logo { max-height: 2.4rem; width: auto; margin: .25rem auto; }
+.sidebar-brand-text { font-size: 1.05rem; font-weight: 650; }
+.sidebar-tree .caption { margin-top: 1.5rem; letter-spacing: .06em; font-size: .7rem; }
+.sidebar-tree { font-size: .86rem; }
+.hero-kicker { color: var(--color-brand-content); text-transform: uppercase; letter-spacing: .14em; font-size: .74rem; font-weight: 750; margin-bottom: .8rem; }
+.hero-lead { font-size: 1.2rem; line-height: 1.6; max-width: 45rem; color: var(--color-foreground-secondary); }
+.start-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1.8rem 0 2rem; }
+.start-card { display: block; border: 1px solid var(--color-background-border); border-radius: .7rem; padding: 1.3rem 1.4rem; text-decoration: none !important; color: var(--color-foreground-primary) !important; background: var(--color-background-secondary); transition: border-color .15s, transform .15s; }
+.start-card:hover { border-color: var(--color-brand-primary); transform: translateY(-2px); }
+.start-card strong { display: block; font-size: 1.02rem; color: var(--color-brand-content); margin-bottom: .35rem; }
+.start-card span { display: block; font-size: .91rem; line-height: 1.55; }
+.start-card small { display: block; margin-top: .85rem; font-weight: 650; color: var(--color-brand-content); }
+.reading-path { border-left: 3px solid var(--color-brand-primary); padding: .1rem 1.2rem; margin: 1.5rem 0; }
+.canonical-guide { margin-top: 2rem; padding-top: .7rem; border-top: 1px solid var(--color-background-border); font-size: .78rem; color: var(--color-foreground-secondary); }
+table.docutils { table-layout: auto; width: 100%; display: table; border-collapse: collapse; font-size: .87rem; }
+table.docutils th, table.docutils td { white-space: normal !important; overflow-wrap: anywhere; vertical-align: top; min-width: 0; padding: .7rem .8rem; }
+table.docutils th { background: var(--color-background-secondary); font-weight: 700; }
+table.docutils td p, table.docutils th p { margin: 0; }
+table.docutils td:first-child { min-width: 5rem; }
+@media (max-width: 640px) {
+  table.docutils.mobile-stacked { display: block; border: 0; font-size: .9rem; }
+  table.mobile-stacked colgroup { display: none; }
+  table.mobile-stacked thead {
+    position: absolute; width: 1px; height: 1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  table.mobile-stacked tbody { display: block; }
+  table.mobile-stacked tbody tr {
+    display: block; margin-bottom: 1rem;
+    border: 1px solid var(--color-background-border); border-radius: .35rem;
+  }
+  table.docutils.mobile-stacked tbody td {
+    display: block; width: auto !important; min-width: 0; padding: .65rem .8rem;
+    border: 0; border-bottom: 1px solid var(--color-background-border);
+    text-align: left;
+  }
+  table.mobile-stacked tbody td:last-child { border-bottom: 0; }
+  table.mobile-stacked tbody td::before {
+    content: attr(data-label); display: block; margin-bottom: .25rem;
+    font-weight: 700; color: var(--color-foreground-primary);
+  }
+}
+[role=main] .table-wrapper.container { overflow: visible; padding: 0; width: 100%; box-sizing: border-box; }
+div.highlight, pre { max-width: 100%; }
+div.highlight pre { overflow-x: auto; padding: 1rem 1.15rem; line-height: 1.6; font-size: .8rem; }
+div.highlight:focus-visible, .diagram-viewport:focus-visible { outline: 2px solid var(--color-brand-primary); outline-offset: 2px; }
+.architecture-diagram { margin: 1.8rem 0; border: 1px solid var(--color-background-border); border-radius: .7rem; overflow: hidden; background: #fff; color: #1f3440; }
+.diagram-viewport { overflow: auto; max-height: 42rem; padding: 1.3rem; scrollbar-width: thin; }
+.diagram-viewport .mermaid { margin: 0; text-align: center; background: transparent; }
+.diagram-viewport svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.diagram-caption { border-top: 1px solid #dde7e9; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; padding: .65rem 1rem; background: #f5f9fa; font-size: .8rem; }
+.diagram-actions { display: flex; gap: .6rem; }
+.diagram-actions button, .diagram-dialog button { border: 1px solid #afc4cb; border-radius: .35rem; background: #fff; color: #1c5362; cursor: pointer; padding: .35rem .65rem; font: inherit; }
+.diagram-actions button:hover, .diagram-dialog button:hover { background: #e5f4f5; }
+.diagram-actions button:focus-visible, .diagram-dialog button:focus-visible { outline: 2px solid #167083; outline-offset: 2px; }
+.diagram-dialog { width: calc(100vw - 3rem); max-width: 110rem; height: calc(100vh - 3rem); max-height: 80rem; box-sizing: border-box; padding: 0; border: 1px solid #afc4cb; border-radius: .75rem; background: #fff; color: #1f3440; }
+.diagram-dialog::backdrop { background: rgb(12 30 38 / 65%); }
+.diagram-dialog-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .7rem; padding: .9rem 1.2rem; background: #f1f7f8; border-bottom: 1px solid #dde7e9; }
+.diagram-dialog-controls { display: flex; gap: .5rem; }
+.diagram-dialog-canvas { overflow: auto; height: calc(100% - 5rem); padding: 1.5rem; box-sizing: border-box; }
+.diagram-dialog-canvas svg { max-width: none !important; display: block; }
+.diagram-error { white-space: normal; color: #9f1239; padding: 1rem; }
+@media (max-width: 767px) {
+  .start-grid { grid-template-columns: 1fr; gap: .8rem; }
+  .hero-lead { font-size: 1.08rem; }
+  article h1 { font-size: 2rem; }
+  table.docutils { font-size: .78rem; }
+  table.docutils th, table.docutils td { padding: .5rem .45rem; }
+  .diagram-viewport { max-height: 28rem; padding: .7rem; }
+  .diagram-viewport svg { min-width: var(--diagram-min-width, 0); }
+  .diagram-caption { padding: .6rem; }
+  .diagram-dialog { width: calc(100vw - 1rem); height: calc(100dvh - 1rem); }
+  .diagram-dialog-header { padding: .7rem; }
+  .diagram-dialog-canvas { height: calc(100% - 7rem); padding: .8rem; }
+}
+@media print {
+  .architecture-diagram { break-inside: avoid; }
+  .diagram-viewport { max-height: none; overflow: visible; }
+  .diagram-actions { display: none; }
+}
+
+/* Keep text enlargement from forcing a fixed-width article beyond the screen. */
+@container (max-width: 70rem) {
+  .toc-drawer { position: fixed; right: -15em; top: 0; height: 100vh; }
+}

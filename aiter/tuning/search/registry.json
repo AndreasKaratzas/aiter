@@ -1,0 +1,154 @@
+{
+  "gemm.batched_bf16": {
+    "module": "aiter.tuning.search.gemm.batched_bf16",
+    "build_modules": [
+      "module_batched_gemm_bf16_tune"
+    ]
+  },
+  "gemm.batched_a8w8": {
+    "module": "aiter.tuning.search.gemm.batched_a8w8",
+    "build_modules": [
+      "module_batched_gemm_a8w8_tune"
+    ]
+  },
+  "gemm.a8w8": {
+    "module": "aiter.tuning.search.gemm.a8w8",
+    "build_modules": [
+      "module_gemm_a8w8_tune"
+    ]
+  },
+  "gemm.a8w8_blockscale": {
+    "module": "aiter.tuning.search.gemm.a8w8_blockscale",
+    "build_modules": [
+      "module_gemm_a8w8_blockscale_tune"
+    ]
+  },
+  "gemm.a8w8_bpreshuffle": {
+    "module": "aiter.tuning.search.gemm.a8w8_bpreshuffle",
+    "build_modules": [
+      "module_gemm_a8w8_bpreshuffle_tune"
+    ]
+  },
+  "gemm.a4w4_blockscale": {
+    "module": "aiter.tuning.search.gemm.a4w4_blockscale",
+    "build_modules": [
+      "module_gemm_a4w4_blockscale_tune"
+    ]
+  },
+  "gemm.validate_a4w4": {
+    "module": "aiter.tuning.search.gemm.validate_a4w4",
+    "build_modules": []
+  },
+  "gemm.a6w6": {
+    "module": "aiter.tuning.search.gemm.a6w6",
+    "build_modules": []
+  },
+  "gemm.a16w16": {
+    "module": "aiter.tuning.search.gemm.a16w16",
+    "build_modules": []
+  },
+  "gemm.a16w16_retry": {
+    "module": "aiter.tuning.search.gemm.a16w16_retry",
+    "build_modules": []
+  },
+  "gemm.opus": {
+    "module": "aiter.tuning.search.gemm.opus",
+    "build_modules": []
+  },
+  "gemm.opus_bmm_mxscale": {
+    "module": "aiter.tuning.search.gemm.opus_bmm_mxscale",
+    "build_modules": []
+  },
+  "moe.two_stage": {
+    "module": "aiter.tuning.search.moe.two_stage",
+    "build_modules": []
+  },
+  "recurrent.gdn_k5": {
+    "module": "aiter.tuning.search.recurrent.gdn_k5",
+    "build_modules": []
+  },
+  "triton.gemm_a16w16": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w16",
+    "build_modules": []
+  },
+  "triton.gemm_a16w16_atomic": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w16_atomic",
+    "build_modules": []
+  },
+  "triton.gemm_a16w16_gated": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w16_gated",
+    "build_modules": []
+  },
+  "triton.gemm_a16w8_blockscale": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w8_blockscale",
+    "build_modules": []
+  },
+  "triton.gemm_a16w8_blockscale_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w8_blockscale_preshuffle",
+    "build_modules": []
+  },
+  "triton.gemm_a16wfp4": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16wfp4",
+    "build_modules": []
+  },
+  "triton.gemm_a8w8": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8",
+    "build_modules": []
+  },
+  "triton.gemm_a8w8_blockscale": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8_blockscale",
+    "build_modules": []
+  },
+  "triton.gemm_a8w8_blockscale_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8_blockscale_preshuffle",
+    "build_modules": []
+  },
+  "triton.gemm_a8w8_per_token_scale": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8_per_token_scale",
+    "build_modules": []
+  },
+  "triton.gemm_a8wfp4": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8wfp4",
+    "build_modules": []
+  },
+  "triton.gemm_afp4wfp4": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp4wfp4",
+    "build_modules": []
+  },
+  "triton.gemm_afp4wfp4_pre_quant_atomic": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp4wfp4_pre_quant_atomic",
+    "build_modules": []
+  },
+  "triton.gemm_afp4wfp4_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp4wfp4_preshuffle",
+    "build_modules": []
+  },
+  "triton.gemm_afp8wfp8_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp8wfp8_preshuffle",
+    "build_modules": []
+  },
+  "triton.batched_gemm_a16w16": {
+    "module": "aiter.tuning.search.triton.drivers.batched_gemm_a16w16",
+    "build_modules": []
+  },
+  "triton.sweep": {
+    "module": "aiter.tuning.search.triton.sweep",
+    "build_modules": []
+  },
+  "triton.results": {
+    "module": "aiter.tuning.search.triton.results",
+    "build_modules": []
+  },
+  "triton.verify": {
+    "module": "aiter.tuning.search.triton.verify",
+    "build_modules": []
+  },
+  "triton.profile": {
+    "module": "aiter.tuning.search.triton.profile",
+    "build_modules": []
+  },
+  "gemm.hipblaslt": {
+    "module": "aiter.tuning.search.gemm.hipblaslt_cli",
+    "build_modules": []
+  }
+}

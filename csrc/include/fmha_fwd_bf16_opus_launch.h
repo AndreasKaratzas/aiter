@@ -3,7 +3,7 @@
 //
 // Torch-free launch layer for the OPUS gfx950 bf16 flash-attention forward kernels.
 // Shared by the torch entry point (`fmha_fwd_bf16_opus_fwd`, csrc/py_itfs_cu/
-// fmha_fwd_bf16_opus_kernels.cu) and the standalone C++ benchmark (op_tests/cpp/mha/
+// fmha_fwd_bf16_opus_kernels.cu) and the standalone C++ benchmark (benchmarks/native/mha/
 // benchmark_mha_fwd.cpp), so the grid shape, the causal head/tail merge and the large-KV
 // descriptor choice are decided in one place no matter which front end ran.
 //

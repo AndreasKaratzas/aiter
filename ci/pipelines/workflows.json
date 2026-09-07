@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "domains": {
+    "host": "CPU integrity, architecture, packaging, documentation and repository automation.",
+    "product": "Product qualification and the specialized kernel, communication and tuning suites.",
+    "client": "Framework qualification, rolling canaries and model-specific integration workloads.",
+    "release": "Build candidate wheels, qualify installed artifacts, compose images, publish complete releases and maintain channel history."
+  },
+  "workflows": [
+    {
+      "file": "client-atom-disaggregation.yaml",
+      "domain": "client",
+      "purpose": "ATOM DI CI smoke workflow",
+      "application": []
+    },
+    {
+      "file": "client-atom.yaml",
+      "domain": "client",
+      "purpose": "Atom Test",
+      "application": []
+    },
+    {
+      "file": "client-canaries.yaml",
+      "domain": "client",
+      "purpose": "Rolling framework canaries",
+      "application": [
+        "ci.qualification.environments"
+      ]
+    },
+    {
+      "file": "client-flash-attention.yaml",
+      "domain": "client",
+      "purpose": "Flash Attention Integration",
+      "application": []
+    },
+    {
+      "file": "client-kimi-correctness.yaml",
+      "domain": "client",
+      "purpose": "Kimi Downstream Test",
+      "application": []
+    },
+    {
+      "file": "client-kimi-performance.yaml",
+      "domain": "client",
+      "purpose": "Kimi Perf Downstream",
+      "application": []
+    },
+    {
+      "file": "client-sglang-models.yaml",
+      "domain": "client",
+      "purpose": "Sglang Downstream Test",
+      "application": [
+        "ci.pipelines.canaries",
+        "ci.clients.sglang.downstream"
+      ]
+    },
+    {
+      "file": "client-vllm-benchmarks.yaml",
+      "domain": "client",
+      "purpose": "vLLM latency canary",
+      "application": [
+        "ci.pipelines.canaries",
+        "ci.clients.vllm.latency"
+      ]
+    },
+    {
+      "file": "client-vllm-disaggregation.yaml",
+      "domain": "client",
+      "purpose": "vLLM disagg CI smoke workflow",
+      "application": []
+    },
+    {
+      "file": "client-vllm-nightly.yaml",
+      "domain": "client",
+      "purpose": "Fresh official ROCm vLLM installation, mandatory import gate, daily workloads and weekly extended qualification",
+      "application": [
+        "ci.pipelines.nightly"
+      ]
+    },
+    {
+      "file": "host-checks.yaml",
+      "domain": "host",
+      "purpose": "Host checks",
+      "application": [
+        "ci.qualification.run",
+        "ci.architecture",
+        "ci.pipelines.workflows",
+        "ci.pipelines.scripts"
+      ]
+    },
+    {
+      "file": "host-docs.yml",
+      "domain": "host",
+      "purpose": "Documentation",
+      "application": [
+        "docs.website"
+      ]
+    },
+    {
+      "file": "host-legacy-config.yaml",
+      "domain": "host",
+      "purpose": "CI Config",
+      "application": []
+    },
+    {
+      "file": "host-pr-title.yaml",
+      "domain": "host",
+      "purpose": "PR Title Tags & Labels",
+      "application": []
+    },
+    {
+      "file": "host-pr-welcome.yaml",
+      "domain": "host",
+      "purpose": "PR Welcome Comment",
+      "application": []
+    },
+    {
+      "file": "host-prechecks.yaml",
+      "domain": "host",
+      "purpose": "Checks",
+      "application": []
+    },
+    {
+      "file": "host-runner-monitor.yml",
+      "domain": "host",
+      "purpose": "AMD CI Job Monitor",
+      "application": []
+    },
+    {
+      "file": "host-update-test-inventory.yaml",
+      "domain": "host",
+      "purpose": "Update Split Tests",
+      "application": []
+    },
+    {
+      "file": "host-workflow-lint.yaml",
+      "domain": "host",
+      "purpose": "Actionlint",
+      "application": []
+    },
+    {
+      "file": "product-extended.yaml",
+      "domain": "product",
+      "purpose": "Extended Test",
+      "application": []
+    },
+    {
+      "file": "product-fmha.yaml",
+      "domain": "product",
+      "purpose": "FFM Triton Tests",
+      "application": []
+    },
+    {
+      "file": "product-legacy.yaml",
+      "domain": "product",
+      "purpose": "Aiter Test",
+      "application": []
+    },
+    {
+      "file": "product-network.yaml",
+      "domain": "product",
+      "purpose": "Test Connection to PyPI and GitHub",
+      "application": []
+    },
+    {
+      "file": "product-opus.yaml",
+      "domain": "product",
+      "purpose": "OPUS Test",
+      "application": []
+    },
+    {
+      "file": "product-qualification.yaml",
+      "domain": "product",
+      "purpose": "Product and affected client qualification",
+      "application": [
+        "ci.release.matrix"
+      ]
+    },
+    {
+      "file": "product-run-profile.yaml",
+      "domain": "product",
+      "purpose": "Run a source or installed-wheel profile",
+      "application": [
+        "ci.pipelines.profile"
+      ]
+    },
+    {
+      "file": "product-triton.yaml",
+      "domain": "product",
+      "purpose": "Triton Test",
+      "application": []
+    },
+    {
+      "file": "product-tuning-validation.yaml",
+      "domain": "product",
+      "purpose": "Tuning Tests",
+      "application": []
+    },
+    {
+      "file": "product-tuning.yaml",
+      "domain": "product",
+      "purpose": "Operators Tuning",
+      "application": []
+    },
+    {
+      "file": "release-build-wheels.yaml",
+      "domain": "release",
+      "purpose": "Aiter Release Package",
+      "application": [
+        "ci.release.builders"
+      ]
+    },
+    {
+      "file": "release-channels.yaml",
+      "domain": "release",
+      "purpose": "Record delivery outcomes and last qualified artifacts",
+      "application": [
+        "ci.release.channel_delivery",
+        "ci.release.storage"
+      ]
+    },
+    {
+      "file": "release-images.yaml",
+      "domain": "release",
+      "purpose": "Build and qualify delivery images",
+      "application": [
+        "ci.pipelines.images",
+        "ci.release.images"
+      ]
+    },
+    {
+      "file": "release-nightly.yaml",
+      "domain": "release",
+      "purpose": "Nightly delivery",
+      "application": [
+        "ci.release.matrix",
+        "ci.release.manifest"
+      ]
+    },
+    {
+      "file": "release-promote.yaml",
+      "domain": "release",
+      "purpose": "Promote verified wheels",
+      "application": [
+        "ci.release.manifest"
+      ]
+    },
+    {
+      "file": "release-stable.yaml",
+      "domain": "release",
+      "purpose": "AITER Release Automation",
+      "application": [
+        "ci.release.stable",
+        "ci.release.manifest"
+      ]
+    },
+    {
+      "file": "release-triton-wheel.yaml",
+      "domain": "release",
+      "purpose": "Prepare Triton Wheel",
+      "application": []
+    },
+    {
+      "file": "release-wheel-smoke.yaml",
+      "domain": "release",
+      "purpose": "Test installed wheels",
+      "application": []
+    },
+    {
+      "file": "client-vllm-model-benchmarks.yaml",
+      "domain": "client",
+      "purpose": "Measure pinned real model weights after current ROCm nightly installation and import admission",
+      "application": [
+        "ci.pipelines.benchmarks"
+      ]
+    }
+  ]
+}

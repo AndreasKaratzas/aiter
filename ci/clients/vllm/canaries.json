@@ -1,0 +1,64 @@
+{
+  "client": "vllm",
+  "suite": "latency",
+  "classification": "rolling-upstream-canary",
+  "cases": [
+    {
+      "model": "deepseek-ai/DeepSeek-V4-Pro",
+      "runner": "linux-aiter-do-mi350x-8",
+      "kv_cache_dtype": "fp8_kvcache",
+      "tp": 8,
+      "environment": {},
+      "arguments": [
+        "--quantization",
+        "deepseek_v4_fp8",
+        "--moe-backend",
+        "aiter",
+        "--tokenizer-mode",
+        "deepseek_v4",
+        "--reasoning-parser",
+        "deepseek_v4"
+      ]
+    },
+    {
+      "model": "amd/MiniMax-M3-MXFP4",
+      "runner": "linux-aiter-do-mi350x-8",
+      "kv_cache_dtype": "default_kvcache",
+      "tp": 4,
+      "environment": {
+        "VLLM_ROCM_USE_AITER_MOE": "1",
+        "VLLM_USE_BREAKABLE_CUDAGRAPH": "0"
+      },
+      "arguments": [
+        "--block-size",
+        "128",
+        "--attention-backend",
+        "TRITON_ATTN",
+        "--reasoning-parser",
+        "minimax_m3",
+        "--moe-backend",
+        "aiter"
+      ]
+    },
+    {
+      "model": "amd/MiniMax-M3-MXFP4",
+      "runner": "linux-aiter-do-mi350x-8",
+      "kv_cache_dtype": "default_kvcache",
+      "tp": 8,
+      "environment": {
+        "VLLM_ROCM_USE_AITER_MOE": "1",
+        "VLLM_USE_BREAKABLE_CUDAGRAPH": "0"
+      },
+      "arguments": [
+        "--block-size",
+        "128",
+        "--attention-backend",
+        "TRITON_ATTN",
+        "--reasoning-parser",
+        "minimax_m3",
+        "--moe-backend",
+        "aiter"
+      ]
+    }
+  ]
+}

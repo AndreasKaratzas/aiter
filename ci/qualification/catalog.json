@@ -1,0 +1,1428 @@
+{
+  "schema_version": 2,
+  "components": {
+    "runtime": {
+      "paths": [
+        "aiter/api/",
+        "aiter/runtime/",
+        "aiter/__init__.py"
+      ],
+      "depends_on": []
+    },
+    "gemm": {
+      "paths": [
+        "aiter/ops/triton/gemm/",
+        "csrc/ck_gemm_a8w8_blockscale/",
+        "csrc/blas/",
+        "aiter/ops/batched_gemm_op_a8w8.py",
+        "aiter/ops/batched_gemm_op_bf16.py",
+        "aiter/ops/deepgemm.py",
+        "aiter/ops/fused_norm_quant_gemm.py",
+        "aiter/ops/gemm_op_a16w16.py",
+        "aiter/ops/gemm_op_a4w4.py",
+        "aiter/ops/gemm_op_a6w6.py",
+        "aiter/ops/gemm_op_a8w4.py",
+        "aiter/ops/gemm_op_a8w8.py",
+        "aiter/ops/gemm_op_common.py",
+        "csrc/ck_batched_gemm_a8w8/",
+        "csrc/ck_batched_gemm_bf16/",
+        "csrc/ck_deepgemm/",
+        "csrc/ck_gemm_a4w4_blockscale/",
+        "csrc/ck_gemm_a8w8/",
+        "csrc/ck_gemm_a8w8_blockscale_bpreshuffle/",
+        "csrc/ck_gemm_a8w8_bpreshuffle/",
+        "csrc/cktile_gemm_a8w8_bpreshuffle/",
+        "csrc/gemm_a16w16/",
+        "csrc/opus_gemm/",
+        "aiter/ops/triton/_triton_kernels/gemm/"
+      ],
+      "depends_on": [
+        "quantization"
+      ]
+    },
+    "normalization": {
+      "paths": [
+        "aiter/ops/rmsnorm.py",
+        "aiter/ops/triton/normalization/",
+        "csrc/kernels/rmsnorm/",
+        "aiter/ops/triton/_triton_kernels/normalization/"
+      ],
+      "depends_on": []
+    },
+    "attention": {
+      "paths": [
+        "aiter/ops/triton/attention/",
+        "aiter/ops/attention/native.py",
+        "aiter/ops/mha.py",
+        "aiter/ops/attention/mla.py",
+        "aiter/ops/mha_v4.py",
+        "aiter/ops/msa_attention.py",
+        "aiter/ops/mla_sparse_prefill.py",
+        "aiter/ops/vsa_sparse_attention.py",
+        "aiter/ops/pa_sparse_prefill_opus.py",
+        "aiter/ops/triton/_triton_kernels/attention/"
+      ],
+      "depends_on": [
+        "quantization",
+        "position",
+        "normalization"
+      ]
+    },
+    "moe": {
+      "paths": [
+        "aiter/ops/moe_op.py",
+        "aiter/ops/moe/dispatch.py",
+        "aiter/ops/triton/moe/",
+        "aiter/ops/triton/_triton_kernels/moe/"
+      ],
+      "depends_on": [
+        "gemm",
+        "quantization",
+        "routing",
+        "activation"
+      ]
+    },
+    "quantization": {
+      "paths": [
+        "aiter/ops/quant.py",
+        "aiter/ops/triton/quant/",
+        "aiter/ops/triton/_triton_kernels/quant/"
+      ],
+      "depends_on": []
+    },
+    "collectives": {
+      "paths": [
+        "aiter/dist/",
+        "aiter/ops/communication.py"
+      ],
+      "depends_on": []
+    },
+    "pytorch": {
+      "paths": [
+        "tests/frameworks/pytorch/",
+        "tests/frameworks/common/",
+        "docker/pytorch/"
+      ],
+      "depends_on": [
+        "runtime",
+        "normalization",
+        "gemm",
+        "moe",
+        "attention",
+        "activation",
+        "position",
+        "routing",
+        "sequence"
+      ]
+    },
+    "vllm": {
+      "paths": [
+        ".github/workflows/client-vllm-benchmarks.yaml",
+        ".github/workflows/client-vllm-disaggregation.yaml",
+        "tests/frameworks/vllm/",
+        "docker/vllm/",
+        ".github/workflows/client-vllm-nightly.yaml"
+      ],
+      "depends_on": [
+        "pytorch",
+        "collectives"
+      ]
+    },
+    "sglang": {
+      "paths": [
+        ".github/workflows/client-sglang-models.yaml",
+        "ci/clients/sglang/downstream.py",
+        "tests/frameworks/sglang/",
+        "docker/sglang/"
+      ],
+      "depends_on": [
+        "pytorch",
+        "collectives"
+      ]
+    },
+    "native-sdk": {
+      "paths": [
+        "csrc/runtime/",
+        "include/aiter/",
+        "CMakeLists.txt",
+        "tests/integration/sdk/",
+        "bindings/rust/"
+      ],
+      "depends_on": [
+        "normalization",
+        "gemm",
+        "runtime"
+      ]
+    },
+    "benchmarks": {
+      "paths": [
+        "benchmarks/",
+        "tests/integration/benchmarks/"
+      ],
+      "depends_on": [
+        "runtime",
+        "gemm",
+        "normalization",
+        "attention"
+      ]
+    },
+    "flydsl": {
+      "paths": [
+        "aiter/ops/flydsl/",
+        "aiter/aot/flydsl/",
+        "tests/integration/packaging/test_flydsl_cache.py"
+      ],
+      "depends_on": [
+        "runtime"
+      ]
+    },
+    "activation": {
+      "paths": [
+        "aiter/ops/activation.py",
+        "aiter/ops/triton/activation.py",
+        "csrc/kernels/activation_kernels.cu",
+        "aiter/ops/triton/_triton_kernels/activation.py"
+      ],
+      "depends_on": []
+    },
+    "position": {
+      "paths": [
+        "aiter/ops/rope.py",
+        "aiter/ops/pos_encoding.py",
+        "aiter/ops/triton/rope/",
+        "aiter/ops/triton/_triton_kernels/rope/"
+      ],
+      "depends_on": []
+    },
+    "routing": {
+      "paths": [
+        "aiter/ops/topk.py",
+        "aiter/ops/topk_plain.py",
+        "aiter/ops/moe_sorting.py",
+        "aiter/ops/sample.py",
+        "aiter/ops/sampling.py",
+        "aiter/ops/triton/topk.py",
+        "aiter/ops/triton/moe/moe_routing/",
+        "aiter/ops/triton/_triton_kernels/topk.py",
+        "aiter/ops/triton/_triton_kernels/moe/moe_routing/"
+      ],
+      "depends_on": []
+    },
+    "sequence": {
+      "paths": [
+        "aiter/ops/causal_conv1d_update.py",
+        "aiter/ops/fused_split_gdr_update.py",
+        "aiter/ops/gdr_decode_packed_bf16.py",
+        "aiter/ops/triton/conv/",
+        "aiter/ops/triton/kimi_delta_attn/",
+        "aiter/ops/triton/_triton_kernels/chunk_delta_attn/",
+        "aiter/ops/triton/gated_delta_net/",
+        "aiter/ops/triton/_triton_kernels/gated_delta_rule/",
+        "aiter/ops/causal_conv1d_fwd_split_qkv.py",
+        "aiter/ops/chunk_gated_delta_rule_fwd_h.py",
+        "aiter/ops/triton/_triton_kernels/conv/"
+      ],
+      "depends_on": [
+        "normalization"
+      ]
+    }
+  },
+  "groups": {
+    "host": {
+      "description": "Catalog, execution, artifact and import-boundary checks.",
+      "components": [
+        "runtime",
+        "gemm",
+        "normalization",
+        "attention",
+        "moe",
+        "quantization",
+        "collectives",
+        "pytorch",
+        "vllm",
+        "sglang",
+        "activation",
+        "position",
+        "routing",
+        "sequence"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/unit/ci",
+        "tests/integration/packaging/test_imports.py",
+        "tests/unit/runtime",
+        "tests/unit/build",
+        "tests/unit/tuning",
+        "tests/unit/architecture",
+        "tests/unit/benchmarks",
+        "tests/unit/harness",
+        "tests/unit/codegen",
+        "tests/unit/kernels"
+      ],
+      "gpus": 0,
+      "architectures": [],
+      "timeout_seconds": 900,
+      "minimum_cases": 1,
+      "environment": {}
+    },
+    "triton-normalization": {
+      "description": "Existing Triton RMSNorm forward and backward numerical checks.",
+      "components": [
+        "normalization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/normalization/test_rmsnorm.py::test_rmsnorm[256-1024-bf16]",
+        "tests/operators/triton/normalization/test_rmsnorm.py::test_rmsnorm[256-1024-fp16]"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 900,
+      "minimum_cases": 2,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "blockscale-gemm": {
+      "description": "Ordinary FP8 blockscale GEMM through both Gluon and Triton backends.",
+      "components": [
+        "gemm",
+        "quantization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/gemm/basic/test_gemm_a8w8_blockscale.py::test_gemm[False-gluon-bf16-512-512-128-TN-True]",
+        "tests/operators/triton/gemm/basic/test_gemm_a8w8_blockscale.py::test_gemm[False-triton-bf16-1024-1024-1024-TN-True]"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 900,
+      "minimum_cases": 2,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "native-operators": {
+      "description": "Complete existing single-device native script driver, including its documented special invocations.",
+      "components": [
+        "runtime",
+        "gemm",
+        "normalization",
+        "attention",
+        "moe",
+        "quantization",
+        "collectives",
+        "pytorch",
+        "vllm",
+        "sglang"
+      ],
+      "adapter": "bash",
+      "targets": [
+        ".github/scripts/product/run_tests.sh"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "AITER_TEST": "",
+        "MULTIGPU": "FALSE",
+        "SHARD_TOTAL": "1",
+        "SHARD_IDX": "0",
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "distributed": {
+      "description": "Existing multi-device native driver; retains its explicit exclusions.",
+      "components": [
+        "collectives",
+        "moe"
+      ],
+      "adapter": "bash",
+      "targets": [
+        ".github/scripts/product/run_tests.sh"
+      ],
+      "gpus": 8,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MULTIGPU": "TRUE",
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "wheel-smoke": {
+      "description": "Existing five installed-wheel smoke scripts.",
+      "components": [
+        "runtime",
+        "normalization",
+        "gemm"
+      ],
+      "adapter": "python",
+      "targets": [
+        "tests/operators/hip/drivers/aiter_add.py",
+        "tests/operators/hip/drivers/aiter_sigmoid.py",
+        "tests/operators/hip/drivers/gemm_a16w16.py",
+        "tests/operators/hip/drivers/activation.py",
+        "tests/operators/hip/drivers/layernorm2d.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 3000,
+      "minimum_cases": 5,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-attention": {
+      "description": "Full existing Triton attention test directory.",
+      "components": [
+        "attention"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/attention"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-chunk-delta-attn": {
+      "description": "Full existing Triton chunk_delta_attn test directory.",
+      "components": [
+        "sequence",
+        "attention"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/chunk_delta_attn"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-conv": {
+      "description": "Full existing Triton conv test directory.",
+      "components": [
+        "sequence"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/conv"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-fusions": {
+      "description": "Full existing Triton fusions test directory.",
+      "components": [
+        "runtime"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/fusions"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-moe": {
+      "description": "Full existing Triton moe test directory.",
+      "components": [
+        "moe"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/moe"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-normalization-full": {
+      "description": "Full existing Triton normalization test directory.",
+      "components": [
+        "normalization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/normalization"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-quant": {
+      "description": "Full existing Triton quant test directory.",
+      "components": [
+        "quantization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/quant"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-rope": {
+      "description": "Full existing Triton rope test directory.",
+      "components": [
+        "position"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/rope"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-torch-compile": {
+      "description": "Full existing Triton torch_compile test directory.",
+      "components": [
+        "runtime"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/torch_compile"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-metadata-redirect": {
+      "description": "Full existing Triton triton_metadata_redirect test directory.",
+      "components": [
+        "runtime"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/triton_metadata_redirect"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "triton-other": {
+      "description": "Existing Triton tests outside family directories.",
+      "components": [
+        "runtime",
+        "gemm",
+        "normalization",
+        "attention",
+        "moe",
+        "quantization",
+        "collectives",
+        "pytorch",
+        "vllm",
+        "sglang"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/test_activation.py",
+        "tests/operators/triton/test_common_utils.py",
+        "tests/operators/triton/test_fused_kda_decode.py",
+        "tests/operators/triton/test_fused_kda_decode_unified.py",
+        "tests/operators/triton/test_fused_rearrange_sigmoid_gdr.py",
+        "tests/operators/triton/test_gather_kv_b_proj.py",
+        "tests/operators/triton/test_gmm.py",
+        "tests/operators/triton/test_kv_cache.py",
+        "tests/operators/triton/test_pa_decode_gluon.py",
+        "tests/operators/triton/test_softmax.py",
+        "tests/operators/triton/test_topk.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "prepared-runtime": {
+      "description": "Prepared HIP, CK, Triton and Gluon execution; composed normalization, quantization, GEMM, RoPE and attention with stream, graph and binding guards.",
+      "components": [
+        "runtime",
+        "normalization",
+        "gemm",
+        "attention",
+        "quantization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/runtime/test_runtime.py",
+        "tests/integration/runtime/test_pipeline.py",
+        "tests/integration/runtime/test_attention.py",
+        "tests/integration/runtime/test_mxfp4.py"
+      ],
+      "gpus": 2,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 900,
+      "minimum_cases": 76,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "native-sdk": {
+      "description": "Build and exercise the native C ABI with HIP and CK providers, without Torch in the SDK process.",
+      "components": [
+        "native-sdk"
+      ],
+      "adapter": "bash",
+      "targets": [
+        "tests/integration/sdk/run.sh"
+      ],
+      "gpus": 2,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1200,
+      "minimum_cases": 1,
+      "environment": {
+        "AITER_CI_PROBE": "native",
+        "MAX_JOBS": "2"
+      }
+    },
+    "compatibility": {
+      "description": "Installed and source layout, registered code generation, reusable workloads, legacy imports, backend dispatch and RoPE numerical behavior.",
+      "components": [
+        "runtime",
+        "normalization",
+        "gemm",
+        "attention"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/packaging/test_legacy_imports.py",
+        "tests/integration/runtime/test_dispatch.py",
+        "tests/integration/runtime/test_rope.py",
+        "tests/integration/packaging/test_codegen.py",
+        "tests/integration/packaging/test_workloads.py",
+        "tests/integration/packaging/test_aot.py",
+        "tests/integration/tuning/test_pretune_csv.py",
+        "tests/integration/tuning/test_config_shape_collision.py",
+        "tests/integration/packaging/test_aot_matmul.py",
+        "tests/integration/communication/test_utils.py",
+        "tests/integration/packaging/test_module_cache.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 900,
+      "minimum_cases": 92,
+      "environment": {
+        "GPU_ARCHS": "gfx950",
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "collective-smoke": {
+      "description": "Eight-rank native custom-allreduce numerical and graph-replay checks with no fallback.",
+      "components": [
+        "collectives",
+        "runtime"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/communication/test_collectives.py::test_eight_rank_custom_allreduce_eager_and_capture"
+      ],
+      "gpus": 8,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 300,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "wheel-native": {
+      "description": "Installed gfx950 wheel native HIP/CK providers execute without compiler or source fallback, including first execution during graph capture.",
+      "components": [
+        "native-sdk",
+        "runtime"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/packaging/test_wheel.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 300,
+      "minimum_cases": 2,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "packaging": {
+      "description": "Real CPU-only sdist-to-wheel PEP 517 frontend execution, public payload checks and source integrity.",
+      "components": [
+        "runtime",
+        "native-sdk"
+      ],
+      "adapter": "module",
+      "targets": [
+        "ci/release/package.py"
+      ],
+      "gpus": 0,
+      "architectures": [],
+      "timeout_seconds": 600,
+      "minimum_cases": 1,
+      "environment": {}
+    },
+    "performance": {
+      "description": "Paired prepared-vs-current-legacy native RMSNorm graph cost, with numerical reference, all raw pairs and an explicit noise/overhead policy.",
+      "components": [
+        "runtime",
+        "normalization",
+        "native-sdk",
+        "benchmarks"
+      ],
+      "adapter": "benchmark",
+      "targets": [
+        "benchmarks"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 300,
+      "minimum_cases": 6,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "rust-sdk": {
+      "description": "Rust client of the installed C ABI: formatting, Clippy, offline host tests and actual HIP RMSNorm/GEMM execution.",
+      "components": [
+        "native-sdk"
+      ],
+      "adapter": "bash",
+      "targets": [
+        "tests/integration/sdk/run-rust.sh"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "minimum_cases": 1,
+      "environment": {
+        "AITER_CI_PROBE": "native",
+        "AITER_SDK_LANGUAGE": "rust",
+        "MAX_JOBS": "2"
+      }
+    },
+    "benchmark-harness": {
+      "description": "Benchmark module CLI, raw measurement parser and declared model-shape integration.",
+      "components": [
+        "benchmarks"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/benchmarks/test_kernel_benchmarks.py",
+        "tests/integration/benchmarks/test_native_attention.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 900,
+      "minimum_cases": 7,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "native-attention": {
+      "description": "Build both native attention consumers against the selected package and compare cold/cached outputs with independent CPU references.",
+      "components": [
+        "attention",
+        "runtime",
+        "native-sdk"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/packaging/test_native_attention.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1200,
+      "minimum_cases": 2,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "gemm-assembly": {
+      "description": "Legacy assembly GEMM numerical, split-K, dtype, storage and independent-stream regressions; this convenience API may allocate.",
+      "components": [
+        "gemm",
+        "runtime"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/runtime/test_asm_gemm.py",
+        "tests/integration/runtime/test_asm_gemm_lifecycle.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 600,
+      "minimum_cases": 25,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "activation": {
+      "description": "Fused SiLU MXFP4 quantization precision and exact group exponents against independent references.",
+      "components": [
+        "activation",
+        "quantization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/runtime/test_activation_quantization.py",
+        "tests/integration/runtime/test_activation_precision.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 600,
+      "minimum_cases": 22,
+      "environment": {
+        "AITER_USE_SYSTEM_TRITON": "1",
+        "MAX_JOBS": "2"
+      }
+    },
+    "flydsl-cache": {
+      "description": "Compile an actual FlyDSL specialization and verify immutable AOT staging, cold cache hits, missing-specialization refusal and automatic package integration.",
+      "components": [
+        "flydsl"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/packaging/test_flydsl_cache.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 600,
+      "minimum_cases": 1,
+      "environment": {
+        "AITER_USE_SYSTEM_TRITON": "1",
+        "MAX_JOBS": "2"
+      }
+    },
+    "position": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Both rotary pairing styles and three dtypes match independent math before and during capture.",
+      "components": [
+        "position"
+      ],
+      "targets": [
+        "tests/integration/runtime/test_rope.py"
+      ],
+      "minimum_cases": 6
+    },
+    "routing-topk": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Top-k values and original indices match Torch for short rows and vocabulary-sized rows.",
+      "components": [
+        "routing"
+      ],
+      "targets": [
+        "tests/operators/triton/test_topk.py::test_topk[dtype0-True-2-16-1]",
+        "tests/operators/triton/test_topk.py::test_topk[dtype0-True-8-16-7]",
+        "tests/operators/triton/test_topk.py::test_topk[dtype0-True-2-128256-1]",
+        "tests/operators/triton/test_topk.py::test_topk[dtype0-True-8-128256-7]"
+      ],
+      "minimum_cases": 4
+    },
+    "moe-expert-routing": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Local expert-ID remapping and invalid-expert activation masking preserve explicit expected outputs.",
+      "components": [
+        "routing",
+        "moe",
+        "activation"
+      ],
+      "targets": [
+        "tests/operators/hip/test_moe_local_expert_ids.py"
+      ],
+      "minimum_cases": 4
+    },
+    "sequence-convolution": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Single-token and four-token state updates match depthwise convolution for FP32/BF16, bias and SiLU variants.",
+      "components": [
+        "sequence"
+      ],
+      "targets": [
+        "tests/operators/triton/conv/test_causal_conv1d.py::test_causal_conv1d_update[1-1024-2-1-True-True-itype0]",
+        "tests/operators/triton/conv/test_causal_conv1d.py::test_causal_conv1d_update[1-1024-2-1-True-True-itype1]",
+        "tests/operators/triton/conv/test_causal_conv1d.py::test_causal_conv1d_update[7-1024-4-4-False-False-itype0]",
+        "tests/operators/triton/conv/test_causal_conv1d.py::test_causal_conv1d_update[7-1024-4-4-False-False-itype1]"
+      ],
+      "minimum_cases": 4
+    },
+    "sequence-delta-state": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Delta attention agrees with a token-wise reference and preserves state layout equivalence for fixed and ragged sequences.",
+      "components": [
+        "sequence",
+        "attention"
+      ],
+      "targets": [
+        "tests/operators/triton/chunk_delta_attn/test_chunk_delta_attn_fwd.py::TestChunkDeltaAttnFwdVsReference",
+        "tests/operators/triton/chunk_delta_attn/test_chunk_delta_attn_fwd.py::TestStateVFirst"
+      ],
+      "minimum_cases": 8
+    },
+    "paged-attention-addressing": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Every paged-attention output element identifies the correct physical KV block across the 16-bit boundary; BF16/FP16 query and unquantized/FP8/INT8 caches, plus an oracle corruption check.",
+      "components": [
+        "attention",
+        "quantization"
+      ],
+      "targets": [
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[bf16-noquant-1-qlen1_non_MTP_kernel-65535-0.3-edge_65535_last_u16]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[bf16-noquant-1-qlen1_non_MTP_kernel-65536-0.4-edge_65536_first_overflow]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[bf16-fp8-4-qlen4_MTP_kernel-65535-0.3-edge_65535_last_u16]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[bf16-fp8-4-qlen4_MTP_kernel-65536-0.4-edge_65536_first_overflow]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[bf16-int8-4-qlen4_MTP_kernel-65535-0.3-edge_65535_last_u16]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[bf16-int8-4-qlen4_MTP_kernel-65536-0.4-edge_65536_first_overflow]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[fp16-noquant-1-qlen1_non_MTP_kernel-65535-0.3-edge_65535_last_u16]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[fp16-noquant-1-qlen1_non_MTP_kernel-65536-0.4-edge_65536_first_overflow]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[fp16-fp8-4-qlen4_MTP_kernel-65535-0.3-edge_65535_last_u16]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[fp16-fp8-4-qlen4_MTP_kernel-65536-0.4-edge_65536_first_overflow]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[fp16-int8-4-qlen4_MTP_kernel-65535-0.3-edge_65535_last_u16]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_pa_fwd_asm_block_id_no_truncation[fp16-int8-4-qlen4_MTP_kernel-65536-0.4-edge_65536_first_overflow]",
+        "tests/operators/hip/test_pa_block_id_truncation.py::test_block_id_fingerprint_rejects_cancelling_errors"
+      ],
+      "minimum_cases": 13
+    },
+    "gemm-dense": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Dense BF16 GEMM covers scalar, irregular, router and attention-projection shapes against Torch linear.",
+      "components": [
+        "gemm"
+      ],
+      "targets": [
+        "tests/operators/triton/gemm/basic/test_gemm_a16w16.py::test_gemm_a16_w16[bandwidth_bound-triton-1-1-1]",
+        "tests/operators/triton/gemm/basic/test_gemm_a16w16.py::test_gemm_a16_w16[bandwidth_bound-triton-3-5-2]",
+        "tests/operators/triton/gemm/basic/test_gemm_a16w16.py::test_gemm_a16_w16[bandwidth_bound-triton-32-256-7168]",
+        "tests/operators/triton/gemm/basic/test_gemm_a16w16.py::test_gemm_a16_w16[bandwidth_bound-triton-32-5120-2880]"
+      ],
+      "minimum_cases": 4
+    },
+    "triton-gemm-full": {
+      "description": "Full existing Triton GEMM area, including basic, batched, fused and feed-forward variants; target eligibility remains explicit in each test.",
+      "components": [
+        "gemm",
+        "quantization",
+        "activation"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/triton/gemm"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 21600,
+      "minimum_cases": 1,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "sampling": {
+      "adapter": "pytest",
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "environment": {
+        "MAX_JOBS": "2",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      },
+      "description": "Top-p draws stay inside independently computed probability support; top-k renormalization matches sorted probability references.",
+      "components": [
+        "routing"
+      ],
+      "targets": [
+        "tests/operators/hip/test_sampling.py::test_top_p_sampling[0.1-111-1]",
+        "tests/operators/hip/test_sampling.py::test_top_p_sampling[0.9-500-19]",
+        "tests/operators/hip/test_sampling.py::test_top_k_renorm_probs[10-111-19]",
+        "tests/operators/hip/test_sampling.py::test_top_k_renorm_probs[100-500-1]"
+      ],
+      "minimum_cases": 4
+    }
+  },
+  "profiles": {
+    "host": {
+      "description": "Fast checks requiring no GPU.",
+      "client": "aiter",
+      "groups": [
+        "host"
+      ],
+      "mandatory_groups": [
+        "host"
+      ]
+    },
+    "product-fast": {
+      "description": "Bounded product checks for pull requests and local development.",
+      "client": "aiter",
+      "groups": [
+        "host",
+        "normalization",
+        "triton-normalization",
+        "blockscale-gemm",
+        "prepared-runtime",
+        "native-sdk",
+        "compatibility",
+        "gemm-assembly",
+        "activation",
+        "position",
+        "routing-topk",
+        "moe-expert-routing",
+        "sequence-convolution",
+        "sequence-delta-state",
+        "paged-attention-addressing",
+        "gemm-dense",
+        "sampling"
+      ],
+      "mandatory_groups": [
+        "host"
+      ]
+    },
+    "product-nightly": {
+      "description": "Audited prepared API, compatibility and package checks on the declared target; broad legacy tests run separately.",
+      "client": "aiter",
+      "groups": [
+        "host",
+        "normalization",
+        "triton-normalization",
+        "blockscale-gemm",
+        "prepared-runtime",
+        "native-sdk",
+        "compatibility",
+        "wheel-smoke",
+        "collective-smoke",
+        "performance",
+        "rust-sdk",
+        "benchmark-harness",
+        "native-attention",
+        "gemm-assembly",
+        "activation",
+        "position",
+        "routing-topk",
+        "moe-expert-routing",
+        "sequence-convolution",
+        "sequence-delta-state",
+        "paged-attention-addressing",
+        "gemm-dense",
+        "sampling"
+      ],
+      "mandatory_groups": [
+        "host"
+      ]
+    },
+    "product-extended": {
+      "description": "Full product and eight-device tests.",
+      "client": "aiter",
+      "groups": [
+        "blockscale-gemm",
+        "compatibility",
+        "distributed",
+        "host",
+        "native-operators",
+        "native-sdk",
+        "normalization",
+        "prepared-runtime",
+        "triton-attention",
+        "triton-chunk-delta-attn",
+        "triton-conv",
+        "triton-fusions",
+        "triton-moe",
+        "triton-normalization",
+        "triton-normalization-full",
+        "triton-other",
+        "triton-quant",
+        "triton-rope",
+        "triton-torch-compile",
+        "triton-metadata-redirect",
+        "wheel-smoke",
+        "collective-smoke",
+        "performance",
+        "rust-sdk",
+        "benchmark-harness",
+        "native-attention",
+        "gemm-assembly",
+        "activation",
+        "position",
+        "routing-topk",
+        "moe-expert-routing",
+        "sequence-convolution",
+        "sequence-delta-state",
+        "paged-attention-addressing",
+        "gemm-dense",
+        "sampling"
+      ],
+      "mandatory_groups": [
+        "host"
+      ]
+    },
+    "wheel": {
+      "description": "Exact installed-wheel numerical smoke, prepared native providers and native attention consumers.",
+      "client": "aiter",
+      "groups": [
+        "wheel-smoke",
+        "wheel-native",
+        "native-attention",
+        "gemm-assembly",
+        "activation"
+      ],
+      "mandatory_groups": [
+        "wheel-smoke",
+        "wheel-native"
+      ]
+    },
+    "legacy-regression": {
+      "description": "Existing broad native/Triton inventory; intentional hardware skips remain visible and cannot qualify a release.",
+      "client": "aiter",
+      "groups": [
+        "native-operators",
+        "triton-attention",
+        "triton-chunk-delta-attn",
+        "triton-conv",
+        "triton-fusions",
+        "triton-moe",
+        "triton-normalization-full",
+        "triton-other",
+        "triton-quant",
+        "triton-rope",
+        "triton-torch-compile",
+        "triton-metadata-redirect",
+        "triton-gemm-full"
+      ],
+      "mandatory_groups": []
+    },
+    "image": {
+      "description": "Installed-image numerical, dispatch, graph and compatibility checks without rebuilding the native SDK.",
+      "client": "pytorch",
+      "groups": [
+        "normalization",
+        "triton-normalization",
+        "blockscale-gemm",
+        "prepared-runtime",
+        "compatibility",
+        "wheel-native"
+      ],
+      "mandatory_groups": [
+        "normalization",
+        "triton-normalization",
+        "blockscale-gemm",
+        "prepared-runtime",
+        "compatibility",
+        "wheel-native"
+      ]
+    },
+    "packaging": {
+      "description": "CPU distribution frontend regression; requires explicitly installed build tools but no GPU dependencies.",
+      "client": "aiter",
+      "groups": [
+        "packaging"
+      ],
+      "mandatory_groups": [
+        "packaging"
+      ]
+    },
+    "rust-sdk": {
+      "description": "Standalone Rust/C ABI source SDK acceptance; requires the declared Rust and HIP toolchains.",
+      "client": "aiter",
+      "groups": [
+        "rust-sdk"
+      ],
+      "mandatory_groups": []
+    },
+    "flydsl": {
+      "description": "Optional FlyDSL execution and verified AOT cache lifecycle; requires an executor declaring FlyDSL.",
+      "client": "aiter",
+      "groups": [
+        "host",
+        "flydsl-cache"
+      ],
+      "mandatory_groups": [
+        "host"
+      ]
+    },
+    "product-features": {
+      "description": "Bounded numerical checks for position, routing, recurrent state, paged addressing, dense GEMM and sampling.",
+      "client": "aiter",
+      "groups": [
+        "host",
+        "position",
+        "routing-topk",
+        "moe-expert-routing",
+        "sequence-convolution",
+        "sequence-delta-state",
+        "paged-attention-addressing",
+        "gemm-dense",
+        "sampling"
+      ],
+      "mandatory_groups": [
+        "host"
+      ]
+    }
+  },
+  "shared_paths": [
+    "ci/",
+    ".github/",
+    "aiter/jit/",
+    "aiter/runtime/",
+    "aiter/__init__.py",
+    "setup.py",
+    "pyproject.toml",
+    "MANIFEST.in",
+    "requirements/",
+    "3rdparty/",
+    "csrc/include/",
+    "aiter/configs/",
+    "build_backend/",
+    "aiter_meta/",
+    "cmake/",
+    "CMakeLists.txt",
+    "bindings/rust/",
+    "aiter/codegen/",
+    "aiter/_build_layout.json",
+    "aiter/ops/_native/",
+    "aiter/aot/",
+    "aiter/tuning/search/",
+    "docker/common/",
+    "docker/images.json",
+    "aiter/kernels/"
+  ],
+  "documentation_paths": [
+    "docs/",
+    "README.md",
+    "rollout.md",
+    "notes.md"
+  ],
+  "retained_workflows": {
+    ".github/workflows/host-workflow-lint.yaml": "Existing actionlint coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-legacy.yaml": "Existing aiter test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/host-runner-monitor.yml": "Existing amd ci job monitor coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-atom-disaggregation.yaml": "Existing atom di ci smoke workflow coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-atom.yaml": "Existing atom test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/host-legacy-config.yaml": "Existing ci config coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-extended.yaml": "Existing extended test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-fmha.yaml": "Existing ffm bringup coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-flash-attention.yaml": "Existing flash attention integration coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-kimi-correctness.yaml": "Existing kimi downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-kimi-performance.yaml": "Existing kimi perf downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-tuning.yaml": "Existing operators tuning coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-opus.yaml": "Existing opus test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/host-prechecks.yaml": "Existing pre checks coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/release-triton-wheel.yaml": "Existing prepare triton wheel coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/release-stable.yaml": "Existing release automation coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-sglang-models.yaml": "Existing sglang downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-network.yaml": "Existing test network coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-triton.yaml": "Existing triton test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/product-tuning-validation.yaml": "Existing tuning tests coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/host-update-test-inventory.yaml": "Existing update split tests coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-vllm-disaggregation.yaml": "Existing vllm disagg ci smoke workflow coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/client-vllm-benchmarks.yaml": "Existing vllm benchmark coverage; remains active while its model, topology and environment requirements are transferred to client profiles."
+  },
+  "clients": [
+    "aiter"
+  ]
+}

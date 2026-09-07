@@ -1,0 +1,2 @@
+# Optional worker connectivity diagnostic, not product qualification.
+speedtest-cli

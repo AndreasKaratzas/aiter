@@ -3,6 +3,7 @@
 
 import triton
 import triton.language as tl
+from triton.language.extra import libdevice
 
 from aiter.ops.triton.utils._triton.kernel_repr import make_kernel_repr
 
@@ -142,10 +143,10 @@ def _mxfp4_quant_op(
     # blockscale_e8m0
     bs_e8m0 = scale_e8m0_unbiased.to(tl.uint8) + 127  # in fp32, we have 2&(e - 127)
 
-    quant_scale = tl.exp2(-scale_e8m0_unbiased)
-
-    # Compute quantized x
-    qx = x * quant_scale
+    # Scaling by an explicit exp2(-127) reciprocal can flush that subnormal
+    # multiplier to zero on AMD, turning finite BF16/FP32 maxima into zeros.
+    # ldexp applies the exponent to x without materializing that reciprocal.
+    qx = libdevice.ldexp(x, -scale_e8m0_unbiased.to(tl.int32))
 
     # Convert quantized fp32 tensor to uint32 before converting to mxfp4 format
     # Note: MXFP4  S:1-bit, E:2-bit, M:1-bit

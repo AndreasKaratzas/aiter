@@ -1,0 +1,82 @@
+{
+  "gemm_a16w16": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w16",
+    "config": "GEMM-A16W16",
+    "legacy": "ut_a16w16_gemm.py"
+  },
+  "gemm_a16w16_atomic": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w16_atomic",
+    "config": "GEMM-A16W16_ATOMIC",
+    "legacy": "ut_a16w16_gemm_atomic.py"
+  },
+  "gemm_a16w16_gated": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w16_gated",
+    "config": "GEMM-A16W16_GATED",
+    "legacy": "ut_a16w16_gemm_gated.py"
+  },
+  "gemm_a16w8_blockscale": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w8_blockscale",
+    "config": "GEMM-A16W8_BLOCKSCALE",
+    "legacy": "ut_a16w8_gemm_blockscale.py"
+  },
+  "gemm_a16w8_blockscale_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16w8_blockscale_preshuffle",
+    "config": "GEMM-A16W8_BLOCKSCALE_PRESHUFFLED",
+    "legacy": "ut_a16w8_gemm_blockscale_preshuffle.py"
+  },
+  "gemm_a16wfp4": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a16wfp4",
+    "config": "GEMM-A16WFP4",
+    "legacy": "ut_a16wfp4_gemm.py"
+  },
+  "gemm_a8w8": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8",
+    "config": "GEMM-A8W8",
+    "legacy": "ut_a8w8_gemm.py"
+  },
+  "gemm_a8w8_blockscale": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8_blockscale",
+    "config": "GEMM-A8W8_BLOCKSCALE",
+    "legacy": "ut_a8w8_gemm_blockscale.py"
+  },
+  "gemm_a8w8_blockscale_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8_blockscale_preshuffle",
+    "config": "GEMM-A8W8_BLOCKSCALE_PRESHUFFLED",
+    "legacy": "ut_a8w8_gemm_blockscale_preshuffle.py"
+  },
+  "gemm_a8w8_per_token_scale": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8w8_per_token_scale",
+    "config": "GEMM-A8W8_PER_TOKEN_SCALE",
+    "legacy": "ut_a8w8_gemm_per_token_scale.py"
+  },
+  "gemm_a8wfp4": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_a8wfp4",
+    "config": "GEMM-A8WFP4",
+    "legacy": "ut_a8wfp4_gemm.py"
+  },
+  "gemm_afp4wfp4": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp4wfp4",
+    "config": "GEMM-AFP4WFP4",
+    "legacy": "ut_afp4wfp4_gemm.py"
+  },
+  "gemm_afp4wfp4_pre_quant_atomic": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp4wfp4_pre_quant_atomic",
+    "config": "GEMM-AFP4WFP4_PRE_QUANT_ATOMIC",
+    "legacy": "ut_afp4wfp4_gemm_pre_quant_atomic.py"
+  },
+  "gemm_afp4wfp4_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp4wfp4_preshuffle",
+    "config": "GEMM-AFP4WFP4_PRESHUFFLED",
+    "legacy": "ut_afp4wfp4_gemm_preshuffle.py"
+  },
+  "gemm_afp8wfp8_preshuffle": {
+    "module": "aiter.tuning.search.triton.drivers.gemm_afp8wfp8_preshuffle",
+    "config": "GEMM-AFP8WFP8_PRESHUFFLED",
+    "legacy": "ut_afp8wfp8_gemm_preshuffle.py"
+  },
+  "batched_gemm_a16w16": {
+    "module": "aiter.tuning.search.triton.drivers.batched_gemm_a16w16",
+    "config": "BATCHED_GEMM-A16W16",
+    "legacy": "ut_batched_gemm_a16w16.py"
+  }
+}

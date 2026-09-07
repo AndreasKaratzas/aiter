@@ -1,0 +1,5 @@
+# Additional metadata for a wheel with native/JIT implementations.
+pybind11>=3.0.1
+ninja
+pandas
+flydsl==0.3.2

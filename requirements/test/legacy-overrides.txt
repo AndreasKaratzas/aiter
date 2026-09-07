@@ -1,0 +1,10 @@
+# Preserve the separate historical rolling-job upgrade policy.
+# These intentionally unpinned upgrades do not describe a supported environment.
+pandas
+pyzmq
+einops
+numpy==1.26.2
+pybind11>=3.0.1
+ninja>=1.11.1
+setuptools_scm
+tabulate

@@ -1,0 +1,4 @@
+# Ordinary Python API metadata. ROCm Torch and Triton come from the selected executor.
+einops
+packaging
+psutil

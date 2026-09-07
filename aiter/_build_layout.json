@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "kind": "source",
+  "resources": {
+    "metadata": "..",
+    "native": "../csrc",
+    "configs": "configs",
+    "ck": "../3rdparty/composable_kernel",
+    "ck_helper": "../3rdparty/ck_helper",
+    "hip_kittens": "../3rdparty/HipKittens",
+    "kernels": "kernels/data"
+  }
+}
