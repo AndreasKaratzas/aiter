@@ -643,5 +643,558 @@
       "--run-e2e"
     ],
     "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-gpt-oss": {
+    "description": "Pinned GPT-OSS native CK and AITER Triton MXFP4 experts answer eight fixed arithmetic/queue tasks each, with exact final answers and real worker path/weight evidence; not GPQA.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/moe/test_gpt_oss.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-gpqa-smoke": {
+    "description": "First32 pinned GPQA Diamond questions; all in denominator, >=50% exact final choice. Gated offline prerequisite, no synthetic substitute.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/evaluation/test_gpqa.py::test_gpt_oss_gpqa[smoke32]"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 14400,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-gpqa-diamond": {
+    "description": "Complete198 pinned GPQA Diamond questions; all in denominator, >=50% exact final choice; redacted retained dataset records.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/evaluation/test_gpqa.py::test_gpt_oss_gpqa[diamond198]"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 21600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-speech-smoke": {
+    "description": "Four original LibriSpeech test-clean recordings; corpus WER<=15% vs human transcripts; observed FA encoder and UA decoder.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/speech/test_qwen_asr.py::test_qwen_asr_transcribes_real_librispeech[smoke]"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-speech-extended": {
+    "description": "Complete retained16 original LibriSpeech recordings; corpus WER<=15%, all utterances retained.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/speech/test_qwen_asr.py::test_qwen_asr_transcribes_real_librispeech[retained16]"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-mla-model": {
+    "description": "Real16B DeepSeek weights, AITER MLA/expert execution and all prompt likelihoods vs independent eager HF.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/attention/mla/test_deepseek.py::test_deepseek_mla_moe_likelihoods_match_reference"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-checkpoint-fp8": {
+    "description": "Publisher FP8 weights and actual blockscale GEMM; full prompt likelihoods bounded vs independently block-dequantized eager HF.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/quantization/test_checkpoint_fp8.py::test_qwen_checkpoint_fp8_matches_dequantized_reference"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-flash-model": {
+    "description": "Both actual dense decoder attention backends agree with independent eager HF prompt likelihoods and greedy outputs.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/attention/flash/test_decoder.py::test_flash_and_unified_attention_match_model_reference"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-chartqa": {
+    "description": "First16 human-authored ChartQA test rows, >=50% exact-label or declared5% numeric answers; actual image encoder plus decoder paths.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/multimodal/test_chartqa.py::test_qwen_chartqa_human_questions"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-normalization-boundaries": {
+    "description": "Actual vLLM normalization numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/normalization/test_boundaries.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 2048,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-position-boundaries": {
+    "description": "Actual vLLM position numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/position/test_boundaries.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950",
+      "gfx1250"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 2048,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-routing-boundaries": {
+    "description": "Actual vLLM routing numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/moe/test_boundaries.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 1920,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-fp8-boundaries": {
+    "description": "Actual vLLM fp8 numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fp8_boundaries.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 3584,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-fp8-gemm-boundaries": {
+    "description": "Actual vLLM fp8-gemm numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fp8_gemm_boundaries.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950",
+      "gfx1250"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 512,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-unified-attention": {
+    "description": "Actual vLLM unified-attention numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/attention/test_unified.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950",
+      "gfx1250"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 2320,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-flash-boundaries": {
+    "description": "Actual vLLM flash numerical boundary matrix; no model checkpoint required.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/attention/test_flash_boundaries.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 432,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-fp8-batched": {
+    "description": "Actual vLLM fp8-batched adapters against independent numerical tensor references; separate from model qualification.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fp8_batched.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx942",
+      "gfx950",
+      "gfx1250"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 128,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-mla-kernels": {
+    "description": "Actual vLLM mla-kernels adapters against independent numerical tensor references; separate from model qualification.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/attention/mla"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 8,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-gpt-oss-kernels": {
+    "description": "Actual vLLM gpt-oss-kernels adapters against independent numerical tensor references; separate from model qualification.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/moe/test_quantized_gpt_oss.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 4,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-fp4-projections": {
+    "description": "Actual vLLM fp4-projections adapters against independent numerical tensor references; separate from model qualification.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fp4_paths.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 8,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-gpt-oss-native-kernels": {
+    "description": "Native CK GPT-OSS experts compared with decoded weights and matching activation arithmetic; separate from model qualification.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/moe/test_quantized_ck_gpt_oss.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-fp8-projection-paths": {
+    "description": "Actual per-token/channel and blockscale vLLM FP8 CK projection adapters against independent tensor references, plus rejection of an unsupported untuned preshuffle shape.",
+    "components": [
+      "vllm",
+      "quantization"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_fp8_paths.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 13,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    }
+  },
+  "vllm-hipblaslt": {
+    "description": "Strict optional row/channel-scaled preshuffled hipBLASLt FP8 numerical checks. The reviewed gfx950 ROCm 7.2.3 environment has no valid solutions; select only to evaluate this optional backend contract.",
+    "components": [
+      "vllm",
+      "quantization"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/operators/quantization/test_hipblaslt_fp8.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 7200,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "8",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR": "1",
+      "VLLM_ROCM_USE_AITER_LINEAR_HIPBMM": "1"
+    }
   }
 }

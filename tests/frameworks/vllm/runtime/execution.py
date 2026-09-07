@@ -12,7 +12,7 @@ from common.paths import SUITE_ROOT, expected_package_root
 from common.process import run_process
 
 from .evidence import validate_origins, validate_workers
-from .protocol import parse_request, require
+from .protocol import EngineSettings, parse_request, require
 
 
 def engine_environment(settings):
@@ -117,4 +117,61 @@ def run_engine(name, model, directory, *, settings, batches):
             sort_keys=True,
         )
     )
+    return result
+
+
+def run_reference(
+    model,
+    prompts,
+    directory,
+    *,
+    model_class,
+    max_tokens=8,
+    dtype="bfloat16",
+    dequantize_mxfp4=False,
+    dequantize_fp8=False,
+):
+    """Run the independent eager Transformers oracle with exact request binding."""
+    from frameworks.vllm.evaluation.likelihood import validate_reference
+
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=False)
+    request = {
+        "model": model,
+        "prompts": list(prompts),
+        "max_tokens": max_tokens,
+        "dtype": dtype,
+        "dequantize_mxfp4": dequantize_mxfp4,
+        "dequantize_fp8": dequantize_fp8,
+    }
+    path = directory / "request.json"
+    path.write_text(json.dumps(request, indent=2) + "\n")
+    result_path = directory / "result.json"
+    execution = run_process(
+        [
+            sys.executable,
+            "-m",
+            "frameworks.vllm.runtime.reference",
+            "--request",
+            str(path),
+            "--output",
+            str(result_path),
+        ],
+        environment=engine_environment(EngineSettings()),
+        cwd=directory,
+        log=directory / "reference.log",
+        timeout=2400,
+        record=directory / "execution.json",
+    )
+    require(
+        execution["status"] == "PASS" and execution["returncode"] == 0,
+        "Independent reference failed; inspect reference.log",
+    )
+    result = json.loads(result_path.read_text())
+    validate_reference(result, path, model_class=model_class)
+    require(
+        result["dequantized_mxfp4"] is dequantize_mxfp4,
+        "Reference quantization mode changed",
+    )
+    require(result["dequantized_fp8"] is dequantize_fp8, "Reference FP8 mode changed")
     return result

@@ -6,9 +6,13 @@ This file gives the review boundaries for introducing the connected implementati
 
 ## Workflow and vLLM follow-up
 
+The subsequent technical-proposal and coverage round has four review boundaries. Land the shared observation/hardware corrections with their host tests first. Next, land each numerical defect fix together with its direct regression and affected framework case. Then add the larger operator/model catalogs, pinned assets and explicit daily/extended selections. Finally, connect the schedule-only YAMLs and shared bootstrap/runner, preserving tested artifact identity and existing release consumers. [The engineering record](notes.md#september-7-upstream-proposal-numerical-coverage-and-pipeline-execution) explains these changes and their limits.
+
+The operator-only profile must run without model assets. Model profiles must provision the declared checkpoint bytes, and required cases must fail visibly when a dataset or device is unavailable. Public nightly coverage includes publicly provisionable datasets; gated GPQA uses an explicit profile and accepted local input. Its collection must never be reported as a completed GPT-OSS quality evaluation. The optional hipBLASLt profile retains its current native failures and cannot be promoted into default coverage until a compatible executor passes its numerical checks. Enable each architecture only with matching environment and execution evidence.
+
 Review the September 7 follow-up in three connected changes. First, land the organized workflow sources with their generator, tests, CODEOWNERS rules and generated GitHub files. Preserve execution filenames so existing reusable calls and required checks remain valid. Second, land the expanded model scenarios with their shared execution helpers, case selection and required profile counts. Third, land configurable benchmark workloads, their evidence checks and the workflow inputs that select them. Each change includes its directory guide and website navigation.
 
-The [engineering record](notes.md#september-7-workflow-directories-and-broader-vllm-workloads) records failures and local checks. The new generation check must pass before a workflow change lands. Required model cases must execute with observed AITER work, and benchmark presets must distinguish a completed measurement from a performance improvement or a supported model claim. Configuring more cases is not a substitute for running them on the declared hardware.
+The [earlier engineering record](notes.md#september-7-earlier-workflow-directories-and-broader-vllm-workloads) records the preceding failures and local checks. The new generation check must pass before a workflow change lands. Required model cases must execute with observed AITER work, and benchmark presets must distinguish a completed measurement from a performance improvement or a supported model claim. Configuring more cases is not a substitute for running them on the declared hardware.
 
 ## Ordered PR rounds
 

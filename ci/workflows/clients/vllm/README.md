@@ -1,20 +1,34 @@
-# vLLM workflow sources
+# Follow a vLLM test or measurement
 
-Edit vLLM's GitHub orchestration here. Each source generates a stable flat entrypoint; its leading comment links back to this directory. Run `python -m ci.workflows --write` and `--check` from the repository root after edits.
+Test selection, execution and scheduling have separate owners. Start with the area you want to change; do not edit installation steps to add a test.
 
-| Source | Purpose | Stable GitHub entrypoint |
-| --- | --- | --- |
-| `nightly.yaml` | Resolve a fresh official ROCm nightly, install candidate AITER last, gate imports, then run the selected daily or extended workload profile | `client-vllm-nightly.yaml` |
-| `model-benchmarks.yaml` | Daily smoke, Sunday extended and manual real-model measurements after installation and import admission | `client-vllm-model-benchmarks.yaml` |
-| `benchmarks.yaml` | Retained synthetic latency canary using the registered adapter | `client-vllm-benchmarks.yaml` |
-| `disaggregation.yaml` | Specialized disaggregated-serving build and smoke procedure | `client-vllm-disaggregation.yaml` |
+| Change | Authoritative location |
+| --- | --- |
+| Operator/model tests, profiles and prerequisites | [Client declarations](../../../clients/vllm/README.md) and `python -m ci coverage --client vllm` |
+| Model revisions and exact input files | [Shared model registry](../../../clients/vllm/models.json) |
+| Measurement cases, profile membership and metrics | [Benchmark application](../../../../benchmarks/vllm/README.md) |
+| Fresh nightly installation and import admission | [Pipeline runner and controllers](../../../pipelines/README.md) |
+| When selected profiles run | [Daily tests](../../schedules/clients/vllm/nightly-daily.yaml), [weekly tests](../../schedules/clients/vllm/nightly-weekly.yaml), [daily measurements](../../schedules/clients/vllm/benchmarks-daily.yaml), [weekly measurements](../../schedules/clients/vllm/benchmarks-weekly.yaml) |
 
-The workflows choose events, workers and artifact transfer. [Client declarations](../../../clients/vllm/README.md) own test groups, profiles, model identities and the rolling installation policy. [Benchmarks](../../../../benchmarks/vllm/README.md) own measurement workloads and raw results. Shared pipeline applications own execution and retained evidence. Keep model cases and workload logic in those applications, rather than copying them into YAML.
+`nightly.yaml` is the manual/reusable test execution: build a candidate wheel, then call the common bootstrap with `vllm-nightly` or `vllm-extended`. `model-benchmarks.yaml` uses the same bootstrap for measurements. Neither contains cron logic, Docker commands or a list of test files. The common bootstrap owns both checkouts, artifact download and retained execution evidence; its Python runner delegates to the existing installer and qualified runner.
 
-The nightly source retains the daily 17:45 UTC and Sunday 20:15 UTC selections. These configured triggers do not establish that remote GPU execution or supported release delivery has been activated. A rolling candidate pass remains separate from qualification in an approved locked environment.
+`control/` contains reviewed build, test and benchmark instructions, selected by the workflow revision. `candidate/` identifies the AITER version being evaluated. They can differ so changing AITER does not also replace the rules that evaluate it. These are checkout roles, not extra framework packages. The shared controller verifies and records both identities.
 
-The manually dispatched model benchmark exposes `benchmark_profile` (`baseline`, `smoke`, `throughput`, `topology` or `extended`) and optional comma-separated `benchmark_cases`. Empty case selection runs the complete chosen profile. The default remains the existing `baseline` workload on GPU `0`; select two physical indices such as `0,1` for tensor-parallel cases. The controller validates the selection against the benchmark catalog and records its identity. Profile selection does not make a measured result a performance release gate.
+## Schedules and manual selections
 
-The model benchmark also has a daily 19:45 UTC `smoke` schedule on GPU `0` and a Sunday 22:15 UTC `extended` schedule on GPUs `0,1`. Each scheduled run selects every case in its profile; manual inputs cannot narrow scheduled scope. These triggers are two hours later than the corresponding vLLM qualification triggers, but they are independent jobs and do not assert that qualification has finished. Execution requires the configured `AITER_VLLM_NIGHTLY_EXECUTOR` image, build worker and compatible `linux-aiter-do-mi350x-8` GPU runner. The schedules collect advisory observations and retain failures; they do not promote release channels or establish a remotely operating service.
+| Cron source | UTC trigger | Selection | Physical GPUs |
+| --- | --- | --- | --- |
+| `nightly-daily.yaml` | Daily 17:45 | `vllm-nightly` test profile, preceded by required import admission | `0,1` |
+| `nightly-weekly.yaml` | Sunday 20:15 | `vllm-extended` test profile, preceded by required import admission | `0,1` |
+| `benchmarks-daily.yaml` | Daily 19:45 | Every `smoke` measurement case | `0` |
+| `benchmarks-weekly.yaml` | Sunday 22:15 | Every `extended` measurement case | `0,1` |
 
-`control/` is the checkout containing reviewed build, test and benchmark instructions, selected by the workflow revision. `candidate/` identifies the AITER source version being evaluated. They can be different revisions so changing AITER does not also replace the rules that evaluate it. The controller records both identities; these directory names are execution inputs, not additional framework packages.
+These are configured advisory triggers. They require `AITER_VLLM_NIGHTLY_EXECUTOR`, the build worker and compatible `linux-aiter-do-mi350x-8` GPU runner. A later clock time is not a dependency on completion of the earlier job. The workflows retain failures and do not promote supported release channels or establish remote operating coverage.
+
+Manual nightly execution also accepts `vllm-hipblaslt`, a strict optional backend check after fresh installation and imports. No schedule selects it. A runner whose hipBLASLt cannot provide the requested FP8 solutions fails the selected check; another backend cannot satisfy it. Gated GPQA remains an explicitly provisioned offline qualification profile, outside this automatic installer and its public-dataset admission.
+
+Manual model measurements retain `baseline` on GPU `0` as the default. Choose `baseline`, `smoke`, `throughput`, `topology` or `extended`, and optionally supply unique comma-separated `benchmark_cases` from that profile. Empty selection runs the whole chosen profile. Tensor-parallel cases require two GPU indices such as `0,1`. The benchmark catalog validates and seals the choice; profile names are not arbitrary shell commands. Scheduled calls always pass empty case filters and fixed profiles, so manual inputs cannot narrow them.
+
+The older `benchmarks.yaml` remains the synthetic latency canary, while `disaggregation.yaml` retains its specialized platform setup. Their results have distinct scope and do not substitute for the real-weight qualification or measurement path.
+
+Edit these canonical sources and run `python -m ci.workflows --write` followed by `--check`. The flat `.github/workflows/client-vllm-*.yaml` names remain the executable/manual interfaces; the new `schedule-vllm-*.yaml` names carry only scheduled invocations.

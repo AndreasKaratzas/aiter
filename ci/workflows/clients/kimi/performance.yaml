@@ -12,11 +12,9 @@ name: Kimi Perf Downstream
 # manual dispatch. NOT run on every push (heavy: builds AITER + loads 521GB).
 
 on:
+  workflow_call:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, labeled]
-  schedule:
-    # Nightly, off-peak, offset from the accuracy run (19:17 UTC).
-    - cron: '43 20 * * *'
   workflow_dispatch:
 
 concurrency:

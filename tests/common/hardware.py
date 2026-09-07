@@ -28,9 +28,9 @@ class Hardware:
 
 
 CAPABILITIES = {
-    "bf16": frozenset(("gfx90a", "gfx942", "gfx950")),
-    "fp8": frozenset(("gfx942", "gfx950")),
-    "mxfp4": frozenset(("gfx950",)),
+    "bf16": frozenset(("gfx90a", "gfx942", "gfx950", "gfx1250")),
+    "fp8": frozenset(("gfx942", "gfx950", "gfx1250")),
+    "mxfp4": frozenset(("gfx950", "gfx1250")),
 }
 
 

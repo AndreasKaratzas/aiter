@@ -60,13 +60,14 @@ class Observation:
 
 
 class AiterTrace:
-    def __init__(self, operations=None):
+    def __init__(self, operations=None, module_operations=()):
         self.observation = Observation()
         self.stack = ExitStack()
         self.graph_ids = weakref.WeakKeyDictionary()
         self.next_graph = 0
         self.active = False
         self._originals = []
+        self.module_operations = module_operations
         self.operation_names = (
             operations
             if operations is not None
@@ -98,6 +99,22 @@ class AiterTrace:
         from triton.runtime.jit import JITFunction
 
         import aiter
+
+        import importlib
+
+        for module_name, name in self.module_operations:
+            owner = importlib.import_module(module_name)
+            original = getattr(owner, name)
+
+            @functools.wraps(original)
+            def observe_module(
+                *args, _name=module_name + "." + name, _original=original, **kwargs
+            ):
+                result = _original(*args, **kwargs)
+                self.observation.record("operations", _name)
+                return result
+
+            self._patch(owner, name, observe_module)
 
         for name in self.operation_names:
             original = getattr(aiter, name)

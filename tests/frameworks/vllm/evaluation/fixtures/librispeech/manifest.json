@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "openslr/librispeech_asr",
+    "revision": "71cacbfb7e2354c4226d01e70d77d5fca3d04ba1",
+    "path": "clean/test/0000.parquet",
+    "sha256": "7113aa4c3cf963fb54697145719a7725f984c8836d1c494a554cbb9f1a017df0",
+    "license": "CC-BY-4.0",
+    "upstream": "https://www.openslr.org/12"
+  },
+  "selection": "First16 source-order real test-clean utterances with mono16kHz duration1..15s; audio bytes preserved exactly",
+  "smoke_count": 4,
+  "full_count": 16,
+  "maximum_wer": 0.15,
+  "utterances": [
+    {
+      "row": 0,
+      "id": "6930-75918-0000",
+      "file": "6930-75918-0000.flac",
+      "sha256": "9ce35224156f071ab58eb7feb8a5ceae600f6f9f353da2a6cbf797b6b1ac8a23",
+      "size": 74138,
+      "sample_rate": 16000,
+      "samples": 56080,
+      "transcript": "CONCORD RETURNED TO ITS PLACE AMIDST THE TENTS"
+    },
+    {
+      "row": 1,
+      "id": "6930-75918-0001",
+      "file": "6930-75918-0001.flac",
+      "sha256": "3dfad7eb0793eddd5040d04f1f2f3046ceeee39e0ec461794856a350e1bd728e",
+      "size": 287636,
+      "sample_rate": 16000,
+      "samples": 227600,
+      "transcript": "THE ENGLISH FORWARDED TO THE FRENCH BASKETS OF FLOWERS OF WHICH THEY HAD MADE A PLENTIFUL PROVISION TO GREET THE ARRIVAL OF THE YOUNG PRINCESS THE FRENCH IN RETURN INVITED THE ENGLISH TO A SUPPER WHICH WAS TO BE GIVEN THE NEXT DAY"
+    },
+    {
+      "row": 2,
+      "id": "6930-75918-0002",
+      "file": "6930-75918-0002.flac",
+      "sha256": "74ecfd628f49dca71995972c075fcc9904df804d49a4eb5b11fb712b3584f789",
+      "size": 104971,
+      "sample_rate": 16000,
+      "samples": 80400,
+      "transcript": "CONGRATULATIONS WERE POURED IN UPON THE PRINCESS EVERYWHERE DURING HER JOURNEY"
+    },
+    {
+      "row": 4,
+      "id": "6930-75918-0004",
+      "file": "6930-75918-0004.flac",
+      "sha256": "e1c4755c2febfc6b77fde418821c57e2e980d84d4c79a73ff60c6e6dfc794eac",
+      "size": 217640,
+      "sample_rate": 16000,
+      "samples": 177040,
+      "transcript": "SHE TAUGHT HER DAUGHTER THEN BY HER OWN AFFECTION FOR IT THAT LOVE FOR A COUNTRY WHERE THEY HAD BOTH BEEN HOSPITABLY RECEIVED AND WHERE A BRILLIANT FUTURE OPENED BEFORE THEM"
+    },
+    {
+      "row": 5,
+      "id": "6930-75918-0005",
+      "file": "6930-75918-0005.flac",
+      "sha256": "ccc0da025ef4f4596a4e70fbde291527d140364166d19d9bb516a48407b3491e",
+      "size": 261183,
+      "sample_rate": 16000,
+      "samples": 210560,
+      "transcript": "THE COUNT HAD THROWN HIMSELF BACK ON HIS SEAT LEANING HIS SHOULDERS AGAINST THE PARTITION OF THE TENT AND REMAINED THUS HIS FACE BURIED IN HIS HANDS WITH HEAVING CHEST AND RESTLESS LIMBS"
+    },
+    {
+      "row": 6,
+      "id": "6930-75918-0006",
+      "file": "6930-75918-0006.flac",
+      "sha256": "4bed112ebfdba58ec061abd3fe013f89946863e9c51e8a83b50a5eb7afb9ce65",
+      "size": 120849,
+      "sample_rate": 16000,
+      "samples": 93600,
+      "transcript": "THIS HAS INDEED BEEN A HARASSING DAY CONTINUED THE YOUNG MAN HIS EYES FIXED UPON HIS FRIEND"
+    },
+    {
+      "row": 7,
+      "id": "6930-75918-0007",
+      "file": "6930-75918-0007.flac",
+      "sha256": "059969de8f6b780e1a4982805e977c3e73e40d3759c8fa8cb0cb8fabd9eb5b27",
+      "size": 65106,
+      "sample_rate": 16000,
+      "samples": 53040,
+      "transcript": "YOU WILL BE FRANK WITH ME I ALWAYS AM"
+    },
+    {
+      "row": 8,
+      "id": "6930-75918-0008",
+      "file": "6930-75918-0008.flac",
+      "sha256": "ac916dcbcbb3240dcdbf3523b300345e33cdc3ebdfdd3538be49f208c134c4dd",
+      "size": 93331,
+      "sample_rate": 16000,
+      "samples": 76560,
+      "transcript": "CAN YOU IMAGINE WHY BUCKINGHAM HAS BEEN SO VIOLENT I SUSPECT"
+    },
+    {
+      "row": 9,
+      "id": "6930-75918-0009",
+      "file": "6930-75918-0009.flac",
+      "sha256": "def314bf5fa2c02ce5101bda550ee003760e4f4c3aa6f96699c3110c66be2048",
+      "size": 151437,
+      "sample_rate": 16000,
+      "samples": 116480,
+      "transcript": "IT IS YOU WHO ARE MISTAKEN RAOUL I HAVE READ HIS DISTRESS IN HIS EYES IN HIS EVERY GESTURE AND ACTION THE WHOLE DAY"
+    },
+    {
+      "row": 10,
+      "id": "6930-75918-0010",
+      "file": "6930-75918-0010.flac",
+      "sha256": "fa67866b5efc5df7fe35e2f27ad8f9d1f344f7848ce30d8b131f77a372f96add",
+      "size": 63884,
+      "sample_rate": 16000,
+      "samples": 48560,
+      "transcript": "I CAN PERCEIVE LOVE CLEARLY ENOUGH"
+    },
+    {
+      "row": 11,
+      "id": "6930-75918-0011",
+      "file": "6930-75918-0011.flac",
+      "sha256": "20e49ab7c5b418f379e775f2966616d1bd60fa6ef5d1ffc6d99de5b075e75284",
+      "size": 69623,
+      "sample_rate": 16000,
+      "samples": 51120,
+      "transcript": "I AM CONVINCED OF WHAT I SAY SAID THE COUNT"
+    },
+    {
+      "row": 12,
+      "id": "6930-75918-0012",
+      "file": "6930-75918-0012.flac",
+      "sha256": "c158fe562a03db715f581485e9d372003163a272113f38fe45336415997d0b5f",
+      "size": 41118,
+      "sample_rate": 16000,
+      "samples": 31040,
+      "transcript": "IT IS ANNOYANCE THEN"
+    },
+    {
+      "row": 13,
+      "id": "6930-75918-0013",
+      "file": "6930-75918-0013.flac",
+      "sha256": "83f99c357f446d1fddffc61c09f59eb8a41c82c5e4261db42c71396c537c409e",
+      "size": 62854,
+      "sample_rate": 16000,
+      "samples": 47040,
+      "transcript": "IN THOSE VERY TERMS I EVEN ADDED MORE"
+    },
+    {
+      "row": 15,
+      "id": "6930-75918-0015",
+      "file": "6930-75918-0015.flac",
+      "sha256": "93618408931cd8bcc83f064b61bf2413a0fbbed356f006ccfe80131d9966cf6d",
+      "size": 125093,
+      "sample_rate": 16000,
+      "samples": 102080,
+      "transcript": "THUS IT IS THAT THE HONOR OF THREE IS SAVED OUR COUNTRY'S OUR MASTER'S AND OUR OWN"
+    },
+    {
+      "row": 16,
+      "id": "6930-75918-0016",
+      "file": "6930-75918-0016.flac",
+      "sha256": "1309ce10b1ea54782b53f116697ec58eaf84525b396db3daca3e9e2f47c4edf8",
+      "size": 194565,
+      "sample_rate": 16000,
+      "samples": 160240,
+      "transcript": "YES I NEED REPOSE MANY THINGS HAVE AGITATED ME TO DAY BOTH IN MIND AND BODY WHEN YOU RETURN TO MORROW I SHALL NO LONGER BE THE SAME MAN"
+    },
+    {
+      "row": 17,
+      "id": "6930-75918-0017",
+      "file": "6930-75918-0017.flac",
+      "sha256": "1564e19057a9a89225cac9423544baa6f3fc71dd9dc8ba11f8ee86d5464bb1a4",
+      "size": 125731,
+      "sample_rate": 16000,
+      "samples": 98560,
+      "transcript": "BUT IN THIS FRIENDLY PRESSURE RAOUL COULD DETECT THE NERVOUS AGITATION OF A GREAT INTERNAL CONFLICT"
+    }
+  ]
+}

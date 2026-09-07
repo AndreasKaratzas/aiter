@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "areas": {
+    "standard": {
+      "description": "Preserved single-GPU operator drivers, divided into eight disjoint reviewed file lists.",
+      "minimum_gpus": 1,
+      "timeout_seconds": 5400,
+      "selectors": ["tests/operators/hip/test_*.py", "tests/operators/flydsl/test_*.py", "tests/operators/hip/drivers/*.py", "tests/operators/opus/test_opus_a8w8_bmm.py", "tests/operators/opus/test_opus_a16w16_gemm.py"],
+      "exclude_names": ["__init__.py"]
+    },
+    "multi-gpu": {
+      "description": "Preserved communication inventory; the driver retains its explicit unsupported-test exclusions and architecture gates.",
+      "minimum_gpus": 8,
+      "timeout_seconds": 7200,
+      "selectors": ["tests/integration/communication/**/*.py"],
+      "exclude_names": []
+    }
+  }
+}

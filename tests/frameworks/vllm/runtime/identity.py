@@ -80,3 +80,23 @@ def environment_identity():
         "rocm": torch.version.hip,
         "architecture": torch.cuda.get_device_properties(0).gcnArchName,
     }
+
+
+def tensor_identity(value):
+    """Observe logical dtype and actual byte storage for Torch or Triton tensor views."""
+    storage = getattr(value, "storage", None)
+    data = getattr(storage, "data", value) if not callable(storage) else value
+    logical = value.dtype
+    encoding = {
+        key: getattr(logical, key)
+        for key in ("bitwidth_exponent", "bitwidth_mantissa", "is_signed")
+        if hasattr(logical, key)
+    }
+    return {
+        "dtype": str(logical),
+        "shape": list(value.shape),
+        "encoding": encoding,
+        "storage_dtype": str(data.dtype),
+        "storage_shape": list(data.shape),
+        "storage_elements": data.numel(),
+    }

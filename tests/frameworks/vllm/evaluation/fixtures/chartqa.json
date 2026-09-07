@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "HuggingFaceM4/ChartQA",
+    "revision": "b605b6e08b57faf4359aeb2fe6a3ca595f99b6c5",
+    "file": "data/test-00000-of-00001-e2cd0b7a0f9eb20d.parquet",
+    "size": 68898419,
+    "sha256": "efcf31333368c485eb569ec7bd4cc3694bd0e8e1a06c503124b51d27c924491d",
+    "license": "GPL-3.0",
+    "url": "https://huggingface.co/datasets/HuggingFaceM4/ChartQA"
+  },
+  "selection": {
+    "human_or_machine": 0,
+    "count": 16,
+    "order": "first source-order human-authored test rows",
+    "minimum_accuracy": 0.5,
+    "numeric_relative_tolerance": 0.05,
+    "max_tokens": 32,
+    "scope": "Bounded human-authored ChartQA slice, not full benchmark or general multimodal support"
+  }
+}

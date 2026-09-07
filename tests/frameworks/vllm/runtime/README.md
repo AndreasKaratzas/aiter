@@ -4,7 +4,7 @@ These tests run real checkpoint weights through vLLM and inspect the workers tha
 
 ## Runtime ownership
 
-`protocol.py` validates bounded engine settings and batches. `engine.py` executes those batches through the public LLM API. `server.py` starts the real OpenAI API server on 127.0.0.1 and retains each HTTP request and response. `reference.py` provides an independent Transformers eager-attention oracle. Feature tests in `entrypoints/`, `evaluation/`, `models/`, `generation/`, `attention/`, `execution/`, `distributed/` and `quantization/` decide what observable behavior must hold.
+`protocol.py` validates bounded engine settings and batches. `engine.py` executes those batches through the public LLM API. `server.py` starts the real OpenAI API server on 127.0.0.1 and normally retains each HTTP request and response. Approved-data GPQA deliberately retains redacted scoring records instead of plaintext exchanges. `reference.py` provides an independent Transformers eager-attention oracle. Feature tests in `entrypoints/`, `evaluation/`, `models/`, `generation/`, `attention/`, `execution/`, `distributed/` and `quantization/` decide what observable behavior must hold.
 
 ```mermaid
 flowchart TD
@@ -22,13 +22,13 @@ flowchart TD
     O --> R[Qualification report]
 ```
 
-`ObservedWorker` installs operation and Triton-launch hooks before model loading. Every generation batch must show successful AITER normalization and unified-attention execution on each expected rank. Graph counts include only replay of a known successful capture containing those operations. Scheduling records come from the actual worker `execute_model` call and retain each request's token count. TP2 requires distinct ranks, processes and device UUIDs; it does not claim that AITER implements the collective transport.
+`ObservedWorker` installs operation and Triton-launch hooks before model loading. Every generation batch must show successful AITER normalization and the selected attention path on each expected rank. Unified attention requires kernel launches; FA requires the native FlashAttention entry; MLA requires its native entry and kernel evidence. MoE scenarios additionally require the selected native expert dispatch or AITER Triton expert kernel. Explicit native and Triton GPT-OSS selections are checked against the observed backend, so fallback cannot silently satisfy the request. Audio and chart cases separately require encoder FA. Graph counts include only replay of a known successful capture containing those operations. Scheduling records come from the actual worker `execute_model` call and retain each request's token count. TP2 requires distinct ranks, processes and device UUIDs; it does not claim that AITER implements the collective transport.
 
 The server uses vLLM's string-method observation RPC only on its loopback listener. Its public completion/chat requests run through the normal HTTP frontend and engine. Worker observations are reset after readiness, so warmup calls cannot satisfy the generation gate. Every child process group is terminated and reaped on success, failure or timeout, with execution evidence retained. The server's normal shutdown signal is recorded separately from the test outcome.
 
 ## Inputs and numerical contracts
 
-The single [client model registry](../../../../ci/clients/vllm/models.json) owns exact revisions, file sizes and hashes for real BF16 checkpoints: Llama-3.2-1B-Instruct, Qwen2.5-VL-3B-Instruct and Qwen3-1.7B. Tests and benchmarks share that registry. Model views contain only declared files, copied and verified before use, then rehashed afterward. Tests never download inputs implicitly.
+The single [client model registry](../../../../ci/clients/vllm/models.json) owns exact revisions, file sizes and hashes for seven real checkpoints: Llama-3.2-1B-Instruct, Qwen2.5-VL-3B-Instruct, Qwen3-1.7B, GPT-OSS-20B, DeepSeek-V2-Lite-Chat, Qwen3-0.6B-FP8 and Qwen3-ASR-0.6B. These include BF16, publisher block-FP8 and packed MXFP4 weights. Tests and benchmarks share that registry. Model views contain only declared files, copied and verified before use, then rehashed afterward. Tests never download inputs implicitly.
 
 The Llama checkpoint is distributed by Unsloth at revision `5a8abab4a5d6f164389b1079fb721cfab8d7126c` under the Llama 3.2 community license. Qwen2.5-VL uses revision `66285546d2b821cf421d4f5eb2576359d3770cd3`; Qwen3-1.7B uses `70d244cc86ccca08cf5af4e1e306ecf908b1ad5e`. Qwen3-1.7B uses Apache 2.0. Qwen2.5-VL-3B uses the [Qwen Research License](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/66285546d2b821cf421d4f5eb2576359d3770cd3/LICENSE). Admitted Qwen views retain the exact upstream license files. The Unsloth checkpoint provides its license identifier in its model card, which the Llama view retains. The registry identifies the exact repositories; model licenses remain the upstream publishers' terms.
 
@@ -62,8 +62,14 @@ Use the [qualification guide](../../../../ci/README.md) for sealed source/wheel 
 
 ## Explicit precision and context scenarios
 
-`EngineSettings` now makes BF16/FP16, 1024/4096 context capacity and 128/1024/4096 prefill budgets explicit. `Batch` accepts bounded text, token-ID or image prompts, with one representation per batch. Token prompts plus requested outputs must fit the declared context. Long-context tests use exact 2048/321/65-token inputs on Llama and Qwen, compare every greedy output, and inspect the worker's actual scheduling steps.
+`EngineSettings` makes BF16/FP16, 1024/4096/16384 context capacity, 128/1024/4096 prefill budgets, selected attention backend, expert execution, audio/image processing and bounded device-memory use explicit. `Batch` accepts bounded text, token-ID, image or recorded-audio prompts, with one representation per batch. Token prompts plus requested outputs must fit the declared context. Long-context tests use exact 2048/321/65-token inputs on Llama and Qwen, compare every greedy output, and inspect the worker's actual scheduling steps.
 
 The FP16 model cases compare every scored token with independent FP16 Transformers eager attention at maximum absolute error 0.10 and mean error 0.01, with exact greedy tokens. The same controlled BF16 generation remains a separate contrast. A preliminary cross-dtype Qwen comparison failed at one token despite matching greedy output; it is retained as diagnostic evidence, and does not justify loosening a same-dtype correctness bound. Reference request/model identity, actual dtype, model class and eager implementation are validated.
 
 Shared per-rank observation lives in `ci/clients/vllm/observation.py`, consumed by both these tests and the model benchmark. Tests retain operation/kernel/capture evidence; the benchmark disables operation wrappers and removes all trace hooks before timing. Benchmark identities additionally require unchanged post-probe counters, so an escaped wrapper cannot silently contaminate measured execution.
+
+## Speech, charts and expert-model evaluation
+
+The [dataset guide](../evaluation/README.md) owns exact row selections, original media, provenance and quality criteria for speech, ChartQA and GPQA. The real-model test environment additionally installs [vllm-models.txt](../../../../requirements/clients/vllm-models.txt), which declares SoundFile and PyArrow. Speech carries original file hashes, decoded sample counts and sample rates; images carry both original-byte and decoded-pixel hashes. One batch cannot mix prompt representations, and a modality cannot silently select a text-only engine.
+
+Workers record the actual model class, FP8 parameter inventory, expert quantization method, selected expert backend, logical encoding and physical packed weight storage. GPT-OSS tests distinguish tensor adapter checks, full-model reference checks and GPQA quality; none can substitute for another. DeepSeek tests inspect MLA and expert execution in the same real model. A declared backend or model name is insufficient evidence.

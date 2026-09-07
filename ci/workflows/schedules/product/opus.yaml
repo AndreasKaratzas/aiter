@@ -1,0 +1,10 @@
+name: Schedule product-opus
+
+on:
+  schedule:
+    - cron: '0 22 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/product-opus.yaml
+    secrets: inherit

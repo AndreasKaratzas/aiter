@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 
 from ci.common.json import load_json, require
 
-DOMAINS = {"common", "host", "product", "clients", "release"}
+DOMAINS = {"common", "host", "product", "clients", "release", "schedules"}
 EXTENSIONS = {".yaml", ".yml"}
 LOCAL_CALL = re.compile(r"uses:\s*[\"\']?\./\.github/workflows/([^\s\"\']+)")
 
@@ -79,20 +79,22 @@ def load_sources(root: Path) -> tuple[dict, dict[str, bytes]]:
             str(parts) == source
             and not parts.is_absolute()
             and ".." not in parts.parts
-            and len(parts.parts) >= (3 if domain == "clients" else 2)
+            and len(parts.parts) >= (3 if domain in {"clients", "schedules"} else 2)
             and parts.parts[0] == domain,
             "workflow source must have a canonical owner path",
         )
         require(
             isinstance(filename, str)
             and re.fullmatch(
-                r"(?:common|host|product|client|release)-[a-z0-9-]+\.(?:yaml|yml)",
+                r"(?:common|host|product|client|release|schedule)-[a-z0-9-]+\.(?:yaml|yml)",
                 filename,
             ),
             "invalid flat workflow filename",
         )
         require(
-            filename.startswith(("client" if domain == "clients" else domain) + "-")
+            filename.startswith(
+                {"clients": "client", "schedules": "schedule"}.get(domain, domain) + "-"
+            )
             or (domain, source, filename)
             == ("common", "common/run-profile.yaml", "product-run-profile.yaml"),
             "workflow filename does not match its domain",

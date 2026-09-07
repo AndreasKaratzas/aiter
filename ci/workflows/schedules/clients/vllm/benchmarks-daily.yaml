@@ -1,0 +1,19 @@
+name: Schedule client-vllm-model-benchmarks daily
+
+on:
+  schedule:
+    - cron: '45 19 * * *'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  run:
+    uses: ./.github/workflows/client-vllm-model-benchmarks.yaml
+    with:
+      benchmark_profile: 'smoke'
+      gpus: '0'
+      benchmark_cases: ''
+    secrets: inherit

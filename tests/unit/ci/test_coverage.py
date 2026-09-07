@@ -86,6 +86,31 @@ class SelectionInventoryTests(unittest.TestCase):
         self.assertEqual(len(product["files"]), 2)
         self.assertEqual([group["name"] for group in product["groups"]], ["math"])
 
+    def test_human_inventory_exposes_model_and_execution_prerequisites(self):
+        self.catalog["groups"]["math"].update(
+            gpus=2,
+            architectures=["gfx950"],
+            timeout_seconds=1800,
+            pytest_options=["--run-e2e"],
+            model_manifest="ci/clients/vllm/models.json",
+        )
+        report = selection_inventory(self.catalog, self.root)
+        group = report["groups"][0]
+        self.assertEqual(group["timeout_seconds"], 1800)
+        self.assertEqual(group["model_manifest"], "ci/clients/vllm/models.json")
+        text = render_inventory(report)
+        for expected in (
+            "Fixture host",
+            "2 GPU(s)",
+            "gfx950",
+            "1800 seconds",
+            "--run-e2e",
+            "ci/clients/vllm/models.json",
+            "Execution subject: candidate",
+        ):
+            self.assertIn(expected, text)
+        self.assertIn("minimum requirements, not a scheduler reservation", text)
+
     def test_both_pytest_filename_patterns_appear_even_without_selection(self):
         selected = self.root / "tests/unit/math_test.py"
         selected.write_text("raise RuntimeError('must not import')\n")
@@ -139,6 +164,45 @@ class SelectionInventoryTests(unittest.TestCase):
 
 
 class FeatureSelectionTests(unittest.TestCase):
+    def test_blas_tuning_lifecycle_is_selected_without_claiming_optional_support(self):
+        catalog = load_catalog()
+        group = catalog["groups"]["blas-tuning"]
+        self.assertEqual(
+            group["targets"], ["tests/integration/runtime/test_blas_tuning.py"]
+        )
+        self.assertEqual(group["architectures"], ["gfx950"])
+        self.assertEqual(group["gpus"], 1)
+        self.assertEqual(group["minimum_cases"], 2)
+        self.assertEqual(group["timeout_seconds"], 600)
+        source = {"revision": "a" * 40}
+        for profile in (
+            "product-fast",
+            "product-nightly",
+            "product-extended",
+            "product-features",
+        ):
+            with self.subTest(profile=profile):
+                plan = plan_tests(
+                    catalog,
+                    profile,
+                    ["csrc/blas/hipbsolgemm.cu"],
+                    source,
+                    architecture="gfx950",
+                )
+                self.assertIn("blas-tuning", plan["groups"])
+                self.assertNotIn("vllm-hipblaslt", plan["groups"])
+                other = plan_tests(
+                    catalog,
+                    profile,
+                    ["csrc/blas/hipbsolgemm.cu"],
+                    source,
+                    architecture="gfx942",
+                )
+                self.assertNotIn("blas-tuning", other["groups"])
+                self.assertIn("blas-tuning", other["not_applicable"])
+        for profile in ("vllm-operators", "vllm-nightly", "vllm-extended"):
+            self.assertNotIn("blas-tuning", catalog["profiles"][profile]["groups"])
+
     def test_product_changes_select_their_numerical_area_and_client_dependants(self):
         catalog = load_catalog()
         root = source_root()

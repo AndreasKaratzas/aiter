@@ -6,7 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from ci.clients.vllm.datasets import required_inputs
 from ci.common.json import require, write_json
+from ci.pipelines.process import Process
 
 
 def provision_models(
@@ -71,3 +73,30 @@ def provision_models(
                     timeout=3600,
                     check=True,
                 )
+        inputs = required_inputs(plan["groups"], root=controls)
+        if inputs:
+            write_json(
+                provisioning / "datasets-request.json",
+                {
+                    "control_source": request["control_source"],
+                    "plan_digest": plan["plan_digest"],
+                    "inputs": inputs,
+                },
+            )
+            Process(
+                provisioning / "datasets", executable=python or sys.executable
+            ).command(
+                [
+                    "-m",
+                    "ci.clients.vllm.datasets",
+                    "--groups",
+                    ",".join(sorted(plan["groups"])),
+                    "--cache-dir",
+                    str(model_cache),
+                    "--output",
+                    str(provisioning / "datasets-receipt.json"),
+                ],
+                cwd=controls,
+                env=dict(os.environ, PYTHONPATH=str(controls)),
+                timeout=3600,
+            )

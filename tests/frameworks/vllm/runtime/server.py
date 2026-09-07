@@ -18,13 +18,13 @@ from common.paths import expected_package_root
 from common.process import close_process_group
 
 from .engine import options_for
-from .evidence import observed, validate_origins
+from .evidence import observed, validate_attention, validate_experts, validate_origins
 from .execution import engine_environment
 from .protocol import EngineSettings, require
 
 
 class Server:
-    def __init__(self, url, directory, model, environment):
+    def __init__(self, url, directory, model, environment, settings=None):
         require(
             url.startswith("http://127.0.0.1:"), "Test server must be loopback-only"
         )
@@ -32,6 +32,7 @@ class Server:
         self.directory = directory
         self.model = model
         self.environment = environment
+        self.settings = settings or EngineSettings()
         self.sequence = 0
         self._sequence_lock = threading.Lock()
 
@@ -99,10 +100,9 @@ class Server:
             observed(workers[0], "operations", "rms_norm") > 0,
             "Server request bypassed AITER normalization",
         )
-        require(
-            observed(workers[0], "kernels", "unified_attention") > 0,
-            "Server request bypassed AITER attention",
-        )
+        validate_attention(workers[0], self.settings.attention_backend)
+        if self.settings.moe:
+            validate_experts(workers[0], self.settings.moe_backend)
         validate_origins(
             identities,
             expected_package_root(),
@@ -148,7 +148,11 @@ def running_server(model, directory, *, settings=None, startup_timeout=1800):
         reservation.bind(("127.0.0.1", 0))
         port = reservation.getsockname()[1]
     options = options_for(settings, model)
-    options.update(max_model_len=4096, max_num_seqs=8, max_num_batched_tokens=1024)
+    options.update(
+        max_model_len=max(4096, settings.max_model_len),
+        max_num_seqs=8,
+        max_num_batched_tokens=1024,
+    )
     argv = [
         sys.executable,
         "-m",
@@ -185,7 +189,7 @@ def running_server(model, directory, *, settings=None, startup_timeout=1800):
     environment = engine_environment(settings)
     # Development RPC exposes string-only observation methods on loopback, never a public listener.
     environment.update(VLLM_SERVER_DEV_MODE="1", VLLM_ENABLE_V1_MULTIPROCESSING="1")
-    server = Server(f"http://127.0.0.1:{port}", directory, model, environment)
+    server = Server(f"http://127.0.0.1:{port}", directory, model, environment, settings)
     start = time.monotonic()
     record = {
         "argv": argv,

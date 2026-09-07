@@ -19,17 +19,30 @@ def evaluate(request):
     tokenizer = AutoTokenizer.from_pretrained(
         request["model"]["snapshot"], local_files_only=True
     )
-    model = (
-        AutoModelForCausalLM.from_pretrained(
-            request["model"]["snapshot"],
-            local_files_only=True,
-            trust_remote_code=False,
-            dtype=getattr(torch, dtype),
-            attn_implementation="eager",
+    extra = {}
+    if request.get("dequantize_mxfp4", False):
+        from transformers import Mxfp4Config
+
+        extra["quantization_config"] = Mxfp4Config(dequantize=True)
+    if request.get("dequantize_fp8", False):
+        from frameworks.vllm.evaluation.fp8_reference import load_reference
+
+        if extra:
+            raise ValueError("Reference quantization formats are mutually exclusive")
+        model = load_reference(request["model"]["snapshot"], getattr(torch, dtype))
+    else:
+        model = (
+            AutoModelForCausalLM.from_pretrained(
+                request["model"]["snapshot"],
+                local_files_only=True,
+                trust_remote_code=False,
+                dtype=getattr(torch, dtype),
+                attn_implementation="eager",
+                **extra,
+            )
+            .to("cuda")
+            .eval()
         )
-        .to("cuda")
-        .eval()
-    )
     outputs = []
     with torch.inference_mode():
         for prompt in request["prompts"]:
@@ -63,6 +76,8 @@ def evaluate(request):
             },
         },
         "model_class": type(model).__module__ + "." + type(model).__name__,
+        "dequantized_mxfp4": bool(request.get("dequantize_mxfp4", False)),
+        "dequantized_fp8": bool(request.get("dequantize_fp8", False)),
     }
 
 

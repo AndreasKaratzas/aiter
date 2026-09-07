@@ -1,0 +1,17 @@
+name: Schedule release-nightly
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  run:
+    uses: ./.github/workflows/release-nightly.yaml
+    secrets: inherit

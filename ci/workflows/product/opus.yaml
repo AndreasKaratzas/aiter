@@ -1,6 +1,7 @@
 name: OPUS Test
 
 on:
+  workflow_call:
   push:
     branches: [main]
   pull_request:
@@ -13,9 +14,6 @@ on:
       - '.gitignore'
 
   workflow_dispatch:
-  schedule:
-    - cron: '0 22 * * *'
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}

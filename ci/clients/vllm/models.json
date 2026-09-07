@@ -138,6 +138,186 @@
           "git_blob_sha1": "6634c8cc3133b3848ec74b9f275acaaa1ea618ab"
         }
       }
+    },
+    "gpt_oss_20b": {
+      "repository": "openai/gpt-oss-20b",
+      "revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+      "files": {
+        "LICENSE": {
+          "size": 11357,
+          "git_blob_sha1": "7a4a3ea2424c09fbe48d455aed1eaa94d9124835"
+        },
+        "USAGE_POLICY": {
+          "size": 200,
+          "git_blob_sha1": "b030f63aecc61cbaf2316a7b6401254f4312df74"
+        },
+        "chat_template.jinja": {
+          "size": 16738,
+          "git_blob_sha1": "dc7bb11927d29f653ba2740f2db2c688fd77592f"
+        },
+        "config.json": {
+          "size": 1806,
+          "git_blob_sha1": "8fb5a4a03376ab5a12afd94b4ed93da61edf5b1c"
+        },
+        "generation_config.json": {
+          "size": 177,
+          "git_blob_sha1": "86f91466555bd40e3de0b1edee3d5d82f4ccdbfe"
+        },
+        "model-00000-of-00002.safetensors": {
+          "size": 4792272488,
+          "sha256": "16d0f997dcfc4462089d536bffe51b4bcea2f872f5c430be09ef8ed392312427"
+        },
+        "model-00001-of-00002.safetensors": {
+          "size": 4798702184,
+          "sha256": "4fbe328ab445455d6f58dc73852b85873bd626986310abd91cd4d2ce3245eaea"
+        },
+        "model-00002-of-00002.safetensors": {
+          "size": 4170342232,
+          "sha256": "a18106b209e9ab35c3406db4f6f12a927364a058b21e9d1373d682e20674b303"
+        },
+        "model.safetensors.index.json": {
+          "size": 36355,
+          "git_blob_sha1": "ae08521471ab125be4af84d0e51ecfc245830119"
+        },
+        "special_tokens_map.json": {
+          "size": 98,
+          "git_blob_sha1": "73bd12e55e2004cdfff088f85092b39dba2ccdd0"
+        },
+        "tokenizer.json": {
+          "size": 27868174,
+          "sha256": "0614fe83cadab421296e664e1f48f4261fa8fef6e03e63bb75c20f38e37d07d3"
+        },
+        "tokenizer_config.json": {
+          "size": 4200,
+          "git_blob_sha1": "c021cddb0a9dd35b1bf83a9f145be2d9b3757891"
+        }
+      }
+    },
+    "qwen3_asr_0_6b": {
+      "repository": "Qwen/Qwen3-ASR-0.6B",
+      "revision": "5eb144179a02acc5e5ba31e748d22b0cf3e303b0",
+      "files": {
+        "chat_template.json": {
+          "size": 1161,
+          "git_blob_sha1": "c44736493efd71ec96218cc626904698cdb13235"
+        },
+        "config.json": {
+          "size": 6193,
+          "git_blob_sha1": "8113d596dec2d1a2ef4552edfe005ee84d16d9ec"
+        },
+        "generation_config.json": {
+          "size": 142,
+          "git_blob_sha1": "7382a4d347c0a865b76bb1b8277f66a5ac312854"
+        },
+        "merges.txt": {
+          "size": 1671853,
+          "git_blob_sha1": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
+        },
+        "model.safetensors": {
+          "size": 1876091704,
+          "sha256": "79d6cbd4c98c7bbffe9db2edac07f56cd6637d0d5944b27f6c2b8353840323ea"
+        },
+        "preprocessor_config.json": {
+          "size": 330,
+          "git_blob_sha1": "8f7f07346466d5d494ec0d4969d1c3d0190eed72"
+        },
+        "tokenizer_config.json": {
+          "size": 12487,
+          "git_blob_sha1": "b93109843922a40c6654c5449d3bf95372267c66"
+        },
+        "vocab.json": {
+          "size": 2776833,
+          "git_blob_sha1": "4783fe10ac3adce15ac8f358ef5462739852c569"
+        },
+        "README.md": {
+          "size": 57456,
+          "git_blob_sha1": "3a67d43f21febda213ff36efdb60ef10019af7f3"
+        }
+      }
+    },
+    "deepseek_v2_lite_chat": {
+      "repository": "deepseek-ai/DeepSeek-V2-Lite-Chat",
+      "revision": "85864749cd611b4353ce1decdb286193298f64c7",
+      "files": {
+        "LICENSE": {
+          "size": 13759,
+          "git_blob_sha1": "ac09290cb2947183ab7f19d7477511dad3600a7a"
+        },
+        "config.json": {
+          "size": 1522,
+          "git_blob_sha1": "a1aa8126bbf462cbec8fcc79e8c98d8d87f5c7ed"
+        },
+        "generation_config.json": {
+          "size": 181,
+          "git_blob_sha1": "458e1d985ba3fbaaf62a4d1a9dd6ff795a451f7e"
+        },
+        "model-00001-of-000004.safetensors": {
+          "size": 8594887408,
+          "sha256": "a314b79a30810b1038f9db08345178e16fb5742aa266c4a3dc05054c59800082"
+        },
+        "model-00002-of-000004.safetensors": {
+          "size": 8591757448,
+          "sha256": "b0bd088feada0af954614da3a5b179c4d4d5d8bb2482ec83194d101f3fe91796"
+        },
+        "model-00003-of-000004.safetensors": {
+          "size": 8590718520,
+          "sha256": "d31b192e488f0b3a04e007d842c3c9ba5783d944cb1cc27402fe8b8bb837c490"
+        },
+        "model-00004-of-000004.safetensors": {
+          "size": 5636263200,
+          "sha256": "304499be0ea06bf8a3937d7a3cc515bc3738dbd288bdd0bbc1b2d3560fce4930"
+        },
+        "model.safetensors.index.json": {
+          "size": 479924,
+          "git_blob_sha1": "5a821356160292c668d01f8e7fdf9abba4a7b72d"
+        },
+        "tokenizer.json": {
+          "size": 4607451,
+          "git_blob_sha1": "8b284e5afe1730e31c97ed5c3bdf240adbd15c86"
+        },
+        "tokenizer_config.json": {
+          "size": 1279,
+          "git_blob_sha1": "685b4b63ad1aedad8f98824ab21d2ff422d9e1b1"
+        }
+      }
+    },
+    "qwen3_0_6b_fp8": {
+      "repository": "Qwen/Qwen3-0.6B-FP8",
+      "revision": "e5be08033360965ceca7b0ffd72d521a51331ce0",
+      "files": {
+        "LICENSE": {
+          "size": 11343,
+          "git_blob_sha1": "6634c8cc3133b3848ec74b9f275acaaa1ea618ab"
+        },
+        "config.json": {
+          "size": 894,
+          "git_blob_sha1": "2a54038f9fabc193fd0e992ba2052075fc04a5a3"
+        },
+        "generation_config.json": {
+          "size": 121,
+          "git_blob_sha1": "632c6f654084aa5ab3aab17a661a04eeb624695c"
+        },
+        "merges.txt": {
+          "size": 1671853,
+          "git_blob_sha1": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
+        },
+        "model.safetensors": {
+          "size": 1062975744,
+          "sha256": "0ea0df1b2e16e0039d33f7381a47a157735963ac201e9dc4780be174a2283510"
+        },
+        "tokenizer.json": {
+          "size": 11422654,
+          "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+        },
+        "tokenizer_config.json": {
+          "size": 9732,
+          "git_blob_sha1": "417d038a63fa3de29cfde265caedae14d1a58d92"
+        },
+        "vocab.json": {
+          "size": 2776833,
+          "git_blob_sha1": "4783fe10ac3adce15ac8f358ef5462739852c569"
+        }
+      }
     }
   }
 }

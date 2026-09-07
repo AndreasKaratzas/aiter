@@ -54,6 +54,7 @@ class Docker(Process):
                 "ci.pipelines.container",
                 "ci.pipelines.nightly",
                 "ci.pipelines.benchmarks",
+                "ci.pipelines.product",
             },
             "unknown container controller",
         )

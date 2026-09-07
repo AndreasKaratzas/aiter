@@ -239,9 +239,12 @@ __device__ std::tuple<float, DTYPE_I*> data_to_per_row_scale(const DTYPE_I* __re
 
     absMax = block_reduce<float, aiter::Max, BlockSize, true>(absMax, aiter::Max());
 
+    // Match the group-quantization floor: an all-zero tensor or row must not
+    // produce a zero dequantization scale and an infinite quantization multiplier.
+    // MXFP4 retains its separate E8M0 scale policy.
     float row_scale = std::is_same_v<DTYPE_O, opus::fp4_t>
                           ? aiter::fp4_f32_to_e8m0_scale(absMax)
-                          : absMax * inverted_DTYPE_MAX;
+                          : max(absMax, 1e-10f) * inverted_DTYPE_MAX;
     return std::make_tuple(row_scale, reinterpret_cast<DTYPE_I*>(&vec_cur));
 }
 

@@ -12,6 +12,7 @@
 #include "aiter_stream.h"
 #include "aiter_hip_common.h"  // HipDeviceGuard, get_gpu_arch
 #include "rocm_ops.hpp"        // pybind11 + namespace py + aiter_tensor_t caster
+#include <algorithm>
 #include <array>
 
 // #include <rocblas/rocblas.h>
@@ -580,9 +581,6 @@ hipblasStatus_t hipblasLt_online_tuning(
   hipEvent_t  event_gpu_time_start, event_gpu_time_end;
   hipblasStatus_t status;
 
-  hipEventCreate(&event_gpu_time_start);
-  hipEventCreate(&event_gpu_time_end);
-
   size_t best_sol       = -1;
   double best_gpu_time  = std::numeric_limits<double>::max();
   double best_warm_time = std::numeric_limits<double>::max();
@@ -590,14 +588,30 @@ hipblasStatus_t hipblasLt_online_tuning(
   const int requested_solutions = 32;
   int returnedAlgoCount = 0;
   std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResult(requested_solutions);
+  tunedResults.clear();
 
   CHECK_HIPBLAS_ERROR(hipblasLtMatmulAlgoGetHeuristic(
     hipblaslt_handle, matmulDesc, ADesc, BDesc, CDesc, CDesc, preference,
     requested_solutions, heuristicResult.data(), &returnedAlgoCount));
 
+  // The library may return fewer candidates than requested, including none.
+  // Do not allocate tuning resources or launch default-initialized algorithms.
+  if (returnedAlgoCount <= 0 || returnedAlgoCount > requested_solutions)
+    return HIPBLAS_STATUS_NOT_SUPPORTED;
+  heuristicResult.resize(returnedAlgoCount);
+  heuristicResult.erase(
+      std::remove_if(heuristicResult.begin(), heuristicResult.end(),
+                     [](const auto& result) { return result.state != HIPBLAS_STATUS_SUCCESS; }),
+      heuristicResult.end());
+  if (heuristicResult.empty())
+    return HIPBLAS_STATUS_NOT_SUPPORTED;
+
+  hipEventCreate(&event_gpu_time_start);
+  hipEventCreate(&event_gpu_time_end);
+
   size_t workspace_size = 0;
-  for (int i = 0; i < returnedAlgoCount; i++)
-    workspace_size = std::max(workspace_size, heuristicResult[i].workspaceSize);
+  for (const auto& result : heuristicResult)
+    workspace_size = std::max(workspace_size, result.workspaceSize);
 
   // adaptive iteration
   float MNK = m * n * k / 1024 / 1024;
@@ -627,6 +641,7 @@ hipblasStatus_t hipblasLt_online_tuning(
   float skip_slow_solution_ratio = 0.8;
 
   for (int sol = 0; sol < heuristicResult.size(); sol++) {
+    bool solution_valid = true;
     // warm-up
     pre_gpu_time(event_gpu_time_start, gpu_time_used, stream);
     for (int i = 0; i < warmup_iters; i++) {
@@ -647,8 +662,14 @@ hipblasStatus_t hipblasLt_online_tuning(
                     workspace, 
                     workspaceSize, 
                     stream);
+        if (status != HIPBLAS_STATUS_SUCCESS) {
+            solution_valid = false;
+            break;
+        }
     }
     post_gpu_time(event_gpu_time_start, event_gpu_time_end, gpu_time_used, stream);
+    if (!solution_valid)
+      continue;
     best_warm_time = best_warm_time < gpu_time_used ? best_warm_time : gpu_time_used;
     
     if (gpu_time_used * skip_slow_solution_ratio > best_warm_time) {
@@ -675,8 +696,14 @@ hipblasStatus_t hipblasLt_online_tuning(
                     workspace, 
                     workspaceSize, 
                     stream);
+        if (status != HIPBLAS_STATUS_SUCCESS) {
+            solution_valid = false;
+            break;
+        }
     }
     post_gpu_time(event_gpu_time_start, event_gpu_time_end, gpu_time_used, stream);
+    if (!solution_valid)
+      continue;
 
     if (best_gpu_time > gpu_time_used) {
       best_sol      = sol;
@@ -695,7 +722,8 @@ hipblasStatus_t hipblasLt_online_tuning(
   CHECK_HIP_ERROR(hipFree(B_rotate));
   CHECK_HIP_ERROR(hipFree(C_rotate));
 
-  tunedResults.clear();
+  if (best_sol >= heuristicResult.size())
+    return HIPBLAS_STATUS_NOT_SUPPORTED;
   tunedResults.push_back(heuristicResult[best_sol]);
 
   return HIPBLAS_STATUS_SUCCESS;
@@ -883,7 +911,7 @@ hipblasStatus_t hipblasLtMatmul_sol_wrapper(hipblasLtHandle_t handle,
         size_dC = ldc * n;
         int64_t totalRotatingSizeNeeded = (size_dA + size_dB) * realDataTypeSize(intype) + (2 * size_dC + 2 * m + n) * realDataTypeSize(outtype);
 
-        hipblasLt_online_tuning(      
+        const auto tuning_status = hipblasLt_online_tuning(
 	        handle, m, n, k,
             matmul, matA, matB, matC,
             a, b, c,
@@ -891,6 +919,22 @@ hipblasStatus_t hipblasLtMatmul_sol_wrapper(hipblasLtHandle_t handle,
             heuristicResult, 
             size_dA, size_dB, size_dC, totalRotatingSizeNeeded, intype, outtype,
             stream);
+
+        if (tuning_status != HIPBLAS_STATUS_SUCCESS) {
+            // These descriptors belong to this wrapper, not the tuner.
+            CHECK_HIPBLAS_ERROR(hipblasLtMatmulDescDestroy(matmul));
+            CHECK_HIPBLAS_ERROR(hipblasLtMatrixLayoutDestroy(matA));
+            CHECK_HIPBLAS_ERROR(hipblasLtMatrixLayoutDestroy(matB));
+            CHECK_HIPBLAS_ERROR(hipblasLtMatrixLayoutDestroy(matC));
+            AITER_CHECK(
+                false, "hipBLASLt online tuning found 0 valid solutions for ",
+                (op_A == HIPBLAS_OP_N ? "N" : "T"),
+                (op_B == HIPBLAS_OP_N ? "N" : "T"),
+                " (", m, ", ", n, ", ", k, "), intype: ", intype,
+                ", outtype: ", outtype,
+                ", use_rowwise: ", use_rowwise,
+                ", bpreshuffle: ", bpreshuffle);
+        }
       
         append_hip_tuning_csv(
             heuristicResult[0].algo, "./hip_online_tuning_res.csv",
@@ -1454,6 +1498,4 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
           py::arg("use_gelu")    = false);
     m.def("getHipblasltKernelName", &getHipblasltKernelName);
 }
-
-
 

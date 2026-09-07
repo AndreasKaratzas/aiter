@@ -1,0 +1,5 @@
+# Recorded speech fixture
+
+These 16 FLAC files retain the original audio bytes from the LibriSpeech ASR test-clean split, distributed by [OpenSLR](https://www.openslr.org/12). They are real recorded utterances with human reference transcripts, selected in source order by the duration and sample-rate rule in `manifest.json`. The first four form a bounded smoke slice; the complete retained slice has 16 utterances. This is not a whole-corpus speech benchmark.
+
+The source is `openslr/librispeech_asr` at revision `71cacbfb7e2354c4226d01e70d77d5fca3d04ba1`, file `clean/test/0000.parquet`, SHA256 `7113aa4c3cf963fb54697145719a7725f984c8836d1c494a554cbb9f1a017df0`. The manifest retains original row positions, utterance IDs, transcripts, sample counts and hashes. LibriSpeech is distributed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); attribution: Vassil Panayotov, Guoguo Chen, Daniel Povey and Sanjeev Khudanpur, *LibriSpeech: an ASR corpus based on public domain audio books*, ICASSP 2015. Source audio and transcripts are unchanged.

@@ -1,0 +1,16 @@
+name: Schedule host-update-test-inventory
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  run:
+    uses: ./.github/workflows/host-update-test-inventory.yaml
+    secrets: inherit

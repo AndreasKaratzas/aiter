@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
+
+from ci.common.json import digest, parse_json, require, write_json
+from ci.pipelines.docker import Docker
+from ci.pipelines.process import Process
+from ci.qualification.isolation import CACHE_DIRECTORIES
+from ci.release.artifacts import hash_file
+from ci.release.wheels import collect_source_identity
 
 TESTS = json.loads(Path(__file__).with_name("canaries.json").read_text())["cases"]
 
@@ -134,6 +143,237 @@ def patch_sglang_checkout() -> None:
     root = Path(sys.argv[2])
     for patch in SGLANG_CI_PATCHES:
         replace_once(root, patch)
+
+
+def prepare_checkout(workspace: Path, container: str, git: Process) -> dict:
+    """Resolve the upstream AMD platform branch, then retain every local patch."""
+    git.command(
+        [
+            "clone",
+            "--depth",
+            "1",
+            "--branch",
+            "amd/aiter-ci",
+            "https://github.com/sgl-project/sglang.git",
+            str(workspace),
+        ]
+    )
+    revision = git.command(["-C", str(workspace), "rev-parse", "HEAD"]).strip()
+    require(re.fullmatch(r"[0-9a-f]{40}", revision), "invalid SGLang revision")
+    for patch in SGLANG_CI_PATCHES:
+        replace_once(workspace, patch)
+    for path in (workspace / "scripts/ci/amd").glob("*.sh"):
+        text = path.read_text()
+        if "ci_sglang" in text:
+            path.write_text(text.replace("ci_sglang", container))
+    for relative in ("python/sglang/kernels/aot", "python"):
+        require((workspace / relative).is_dir(), "upstream SGLang layout changed")
+    return {
+        "revision": revision,
+        "branch": "amd/aiter-ci",
+        "patched_files": {
+            str(path.relative_to(workspace)): hash_file(path)
+            for path in sorted((workspace / "scripts/ci/amd").glob("*.sh"))
+        },
+        "patches": SGLANG_CI_PATCHES,
+    }
+
+
+def install_candidate(
+    source: Path, controls: Path, container: str, docker: Docker, caches: dict
+):
+    """Install the selected local bytes after upstream dependencies; gate imports."""
+    from ci.qualification.isolation import BUILD_OPTIONS, RESERVED
+
+    def execute(arguments, cwd="/tmp"):
+        command = ["exec", "-w", cwd]
+        for key, value in {**caches, "AITER_USE_SYSTEM_TRITON": "1"}.items():
+            command += ["-e", key + "=" + value]
+        command += [container, "env"]
+        for key in sorted((RESERVED | BUILD_OPTIONS | {"PYTHONPATH"}) - set(caches)):
+            command += ["-u", key]
+        return docker.command(command + arguments)
+
+    docker.command(
+        [
+            "cp",
+            str(controls / "requirements/clients/sglang-models.txt"),
+            container + ":/tmp/aiter-client-requirements.txt",
+        ]
+    )
+    execute(
+        ["python3", "-m", "pip", "install", "-r", "/tmp/aiter-client-requirements.txt"]
+    )
+    docker.command(["cp", str(source), container + ":/tmp/aiter-under-test"])
+    execute(["python3", "-m", "pip", "uninstall", "-y", "amd-aiter", "aiter"])
+    execute(["python3", "-m", "pip", "install", "-e", "."], cwd="/tmp/aiter-under-test")
+    execute(
+        [
+            "python3",
+            "-c",
+            (
+                "import aiter,sglang,json; from pathlib import Path; "
+                "p=Path(aiter.__file__).resolve(); "
+                "exec(\"if not p.is_relative_to(Path('/tmp/aiter-under-test/aiter')): raise RuntimeError('candidate import differs')\"); "
+                "print(json.dumps({'aiter':str(p),'sglang':sglang.__file__}))"
+            ),
+        ]
+    )
+    execute(["python3", "-m", "pip", "freeze", "--all"])
+
+
+def run(
+    *,
+    source: Path,
+    controls: Path,
+    output: Path,
+    case: dict,
+    git: Process | None = None,
+    bash: Process | None = None,
+    docker: Docker | None = None,
+):
+    """Own the complete rolling upstream adapter; its results remain canaries."""
+    from ci.pipelines.canaries import selected_case, sglang_model
+
+    selected_case("sglang", case)
+    source, controls, output = (path.resolve() for path in (source, controls, output))
+    require(
+        not output.exists() and source != controls,
+        "use fresh evidence and distinct controls",
+    )
+    require(
+        not output.is_relative_to(source) and not output.is_relative_to(controls),
+        "evidence must be external",
+    )
+    identities = {
+        "candidate": collect_source_identity(source).to_dict(),
+        "controls": collect_source_identity(controls).to_dict(),
+    }
+    output.mkdir(parents=True)
+    write_json(
+        output / "request.json",
+        {"classification": "rolling-upstream-canary", "case": case, **identities},
+    )
+    git = git or Process(output / "git", executable="git")
+    bash = bash or Process(output / "platform", executable="bash")
+    docker = docker or Docker(output / "docker")
+    container = "aiter-sglang-" + digest(str(output)).split(":")[1][:20]
+    workspace = output / "sglang"
+    caches = {
+        key: "/tmp/" + container + "/" + directory
+        for key, directory in CACHE_DIRECTORIES.items()
+    }
+    environment = {
+        **os.environ,
+        "GITHUB_WORKSPACE": str(workspace),
+        "GPU_ARCH": "gfx950",
+        "SGLANG_CI_HOSTNAME_OVERRIDE": "linux-mi35x-gpu-8",
+    }
+    status = {
+        "status": "FAIL",
+        "stage": "checkout",
+        "container": container,
+        "cleanup_problems": [],
+    }
+    failure = None
+    # Upstream xtrace can expose Docker environment values. Credentials are
+    # not evidence; send shell traces to a private null descriptor.
+    platform_shell = [
+        "-c",
+        'exec 9>/dev/null; export BASH_XTRACEFD=9; exec bash "$@"',
+        "sglang-platform",
+    ]
+    try:
+        write_json(
+            output / "upstream.json", prepare_checkout(workspace, container, git)
+        )
+        status["stage"] = "platform"
+        bash.command(
+            platform_shell
+            + ["scripts/ci/amd/amd_ci_start_container.sh", "--rocm-version", "rocm720"],
+            cwd=workspace,
+            env=environment,
+        )
+        for key, value in (("global.default-timeout", "60"), ("global.retries", "10")):
+            docker.command(
+                [
+                    "exec",
+                    "-u",
+                    "root",
+                    container,
+                    "python3",
+                    "-m",
+                    "pip",
+                    "config",
+                    "set",
+                    key,
+                    value,
+                ]
+            )
+        bash.command(
+            platform_shell
+            + ["scripts/ci/amd/amd_ci_install_dependency.sh", "--skip-aiter-build"],
+            cwd=workspace,
+            env=environment,
+        )
+        status["stage"] = "candidate-import"
+        install_candidate(source, controls, container, docker, caches)
+        status["stage"] = "model"
+        sglang_model(
+            container=container,
+            case=case,
+            output=output / "model",
+            docker=docker,
+            caches=caches,
+        )
+        summary = workspace / "github_summary.md"
+        if summary.is_file() and os.environ.get("GITHUB_STEP_SUMMARY"):
+            with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as stream:
+                stream.write(summary.read_text())
+        require(
+            identities
+            == {
+                "candidate": collect_source_identity(source).to_dict(),
+                "controls": collect_source_identity(controls).to_dict(),
+            },
+            "candidate or controls changed during SGLang execution",
+        )
+        status["status"] = "PASS"
+    except BaseException as error:
+        failure = error
+        status["error"] = f"{type(error).__name__}: {error}"
+        raise
+    finally:
+        try:
+            docker.command(["rm", "--force", "--volumes", container], timeout=120)
+        except (ValueError, OSError) as error:
+            status["cleanup_problems"].append(str(error))
+            status["status"] = "FAIL"
+        try:
+            write_json(output / "status.json", status)
+        except OSError as error:
+            if failure is None:
+                raise
+            if hasattr(failure, "add_note"):
+                failure.add_note("Cannot retain SGLang status: " + str(error))
+        if failure is None:
+            require(not status["cleanup_problems"], "SGLang container cleanup failed")
+
+
+def run_main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Run one reviewed upstream SGLang model case"
+    )
+    for name in ("source", "controls", "output"):
+        parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--case-json", required=True)
+    args = parser.parse_args(argv)
+    run(
+        source=args.source,
+        controls=args.controls,
+        output=args.output,
+        case=parse_json(args.case_json),
+    )
 
 
 def main() -> None:

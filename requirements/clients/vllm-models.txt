@@ -1,0 +1,4 @@
+# Real speech and dataset fixtures; installed before the candidate and pip check.
+# Keep these out of AITER's runtime metadata and the CPU-only host harness.
+soundfile==0.13.1
+pyarrow==25.0.1

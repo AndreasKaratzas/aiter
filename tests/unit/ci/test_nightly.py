@@ -79,17 +79,19 @@ class NightlyResolution(unittest.TestCase):
 
     def test_insufficient_libc_or_python_fails_before_install(self):
         actual = self.resolution()
-        with patch(
-            "ci.clients.vllm.nightly.platform.libc_ver", return_value=("glibc", "2.35")
-        ), patch(
-            "ci.clients.vllm.nightly.sys.version_info", (3, 12)
-        ), self.assertRaisesRegex(
-            ValueError, "2.39"
+        with (
+            patch(
+                "ci.clients.vllm.nightly.platform.libc_ver",
+                return_value=("glibc", "2.35"),
+            ),
+            patch("ci.clients.vllm.nightly.sys.version_info", (3, 12)),
+            self.assertRaisesRegex(ValueError, "2.39"),
         ):
             require_platform(actual)
-        with patch(
-            "ci.clients.vllm.nightly.sys.version_info", (3, 11)
-        ), self.assertRaisesRegex(ValueError, "Python 3.12"):
+        with (
+            patch("ci.clients.vllm.nightly.sys.version_info", (3, 11)),
+            self.assertRaisesRegex(ValueError, "Python 3.12"),
+        ):
             require_platform(actual)
 
     def test_short_version_suffix_or_untrusted_host_is_not_source_identity(self):
@@ -113,6 +115,19 @@ class NightlyResolution(unittest.TestCase):
         )
         self.assertIn(self.url, commands[0])
         self.assertIn("--report", commands[0])
+        self.assertEqual(
+            [
+                commands[0][index + 1]
+                for index, argument in enumerate(commands[0])
+                if argument == "-r"
+            ],
+            [
+                "/control/requirements/test/host.txt",
+                "/control/requirements/clients/vllm-models.txt",
+                "/control/requirements/runtime/base.txt",
+                "/control/requirements/runtime/native.txt",
+            ],
+        )
         self.assertEqual(commands[1][-1], "/artifacts/candidate.whl")
         self.assertIn("--no-deps", commands[1])
         self.assertEqual(commands[2], ["-m", "pip", "check"])
@@ -229,37 +244,34 @@ class NightlyFailureHistory(unittest.TestCase):
                 request["candidate_substitution"],
             )
             write_json(output / "request.json", request)
-            with patch("ci.pipelines.nightly.Process", FixtureProcess), patch(
-                "ci.pipelines.nightly.collect_source_identity",
-                return_value=receipt.source,
-            ), patch("ci.pipelines.nightly.load_receipt", return_value=receipt), patch(
-                "ci.pipelines.nightly.verify_wheel"
-            ), patch(
-                "ci.pipelines.nightly.resolve", return_value={}
-            ), patch(
-                "ci.pipelines.nightly.require_platform"
-            ), patch(
-                "ci.pipelines.nightly.preflight"
-            ), patch(
-                "ci.pipelines.nightly.installation_commands",
-                return_value=[
-                    [
-                        "-c",
-                        (
-                            'raise SystemExit("incompatible nightly dependency")'
-                            if stage == "install"
-                            else 'print("fixture installed")'
-                        ),
-                    ]
-                ],
-            ), patch(
-                "ci.pipelines.nightly.validate_install_report"
-            ), patch(
-                "ci.pipelines.nightly.run_plan"
-            ) as workloads, patch(
-                "ci.pipelines.nightly.provision_models"
-            ) as models, self.assertRaisesRegex(
-                ValueError, "failed"
+            with (
+                patch("ci.pipelines.nightly.Process", FixtureProcess),
+                patch(
+                    "ci.pipelines.nightly.collect_source_identity",
+                    return_value=receipt.source,
+                ),
+                patch("ci.pipelines.nightly.load_receipt", return_value=receipt),
+                patch("ci.pipelines.nightly.verify_wheel"),
+                patch("ci.pipelines.nightly.resolve", return_value={}),
+                patch("ci.pipelines.nightly.require_platform"),
+                patch("ci.pipelines.nightly.preflight"),
+                patch(
+                    "ci.pipelines.nightly.installation_commands",
+                    return_value=[
+                        [
+                            "-c",
+                            (
+                                'raise SystemExit("incompatible nightly dependency")'
+                                if stage == "install"
+                                else 'print("fixture installed")'
+                            ),
+                        ]
+                    ],
+                ),
+                patch("ci.pipelines.nightly.validate_install_report"),
+                patch("ci.pipelines.nightly.run_plan") as workloads,
+                patch("ci.pipelines.nightly.provision_models") as models,
+                self.assertRaisesRegex(ValueError, "failed"),
             ):
                 execute(
                     output / "request.json",
@@ -293,19 +305,18 @@ class NightlyFailureHistory(unittest.TestCase):
         root = Path(__file__).resolve().parents[3]
         workflow = (root / ".github/workflows/client-vllm-nightly.yaml").read_text()
         builder = (root / ".github/workflows/release-build-wheels.yaml").read_text()
+        common = (root / ".github/workflows/product-run-profile.yaml").read_text()
         downloads = re.findall(
             r"uses: actions/download-artifact@([^\s]+)[^\n]*\n\s+with:\n\s+pattern: ([^\n]+)",
-            workflow,
+            common,
         )
         self.assertEqual(len(downloads), 1)
         self.assertRegex(downloads[0][0], r"^[a-f0-9]{40}$")
+        self.assertEqual(downloads[0][1], "${{ inputs.artifact_pattern }}")
+        pattern = re.search(r"artifact_pattern: ([^\n]+)", workflow).group(1)
         self.assertIn("aiter-whl-packages-py${{ matrix.python_version }}", builder)
-        self.assertTrue(
-            fnmatch.fnmatch("aiter-whl-packages-py3.12-20260906", downloads[0][1])
-        )
-        self.assertFalse(
-            fnmatch.fnmatch("aiter-whl-packages-py3.10-20260906", downloads[0][1])
-        )
+        self.assertTrue(fnmatch.fnmatch("aiter-whl-packages-py3.12-20260906", pattern))
+        self.assertFalse(fnmatch.fnmatch("aiter-whl-packages-py3.10-20260906", pattern))
 
     def test_request_rejects_duplicate_gpu_alias_and_path_escape(self):
         request = {
@@ -341,6 +352,37 @@ class NightlyFailureHistory(unittest.TestCase):
 
 
 class NightlyStageScope(unittest.TestCase):
+    def test_hipblaslt_is_an_explicit_manual_scope_never_a_cron_default(self):
+        from ci.pipelines import runner
+        from ci.pipelines.nightly import WORKLOAD_PROFILES
+
+        root = Path(__file__).resolve().parents[3]
+        with patch("ci.pipelines.nightly.run") as execute:
+            runner.main(
+                [
+                    "vllm-nightly",
+                    "--source",
+                    "/candidate",
+                    "--controls",
+                    "/controls",
+                    "--output",
+                    "/result",
+                    "--wheel",
+                    "/artifact/candidate.whl",
+                    "--local",
+                    "--gpus",
+                    "0",
+                    "--workload-profile",
+                    "vllm-hipblaslt",
+                ]
+            )
+        self.assertEqual(execute.call_args.kwargs["workload_profile"], "vllm-hipblaslt")
+        workflow = (root / ".github/workflows/client-vllm-nightly.yaml").read_text()
+        self.assertIn("options: [" + ", ".join(WORKLOAD_PROFILES) + "]", workflow)
+        for path in (root / "ci/workflows/schedules/clients/vllm").glob("*.yaml"):
+            self.assertNotIn("vllm-hipblaslt", path.read_text())
+        self.assertNotIn("vllm-gpqa", WORKLOAD_PROFILES)
+
     def test_extended_scope_is_explicit_and_daily_remains_bounded(self):
         self.assertEqual(
             stages({"through": "workloads", "workload_profile": "vllm-extended"}),
@@ -348,8 +390,13 @@ class NightlyStageScope(unittest.TestCase):
         )
         root = Path(__file__).resolve().parents[3]
         workflow = (root / ".github/workflows/client-vllm-nightly.yaml").read_text()
-        self.assertIn("cron: '15 20 * * 0'", workflow)
-        self.assertIn('--workload-profile "$WORKLOAD_PROFILE"', workflow)
+        schedule = (
+            root / ".github/workflows/schedule-vllm-nightly-weekly.yaml"
+        ).read_text()
+        self.assertIn("cron: '15 20 * * 0'", schedule)
+        self.assertIn("workload_profile: 'vllm-extended'", schedule)
+        self.assertIn("pipeline: vllm-nightly", workflow)
+        self.assertNotIn("cron:", workflow)
 
     def test_import_diagnostic_cannot_include_model_stage(self):
         self.assertEqual(stages({"through": "imports"}), [("vllm-import", "imports")])

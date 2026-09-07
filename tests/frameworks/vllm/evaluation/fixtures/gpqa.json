@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "Idavidrein/gpqa",
+    "revision": "633f5ee89ab8ad4522a9f850766b73f62147ffdd",
+    "file": "gpqa_diamond.csv",
+    "size": 1373492,
+    "git_blob_sha1": "7589e3e467d69a1dceb126a60c4108d6d4f1d166",
+    "license": "CC-BY-4.0",
+    "url": "https://huggingface.co/datasets/Idavidrein/gpqa",
+    "access": "Publisher-approved access and offline provisioning are required. Do not publish plaintext examples."
+  },
+  "selection": {
+    "total_rows": 198,
+    "smoke_rows": 32,
+    "shuffle_seed": 20260907,
+    "minimum_accuracy": 0.5,
+    "max_tokens": 4096,
+    "reasoning_effort": "medium",
+    "criterion": "Predeclared engineering floor above four-choice chance; not a reproduction of a vendor-reported GPQA score. All selected rows remain in the denominator."
+  }
+}

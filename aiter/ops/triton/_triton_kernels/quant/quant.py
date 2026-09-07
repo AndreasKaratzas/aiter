@@ -116,8 +116,8 @@ def _mxfp4_quant_op(
     MXFP4_QUANT_BLOCK_SIZE,
 ):
     """
-    Converts given x (in fp32) to mxfp4 format.
-    x: [BLOCK_SIZE_M, BLOCK_SIZE_N], fp32
+    Converts floating-point x to mxfp4 format using FP32 scale arithmetic.
+    x: [BLOCK_SIZE_M, BLOCK_SIZE_N], fp16, bf16 or fp32
 
     """
     EXP_BIAS_FP32: tl.constexpr = 127
@@ -131,7 +131,9 @@ def _mxfp4_quant_op(
     min_normal: tl.constexpr = 1
 
     NUM_QUANT_BLOCKS: tl.constexpr = BLOCK_SIZE_N // MXFP4_QUANT_BLOCK_SIZE
-    x = x.reshape(BLOCK_SIZE_M, NUM_QUANT_BLOCKS, MXFP4_QUANT_BLOCK_SIZE)
+    # BMM callers can supply BF16. The exponent bitcast and ldexp below both
+    # require FP32, so normalize the input before either operation.
+    x = x.to(tl.float32).reshape(BLOCK_SIZE_M, NUM_QUANT_BLOCKS, MXFP4_QUANT_BLOCK_SIZE)
     # Calculate scale
     amax = tl.max(tl.abs(x), axis=-1, keep_dims=True)
     amax = amax.to(tl.int32, bitcast=True)

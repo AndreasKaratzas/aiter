@@ -27,6 +27,14 @@ def test_operation(gpu_device):
 
 The `bf16`, `fp8` and `mxfp4` capability names describe hardware eligibility. They do not promise that every backend implements that data type. A test must execute and check the operation it claims to cover.
 
+| Architecture label | Hardware family | Selection rule |
+| --- | --- | --- |
+| `gfx942` | CDNA3, including MI300X and MI325X | BF16 and FP8 groups may be eligible; native MXFP4 groups require a different target. |
+| `gfx950` | CDNA4, including MI350X and MI355X | BF16, FP8 and MXFP4 groups may be eligible. This is the hardware available for local execution here. |
+| `gfx1250` | CDNA5 / MI450 bring-up target | Select only tests whose actual backend supports this target. A gfx950 CK kernel is not made compatible by adding a marker. |
+
+Use the architecture label in test and pipeline declarations, because a product name alone does not identify the kernel instruction set. AMD's [supported-GPU table](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html) identifies the gfx942/gfx950 families. The upstream [AITER gfx1250 bring-up report](https://github.com/ROCm/aiter/issues/2299) identifies the newer target and illustrates why individual native backends need separate enablement. Declaring eligibility or collecting a test on a host does not establish execution on that GPU. MI455-specific results are not claimed.
+
 Collection rejects unknown markers and invalid arguments without importing Torch, vLLM or AITER. Hardware detection happens when a marked test starts. Framework tests also defer their framework imports until execution.
 
 ## Discovery and qualification have different requirements

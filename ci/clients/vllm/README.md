@@ -4,20 +4,43 @@ This client owns the reviewed vLLM groups, profiles, model manifest and fresh ni
 
 ## Choose the scope
 
-The complete `vllm` profile combines product checks, the candidate import group, eight operator groups and all declared model scenarios. The model-only `vllm-e2e` profile covers generation and cache behavior, scheduling and parallelism, multimodal inputs, quantization and reference-quality checks. The [model test guide](../../../tests/frameworks/vllm/README.md) maps individual scenarios to their assertions and limitations.
+The complete `vllm` profile combines product checks, the candidate import group, operator boundary matrices and all declared model scenarios. Optional hipBLASLt projection checks have a separate explicit profile. The publicly provisionable model-only `vllm-e2e` profile covers generation and cache behavior, scheduling and parallelism, multimodal inputs, quantization and reference-quality checks. The [model test guide](../../../tests/frameworks/vllm/README.md) maps individual scenarios to their assertions and limitations.
 
 Required PR and release selections cannot substitute an image or operator-only pass for their model groups. Model groups currently declare gfx950; gfx942 plans retain explicit exclusions and cannot claim model coverage. Requesting the model-only profile on gfx942 fails before execution. `vllm-image` remains a bounded image-composition and operator check.
 
-| Profile | Declared groups | Declared minimum cases | Purpose |
-|---|---:|---:|---|
-| `vllm-import` | 1 | 1 | Candidate AITER and public vLLM imports, without model or GPU allocation |
-| `vllm-nightly` | 19 | 86 | Eight operator groups and eleven daily model groups |
-| `vllm-extended` | 26 | 95 | Daily groups plus seven extended model groups |
-| `vllm-e2e` | 18 | 22 | All declared model scenarios, without the operator groups |
+| Profile | Purpose |
+|---|---|
+| `vllm-import` | Candidate AITER and public vLLM imports without model or GPU allocation |
+| `vllm-operators` | Standard tensor adapter numerical and admission regressions without model downloads |
+| `vllm-hipblaslt` | Strict optional preshuffled hipBLASLt FP8 projections; no model downloads |
+| `vllm-nightly` | Daily numerical matrices and bounded dense, expert, FP8 and speech models |
+| `vllm-extended` | Daily selections plus extended quality, MLA, FA, chart and serving scenarios |
+| `vllm-e2e` | Publicly provisionable real-model scenarios without tensor operator groups |
+| `vllm-model-expansion` | The newly added public checkpoint and quality paths |
+| `vllm-speech` | Both recorded-speech slices |
+| `vllm-gpqa` | Separate approved-data GPT-OSS GPQA smoke and complete Diamond evaluation |
 
-The [feature catalog](coverage.json) maps model/family/dtype/topology/workload declarations to concrete selectors. `python -m ci.clients.vllm.coverage --feature long-context` filters that inventory without loading models. Explicit gaps include real GPT-OSS/MXFP4, MoE and DeepSeek/MLA models, learned drafts, audio/video and larger distributed topologies.
+Generate the current profile/group/case inventory from the declarations:
 
-The eight operator groups account for 73 cases. The fresh nightly pipeline runs the import group separately before either workload profile, adding one case. These numbers describe the reviewed selection; a completed report must establish actual execution with no runtime skips.
+```bash
+python -m ci coverage --client vllm
+python -m ci.clients.vllm.coverage --profile vllm-e2e
+python -m ci.clients.vllm.coverage --feature sparse-moe
+```
+
+The [feature catalog](coverage.json) maps exact models, families, dtypes, topologies and workloads to concrete selectors. It distinguishes other MoE families, learned drafts, hybrid models, additional speech tasks, video and larger distributed topologies as gaps. The fresh nightly pipeline runs the import group separately. An inventory count is never a completed numerical or model-quality result.
+
+## Evaluate the optional hipBLASLt path
+
+The two `vllm-hipblaslt` cases retain independent numerical references for the real row/channel-scaled, preshuffled FP8 adapter. They are excluded from the standard operator, daily, weekly and complete-model selections. Eight aligned shape/bias probes on gfx950 with ROCm 7.2.3 and hipBLASLt 1.2.2 found no valid solutions. The strict tests therefore remain failed in that environment; they do not skip, fall back to CK or establish hipBLASLt numerical support. The group explicitly sets `VLLM_ROCM_USE_AITER_LINEAR=1` and `VLLM_ROCM_USE_AITER_LINEAR_HIPBMM=1` alongside `VLLM_ROCM_USE_AITER=1`; direct local pytest runs need those same flags to represent the model selector's optional configuration. A compatible library solution for this exact path is a prerequisite for passing.
+
+Select `--workload-profile vllm-hipblaslt` in the fresh nightly controller, or run the profile through the shared qualification commands:
+
+```bash
+python -m ci plan --profile vllm-hipblaslt --architecture gfx950 --output /tmp/vllm-hipblaslt-plan.json
+python -m ci run --plan /tmp/vllm-hipblaslt-plan.json --gpus 0 --output-dir /tmp/vllm-hipblaslt-run
+python -m ci check --plan /tmp/vllm-hipblaslt-plan.json --results /tmp/vllm-hipblaslt-run
+```
 
 ## Provision and run real models
 
@@ -29,15 +52,15 @@ python -m ci run --plan /tmp/vllm-e2e-plan.json --gpus 0,1 --output-dir /tmp/vll
 python -m ci check --plan /tmp/vllm-e2e-plan.json --results /tmp/vllm-e2e-run
 ```
 
-Provisioning is separate from the tests. The container controller downloads the model files declared by the reviewed manifest and retains the control identity, manifest digest and provisioning log before execution.
+The fresh client environment installs the explicit [model fixture requirements](../../../requirements/clients/vllm-models.txt) before dependency admission. Provisioning is separate from the tests. The container controller downloads the model files declared by the reviewed manifest and retains the control identity, manifest digest and provisioning log before execution.
 
-Tests consume verified private model copies, retain the exact requests, framework identity, AITER call observations and model receipts, and verify model bytes again afterward.
+Tests consume verified private model copies, retain framework identity, AITER call observations and model receipts, and verify model bytes again afterward. Public datasets have separate scoring declarations. GPQA requires approved offline bytes; its request text and free-form responses are deliberately excluded from retained records, while row hashes, choices, accuracy, source identity and execution evidence remain. See the [dataset guide](../../../tests/frameworks/vllm/evaluation/README.md).
 
 The report hashes the bounded `e2e/` evidence tree. Model copies and compiler caches stay under disposable `cache/` directories and are excluded from uploaded artifacts. The [model test guide](../../../tests/frameworks/vllm/README.md) explains the exact assertions and limits; these cases are not broad model-quality certification.
 
 ## Install a fresh ROCm nightly
 
-[`client-vllm-nightly.yaml`](../../../.github/workflows/client-vllm-nightly.yaml) runs the 19-group daily profile at 17:45 UTC and the 26-group extended profile on Sundays at 20:15 UTC. Explicit dispatch selects either profile. Each also requires the separate import group. It builds one candidate Python 3.12 wheel, then calls `ci.pipelines vllm-nightly` in the immutable executor configured by `AITER_VLLM_NIGHTLY_EXECUTOR`. The base needs the ROCm/native compiler toolchain and the Python/glibc required by the resolved wheel.
+The [daily scheduler](../../workflows/schedules/clients/vllm/nightly-daily.yaml) runs at 17:45 UTC, and the [weekly scheduler](../../workflows/schedules/clients/vllm/nightly-weekly.yaml) runs Sundays at 20:15 UTC. Both call the same [reusable/manual execution workflow](../../workflows/clients/vllm/nightly.yaml), selecting `vllm-nightly` or `vllm-extended`. The shared execution builds one candidate Python 3.12 wheel, then calls `ci.pipelines vllm-nightly` in the immutable executor configured by `AITER_VLLM_NIGHTLY_EXECUTOR`. The base needs the ROCm/native compiler toolchain and the Python/glibc required by the resolved wheel.
 
 Before installation, a retained C++17 syntax check includes the selected interpreter’s `Python.h`, resolves its transitive configuration headers and checks Python major/minor compatibility. Missing development headers fail this prerequisite.
 
@@ -55,7 +78,7 @@ The pipeline retains official index bytes, the full upstream commit, the wheel U
 
 Public engine and AITER imports must succeed before `vllm-import`; that complete group must pass before the sealed `vllm-nightly` or `vllm-extended` operator/model profile.
 
-The daily profile currently contains 86 cases and the extended profile 95; the import group adds one case to either run.
+Use `python -m ci coverage --client vllm` to inspect the exact current selection, architecture exclusions and model prerequisites. The import group adds its separately reported prerequisite result.
 
 Both stages use the shared plan/run/check engine. Post-run dependency and payload checks reject changes. The result is an explicitly rolling installation canary, not a supported release environment or automatic channel promotion.
 

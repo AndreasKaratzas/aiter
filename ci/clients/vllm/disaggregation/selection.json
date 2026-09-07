@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/vllm-project/vllm.git",
+    "revision": "a42850c85f815ab3123a541bc92fb9b35892335e",
+    "pipeline": ".buildkite/amd-disagg/pipeline-disagg.yaml",
+    "sha256": "1404b8d35254afa690f9a4bbdfcb0b973ba116b7e9b91ace230fb01f22487fcf"
+  },
+  "image": "vllm/vllm-openai-rocm@sha256:0f3fcd5cc4cb4642f85cf6c22e105ab6125730d98d1b72e16b2987721364a50e",
+  "router_image": "vllm/vllm-router@sha256:76cec0abab4c57cf74091a2422b0f2e6f3ca07cdf73560a5b96cad3e6f97ab33",
+  "models": [
+    "DeepSeek-V3",
+    "DeepSeek-R1-MXFP4",
+    "Kimi-K2.5-MXFP4",
+    "Kimi-K2.6-MXFP4",
+    "MiniMax-M3-MXFP8"
+  ],
+  "topologies": {
+    "1P1D-TP8": {
+      "NODES": "2"
+    },
+    "2P2D-TP8": {
+      "xP": "2",
+      "yD": "2",
+      "NODES": "4"
+    }
+  },
+  "environment": {
+    "GPUS_PER_NODE": "8",
+    "WIDE_EP_MODE": "0",
+    "MORIIO_READ_MODE": "0",
+    "RUN_AFTER_HEALTH": "accuracy",
+    "ROUTER_TYPE": "vllm-router",
+    "WAIT": "1",
+    "SLURM_TIME_LIMIT": "08:30:00"
+  },
+  "script": ".buildkite/amd-disagg/run-slurm-disagg-test.sh"
+}

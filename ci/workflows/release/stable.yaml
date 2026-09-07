@@ -1,10 +1,7 @@
 name: AITER Release Automation
 
 on:
-  schedule:
-    # GitHub cron cannot express "every 14 days" directly. Trigger weekly and
-    # gate the release jobs below against a fixed 14-day cadence.
-    - cron: '0 6 * * 1'
+  workflow_call:
   push:
     tags:
       - 'v*'

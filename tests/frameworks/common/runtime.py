@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Shared prerequisites, reference math and call tracing for framework adapters."""
 
+from functools import wraps
 from importlib.util import find_spec
 
 from common.paths import assert_package_origin
@@ -35,9 +36,11 @@ def trace_call(monkeypatch, owner, attribute):
     operation = getattr(owner, attribute)
     calls = []
 
+    @wraps(operation)
     def observed(*args, **kwargs):
+        result = operation(*args, **kwargs)
         calls.append(attribute)
-        return operation(*args, **kwargs)
+        return result
 
     monkeypatch.setattr(owner, attribute, observed)
     return calls
@@ -50,10 +53,12 @@ def trace_triton_kernel(monkeypatch, name):
     operation = JITFunction.run
     calls = []
 
+    @wraps(operation)
     def observed(kernel, *args, **kwargs):
-        if kernel.fn.__name__ == name:
+        result = operation(kernel, *args, **kwargs)
+        if kernel.fn.__name__ == name and not kwargs.get("warmup", False):
             calls.append(name)
-        return operation(kernel, *args, **kwargs)
+        return result
 
     monkeypatch.setattr(JITFunction, "run", observed)
     return calls

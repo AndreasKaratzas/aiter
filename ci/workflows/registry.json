@@ -5,7 +5,8 @@
     "host": "CPU integrity, architecture, packaging, documentation and repository automation.",
     "product": "Product qualification and the specialized kernel, communication and tuning suites.",
     "clients": "Framework qualification, rolling canaries and model-specific integration workloads.",
-    "release": "Build candidate wheels, qualify installed artifacts, compose images, publish complete releases and maintain channel history."
+    "release": "Build candidate wheels, qualify installed artifacts, compose images, publish complete releases and maintain channel history.",
+    "schedules": "Cron-only invocations: choose an execution workflow and fixed profile; no installation or test commands."
   },
   "workflows": [
     {
@@ -27,7 +28,7 @@
       "domain": "clients",
       "purpose": "Rolling framework canaries",
       "application": [
-        "ci.qualification.environments"
+        "ci.pipelines.canaries"
       ],
       "source": "clients/common/canaries.yaml"
     },
@@ -55,9 +56,9 @@
     {
       "file": "client-sglang-models.yaml",
       "domain": "clients",
-      "purpose": "Sglang Downstream Test",
+      "purpose": "Select and run upstream SGLang model cases through the shared bootstrap and retained platform controller.",
       "application": [
-        "ci.pipelines.canaries",
+        "ci.pipelines.bootstrap",
         "ci.clients.sglang.downstream"
       ],
       "source": "clients/sglang/models.yaml"
@@ -207,9 +208,10 @@
     {
       "file": "product-run-profile.yaml",
       "domain": "common",
-      "purpose": "Run a source or installed-wheel profile",
+      "purpose": "Shared checkout, artifact transfer, typed bootstrap and retained execution for product and client pipelines",
       "application": [
-        "ci.pipelines.profile"
+        "ci.pipelines.bootstrap",
+        "ci.pipelines.runner"
       ],
       "source": "common/run-profile.yaml"
     },
@@ -314,6 +316,149 @@
         "ci.pipelines.benchmarks"
       ],
       "source": "clients/vllm/model-benchmarks.yaml"
+    },
+    {
+      "file": "schedule-client-atom-disaggregation.yaml",
+      "source": "schedules/clients/atom/disaggregation.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / atom / disaggregation",
+      "application": []
+    },
+    {
+      "file": "schedule-client-canaries.yaml",
+      "source": "schedules/clients/common/canaries.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / common / canaries",
+      "application": []
+    },
+    {
+      "file": "schedule-client-kimi-correctness.yaml",
+      "source": "schedules/clients/kimi/correctness.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / kimi / correctness",
+      "application": []
+    },
+    {
+      "file": "schedule-client-kimi-performance.yaml",
+      "source": "schedules/clients/kimi/performance.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / kimi / performance",
+      "application": []
+    },
+    {
+      "file": "schedule-client-sglang-models.yaml",
+      "source": "schedules/clients/sglang/models.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / sglang / models",
+      "application": []
+    },
+    {
+      "file": "schedule-client-vllm-disaggregation.yaml",
+      "source": "schedules/clients/vllm/disaggregation.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / vllm / disaggregation",
+      "application": []
+    },
+    {
+      "file": "schedule-host-checks.yaml",
+      "source": "schedules/host/checks.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of host / checks",
+      "application": []
+    },
+    {
+      "file": "schedule-host-runner-monitor.yml",
+      "source": "schedules/host/runner-monitor.yml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of host / runner-monitor",
+      "application": []
+    },
+    {
+      "file": "schedule-host-update-test-inventory.yaml",
+      "source": "schedules/host/update-test-inventory.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of host / update-test-inventory",
+      "application": []
+    },
+    {
+      "file": "schedule-product-legacy.yaml",
+      "source": "schedules/product/legacy.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of product / legacy",
+      "application": []
+    },
+    {
+      "file": "schedule-product-opus.yaml",
+      "source": "schedules/product/opus.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of product / opus",
+      "application": []
+    },
+    {
+      "file": "schedule-product-qualification.yaml",
+      "source": "schedules/product/qualification.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of product / qualification",
+      "application": []
+    },
+    {
+      "file": "schedule-product-tuning-validation.yaml",
+      "source": "schedules/product/tuning-validation.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of product / tuning-validation",
+      "application": []
+    },
+    {
+      "file": "schedule-release-nightly.yaml",
+      "source": "schedules/release/nightly.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of release / nightly",
+      "application": []
+    },
+    {
+      "file": "schedule-release-stable.yaml",
+      "source": "schedules/release/stable.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of release / stable",
+      "application": []
+    },
+    {
+      "file": "schedule-vllm-nightly-daily.yaml",
+      "source": "schedules/clients/vllm/nightly-daily.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / vllm / nightly-daily",
+      "application": []
+    },
+    {
+      "file": "schedule-vllm-nightly-weekly.yaml",
+      "source": "schedules/clients/vllm/nightly-weekly.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / vllm / nightly-weekly",
+      "application": []
+    },
+    {
+      "file": "schedule-vllm-benchmarks-daily.yaml",
+      "source": "schedules/clients/vllm/benchmarks-daily.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / vllm / benchmarks-daily",
+      "application": []
+    },
+    {
+      "file": "schedule-vllm-benchmarks-weekly.yaml",
+      "source": "schedules/clients/vllm/benchmarks-weekly.yaml",
+      "domain": "schedules",
+      "purpose": "Scheduled invocation of clients / vllm / benchmarks-weekly",
+      "application": []
+    },
+    {
+      "file": "common-product-area.yaml",
+      "source": "common/product-area.yaml",
+      "domain": "common",
+      "purpose": "One product-area bootstrap for the standard eight shards and multi-GPU driver inventory.",
+      "application": [
+        "ci.pipelines.bootstrap",
+        "ci.pipelines.product"
+      ]
     }
   ]
 }

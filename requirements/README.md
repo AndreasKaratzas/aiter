@@ -12,6 +12,7 @@ This is the repository's home for Python dependency inputs. A wheel's runtime de
 | `test/style.txt`, `test/network.txt` | Code-style and optional worker connectivity tools |
 | `docs/` | CPU website generation and its browser acceptance checks |
 | `clients/` | Extra packages needed by specific framework integration jobs |
+| `clients/vllm-models.txt` | Pinned audio and dataset readers for real vLLM model fixtures; the rolling installer resolves them before candidate AITER and dependency checking |
 | `automation.txt` | Repository worker monitoring, separate from the installed library |
 
 For example:

@@ -1,10 +1,8 @@
 name: Rolling framework canaries
 
 on:
+  workflow_call:
   workflow_dispatch:
-  schedule:
-    - cron: '15 17 * * *'
-
 permissions:
   contents: read
 
@@ -22,28 +20,18 @@ jobs:
         name: Freeze each upstream canary image and observe its actual dependencies
         env:
           CANARY_IMAGES: ${{ vars.AITER_CANARY_IMAGES }}
-        run: |
-          python3 - <<'PY'
-          import json, os, subprocess
-          from pathlib import Path
-          from ci.qualification.environments import validate_lock
-          configured = json.loads(os.environ['CANARY_IMAGES'])
-          if set(configured) != {'vllm', 'sglang'}:
-              raise ValueError('configure AITER_CANARY_IMAGES for both rolling frameworks')
-          entries = []
-          for client, reference in configured.items():
-              subprocess.run(['docker','pull',reference], check=True)
-              image = json.loads(subprocess.check_output(['docker','image','inspect',reference]))[0]
-              immutable = image['RepoDigests'][0]
-              output = Path(os.environ['RUNNER_TEMP']) / (client + '-lock.json')
-              subprocess.run(['docker','run','--rm','-v',os.getcwd()+':/workspace:ro','-v',os.environ['RUNNER_TEMP']+':/evidence',
-                  '-w','/workspace',image['Id'],'python3','-m','ci.qualification.environments','--image',immutable,'--client',client,
-                  '--output','/evidence/'+output.name], check=True)
-              lock = validate_lock(json.loads(output.read_text()))
-              entries.append({'profile':client, 'image':immutable, 'environment_lock':json.dumps(lock), 'label':client+'-canary'})
-          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
-              stream.write('matrix='+json.dumps({'include':entries})+'\n')
-          PY
+        run: python3 -m ci.pipelines canary-environments --controls "$GITHUB_WORKSPACE" --output "$RUNNER_TEMP/canary-resolution"
+      - name: Retain resolved images, dependency observations and failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: canary-environments
+          path: |
+            ${{ runner.temp }}/canary-resolution
+            !${{ runner.temp }}/canary-resolution/suite/**
+          retention-days: 90
+          if-no-files-found: error
+
   execute:
     needs: resolve
     strategy:

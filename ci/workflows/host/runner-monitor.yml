@@ -5,8 +5,7 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  workflow_call:
   pull_request:
     paths:
       - "ci/workflows/host/runner-monitor.yml"

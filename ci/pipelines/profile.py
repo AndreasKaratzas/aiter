@@ -47,7 +47,10 @@ def execute_profile(
         and len(set(gpus.split(","))) == len(gpus.split(",")),
         "GPU allocation must contain unique device indices",
     )
-    require(architecture in ("gfx942", "gfx950"), "unsupported pipeline architecture")
+    require(
+        architecture in ("gfx942", "gfx950", "gfx1250"),
+        "unsupported pipeline architecture",
+    )
     catalog = load_catalog(root=controls)
     require(profile in catalog["profiles"], "unknown pipeline profile")
     require_profile_environment(

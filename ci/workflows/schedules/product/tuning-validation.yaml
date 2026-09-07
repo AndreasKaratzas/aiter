@@ -1,0 +1,10 @@
+name: Schedule product-tuning-validation
+
+on:
+  schedule:
+    - cron: '0 20 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/product-tuning-validation.yaml
+    secrets: inherit

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 from pathlib import Path
@@ -10,6 +11,103 @@ from ci.clients.manifest import client_cases
 from ci.common.json import digest, require, write_json
 from ci.pipelines.docker import IMAGE_ID, Docker
 from ci.release.artifacts import hash_file
+
+
+def resolve_environments(
+    *, controls: Path, images: dict, output: Path, docker: Docker | None = None
+) -> dict:
+    """Observe configured upstream images through the shared retained Docker port."""
+    from ci.qualification.environments import validate_lock
+
+    require(
+        isinstance(images, dict) and set(images) == {"vllm", "sglang"},
+        "configure both reviewed rolling framework images",
+    )
+    require(
+        all(isinstance(value, str) and value for value in images.values()),
+        "canary images must be references",
+    )
+    controls, output = controls.resolve(), output.resolve()
+    require(
+        not output.exists() and not output.is_relative_to(controls),
+        "canary resolution requires fresh external evidence",
+    )
+    output.mkdir(parents=True)
+    # Only the observer program is exposed on Python's path, never checkout AITER.
+    suite = output / "suite"
+    shutil.copytree(
+        controls / "ci",
+        suite / "ci",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+    )
+    transport = docker or Docker(output / "docker")
+    entries = []
+    for client, reference in images.items():
+        inspection = transport.resolve(reference)
+        write_json(output / (client + "-image.json"), inspection)
+        digests = inspection.get("RepoDigests", [])
+        require(
+            isinstance(digests, list) and digests,
+            "canary image has no immutable repository digest",
+        )
+        immutable = digests[0]
+        name = (
+            "aiter-observe-"
+            + digest({"client": client, "output": str(output)}).split(":")[1][:24]
+        )
+        for path in (suite, output):
+            require(
+                ":" not in str(path) and "\n" not in str(path), "invalid canary mount"
+            )
+        transport.managed_container(
+            [
+                "run",
+                "--rm",
+                "--name",
+                name,
+                "--entrypoint",
+                "python3",
+                "-v",
+                str(suite) + ":/instructions:ro",
+                "-v",
+                str(output) + ":/evidence",
+                "-e",
+                "PYTHONPATH=/instructions",
+                "-e",
+                "PYTHONNOUSERSITE=1",
+                "-w",
+                "/evidence",
+                inspection["Id"],
+                "-m",
+                "ci.qualification.environments",
+                "--image",
+                immutable,
+                "--client",
+                client,
+                "--output",
+                "/evidence/" + client + "-lock.json",
+            ],
+            name=name,
+            timeout=600,
+        )
+        lock = validate_lock(json.loads((output / (client + "-lock.json")).read_text()))
+        require(
+            lock["image"] == immutable
+            and set(lock["frameworks"]) == {client}
+            and lock["status"] == "canary",
+            "canary observer returned a different image, framework or classification",
+        )
+        entries.append(
+            {
+                "profile": client,
+                "image": immutable,
+                "environment_lock": json.dumps(lock),
+                "label": client + "-canary",
+            }
+        )
+    matrix = {"include": entries}
+    write_json(output / "matrix.json", matrix)
+    return matrix
 
 
 def selected_case(client: str, case: dict) -> dict:
@@ -135,7 +233,12 @@ def vllm_latency(
 
 
 def sglang_model(
-    *, container: str, case: dict, output: Path, docker: Docker | None = None
+    *,
+    container: str,
+    case: dict,
+    output: Path,
+    docker: Docker | None = None,
+    caches: dict | None = None,
 ) -> None:
     selected_case("sglang", case)
     require(
@@ -162,13 +265,28 @@ def sglang_model(
         "AITER_USE_SYSTEM_TRITON": "1",
         **case["environment"],
     }
+    if caches is not None:
+        from ci.qualification.isolation import CACHE_DIRECTORIES
+
+        require(
+            set(caches) == set(CACHE_DIRECTORIES),
+            "SGLang adapter must own every compile cache",
+        )
+        environment.update(caches)
     model_id = case.get("model_id")
     if model_id and (Path("/models") / model_id / "config.json").is_file():
         environment[case["model_path_env"]] = "/models/" + model_id
     command = ["exec", "-w", "/sglang-checkout/test"]
     for key, value in environment.items():
         command.extend(["-e", key + "=" + value])
-    command.extend([container, *case["command"]])
+    command.append(container)
+    if caches is not None:
+        from ci.qualification.isolation import BUILD_OPTIONS, RESERVED
+
+        command.append("env")
+        for key in sorted((RESERVED | BUILD_OPTIONS | {"PYTHONPATH"}) - set(caches)):
+            command.extend(["-u", key])
+    command.extend(case["command"])
     write_json(
         output / "request.json",
         {

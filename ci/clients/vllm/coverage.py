@@ -53,7 +53,7 @@ def load_coverage(root=None):
             )
             and type(model["modalities"]) is list
             and model["modalities"]
-            and set(model["modalities"]) <= {"text", "image"},
+            and set(model["modalities"]) <= {"text", "image", "audio"},
             "Invalid model metadata",
         )
     seen = set()
@@ -107,11 +107,11 @@ def load_coverage(root=None):
         )
         require(
             type(case["context_capacity"]) is int
-            and case["context_capacity"] in (1024, 4096),
+            and case["context_capacity"] in (1024, 4096, 16384),
             "Invalid context capacity",
         )
         for field, allowed in (
-            ("dtypes", {"bfloat16", "float16", "fp8-per-channel"}),
+            ("dtypes", {"bfloat16", "float16", "fp8-per-channel", "fp8-block", "mxfp4"}),
             ("tensor_parallel", {1, 2}),
             ("execution", {"eager", "graph"}),
         ):

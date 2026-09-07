@@ -1,14 +1,16 @@
 name: Product and affected client qualification
 
 on:
+  workflow_call:
+    inputs:
+      product_profile:
+        type: string
+        default: product-fast
   push:
     branches: [main]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
-  schedule:
-    - cron: '15 6 * * 6'
-
 permissions:
   contents: read
 
@@ -32,7 +34,7 @@ jobs:
         env:
           AITER_SUPPORT_PROFILES: ${{ vars.AITER_SUPPORT_PROFILES }}
           BASE_REVISION: ${{ github.event.pull_request.base.sha || '' }}
-          PRODUCT_PROFILE: ${{ github.event_name == 'schedule' && 'product-extended' || 'product-fast' }}
+          PRODUCT_PROFILE: ${{ inputs.product_profile || 'product-fast' }}
         run: |
           python3 -m ci.qualification.changes --base "$BASE_REVISION" --output "$RUNNER_TEMP/changed-paths.txt"
           python3 -m ci.release.matrix --channel changes --product-profile "$PRODUCT_PROFILE" --changed-paths "$RUNNER_TEMP/changed-paths.txt" --output "$RUNNER_TEMP/change-matrix.json"

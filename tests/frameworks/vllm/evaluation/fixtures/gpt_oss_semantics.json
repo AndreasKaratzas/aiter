@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "classification": "Authored deterministic model behavior regressions, not a quality dataset or GPQA substitute",
+  "reasoning_effort": "low",
+  "max_tokens": 512,
+  "cases": [
+    {
+      "id": "negative-product",
+      "prompt": "What is the product of negative seven and negative three?",
+      "expected": 21
+    },
+    {
+      "id": "integer-product",
+      "prompt": "Compute thirty-seven multiplied by fourteen.",
+      "expected": 518
+    },
+    {
+      "id": "arithmetic-series",
+      "prompt": "Add all integers from one through twenty, including both endpoints.",
+      "expected": 210
+    },
+    {
+      "id": "operator-precedence",
+      "prompt": "Evaluate (96 / 8) + (7 * 9).",
+      "expected": 75
+    },
+    {
+      "id": "growing-queue",
+      "prompt": "A queue initially holds 3 jobs. Exactly 7 jobs arrive per second and exactly 5 jobs complete per second. How many jobs remain after 9 seconds?",
+      "expected": 21
+    },
+    {
+      "id": "shrinking-queue",
+      "prompt": "A queue initially holds 10 jobs. Exactly 2 jobs arrive per second and exactly 3 jobs complete per second. How many jobs remain after 6 seconds?",
+      "expected": 4
+    },
+    {
+      "id": "expert-dispatch-count",
+      "prompt": "A router sends each of 48 tokens to exactly 4 distinct experts out of 32 experts. How many token-to-expert dispatches occur in total?",
+      "expected": 192
+    },
+    {
+      "id": "prefill-chunk-count",
+      "prompt": "Four requests have 13, 21, 8 and 34 prompt tokens. Each request is split separately into chunks of at most 20 tokens. How many chunks are needed in total?",
+      "expected": 6
+    }
+  ]
+}

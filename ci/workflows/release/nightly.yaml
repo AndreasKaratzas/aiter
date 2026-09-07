@@ -1,9 +1,7 @@
 name: Nightly delivery
 
 on:
-  schedule:
-    # Run daily at 3 AM UTC
-    - cron: '0 3 * * *'
+  workflow_call:
   workflow_dispatch:
     inputs:
       docker_image:

@@ -1,9 +1,7 @@
 name: Tuning Tests
 
 on:
-  schedule:
-    # Runs daily at 04:00 Beijing time.
-    - cron: "0 20 * * *"
+  workflow_call:
   workflow_dispatch:
     inputs:
       suite:

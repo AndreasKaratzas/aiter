@@ -54,10 +54,12 @@ class PipelineTests(unittest.TestCase):
         }
 
     def host_run(self, transport):
-        with patch(
-            "ci.pipelines.profile.load_catalog", return_value=self.catalog
-        ), patch(
-            "ci.pipelines.profile.collect_source_identity", return_value=self.identity
+        with (
+            patch("ci.pipelines.profile.load_catalog", return_value=self.catalog),
+            patch(
+                "ci.pipelines.profile.collect_source_identity",
+                return_value=self.identity,
+            ),
         ):
             return execute_profile(**self.options(), docker=transport)
 
@@ -71,18 +73,20 @@ class PipelineTests(unittest.TestCase):
 
             def run(self, image_id, **inputs):
                 test.assertEqual(image_id, test.image)
-                with patch(
-                    "ci.pipelines.container.load_catalog", return_value=test.catalog
-                ), patch(
-                    "ci.pipelines.container.collect_source_identity",
-                    return_value=test.identity,
-                ), patch(
-                    "ci.qualification.run.collect_source_identity",
-                    return_value=test.identity,
-                ), patch(
-                    "ci.pipelines.container.subprocess.run"
-                ) as bootstrap, patch.dict(
-                    os.environ, {"AITER_CI_EXECUTOR_IMAGE": image_id}
+                with (
+                    patch(
+                        "ci.pipelines.container.load_catalog", return_value=test.catalog
+                    ),
+                    patch(
+                        "ci.pipelines.container.collect_source_identity",
+                        return_value=test.identity,
+                    ),
+                    patch(
+                        "ci.qualification.run.collect_source_identity",
+                        return_value=test.identity,
+                    ),
+                    patch("ci.pipelines.container.subprocess.run") as bootstrap,
+                    patch.dict(os.environ, {"AITER_CI_EXECUTOR_IMAGE": image_id}),
                 ):
                     # Bootstrap is a separate installation boundary; actual test subprocesses
                     # still execute through run_plan's Popen and independent report parser.
@@ -126,6 +130,35 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "differs from the admitted"):
             self.host_run(Transport())
 
+    def test_preview_architecture_reaches_only_an_applicable_declared_plan(self):
+        calls = []
+        fixture = self
+        self.catalog["groups"]["unit"]["architectures"] = ["gfx1250"]
+
+        class Transport:
+            def resolve(self, reference):
+                return {"Id": fixture.image}
+
+            def run(self, image_id, **inputs):
+                request = load_json(inputs["evidence"] / inputs["request"])
+                plan = expected_plan(request, fixture.catalog)
+                calls.append((request, plan))
+                raise ValueError("bounded preview execution stop")
+
+        options = self.options()
+        options["architecture"] = "gfx1250"
+        with (
+            patch("ci.pipelines.profile.load_catalog", return_value=self.catalog),
+            patch(
+                "ci.pipelines.profile.collect_source_identity",
+                return_value=self.identity,
+            ),
+            self.assertRaisesRegex(ValueError, "bounded preview"),
+        ):
+            execute_profile(**options, docker=Transport())
+        self.assertEqual(calls[0][0]["architecture"], "gfx1250")
+        self.assertEqual(set(calls[0][1]["groups"]), {"unit"})
+
     def test_container_failure_and_missing_plan_are_retained(self):
         test = self
 
@@ -148,9 +181,11 @@ class PipelineTests(unittest.TestCase):
             {"gpus": "0,00"},
             {"mode": "wheel"},
         ):
-            with self.subTest(changes=changes), patch(
-                "ci.pipelines.profile.load_catalog", return_value=self.catalog
-            ), self.assertRaises(ValueError):
+            with (
+                self.subTest(changes=changes),
+                patch("ci.pipelines.profile.load_catalog", return_value=self.catalog),
+                self.assertRaises(ValueError),
+            ):
                 execute_profile(**(self.options() | changes))
 
     def test_installed_request_cannot_narrow_or_escape_wheel_directory(self):
@@ -235,8 +270,9 @@ class DockerBoundaryTests(unittest.TestCase):
 
     def test_timed_out_docker_client_removes_its_daemon_container(self):
         transport = Docker(self.root / "logs", executable=str(self.program))
-        with patch.dict(os.environ, {"FAKE_DOCKER_HANG": "1"}), self.assertRaises(
-            ValueError
+        with (
+            patch.dict(os.environ, {"FAKE_DOCKER_HANG": "1"}),
+            self.assertRaises(ValueError),
         ):
             transport.run(
                 "sha256:" + "a" * 64,

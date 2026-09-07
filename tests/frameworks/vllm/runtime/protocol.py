@@ -12,6 +12,12 @@ def require(condition, message):
 @dataclass(frozen=True)
 class EngineSettings:
     dtype: str = "bfloat16"
+    attention_backend: str = "unified"
+    audio: bool = False
+    moe: bool = False
+    moe_backend: str = "auto"
+    gpu_memory_utilization: float = 0.1
+    vision_max_pixels: int = 224 * 224
     max_model_len: int = 1024
     tensor_parallel: int = 1
     prefix_cache: bool = False
@@ -24,12 +30,32 @@ class EngineSettings:
 
     def __post_init__(self):
         require(
+            self.moe_backend in ("auto", "aiter", "aiter_triton_mxfp4_bf16")
+            and (self.moe or self.moe_backend == "auto"),
+            "Explicit expert backend requires a reviewed MoE scenario",
+        )
+        require(
+            type(self.vision_max_pixels) is int
+            and self.vision_max_pixels in (224 * 224, 1024 * 1024),
+            "Unknown reviewed vision resolution budget",
+        )
+        require(
+            self.attention_backend in ("unified", "flash", "mla"),
+            "Unknown reviewed attention backend",
+        )
+        require(
+            type(self.gpu_memory_utilization) is float
+            and 0.1 <= self.gpu_memory_utilization <= 0.8,
+            "Invalid bounded GPU memory allocation",
+        )
+        require(
             self.dtype in ("bfloat16", "float16"),
             "Reviewed model dtype is BF16 or FP16",
         )
         require(
-            type(self.max_model_len) is int and self.max_model_len in (1024, 4096),
-            "Reviewed context capacity is 1024 or 4096",
+            type(self.max_model_len) is int
+            and self.max_model_len in (1024, 4096, 16384),
+            "Reviewed context capacity is 1024, 4096 or 16384",
         )
         require(
             type(self.tensor_parallel) is int and self.tensor_parallel in (1, 2),
@@ -42,6 +68,8 @@ class EngineSettings:
             "multimodal",
             "online_fp8",
             "chunked_prefill",
+            "audio",
+            "moe",
         ):
             require(type(getattr(self, name)) is bool, f"{name} must be a boolean")
         require(
@@ -56,6 +84,12 @@ class EngineSettings:
         require(
             not (self.multimodal and (self.speculative or self.cuda_graph)),
             "Vision/speculation/graph combinations need a separate reviewed scenario.",
+        )
+        require(
+            not (
+                self.audio and (self.multimodal or self.speculative or self.cuda_graph)
+            ),
+            "Audio is a separate reviewed modality",
         )
         require(
             not (
@@ -101,6 +135,30 @@ class Batch:
             if isinstance(prompt, str):
                 require(0 < len(prompt) <= 16384, "Prompt text is empty or too large")
                 continue
+            if type(prompt) is dict and set(prompt) == {
+                "audio_path",
+                "sha256",
+                "sample_rate",
+            }:
+                from pathlib import Path
+                import re
+
+                require(
+                    type(prompt["audio_path"]) is str
+                    and Path(prompt["audio_path"]).is_absolute(),
+                    "Audio needs an explicit absolute path",
+                )
+                require(
+                    type(prompt["sha256"]) is str
+                    and re.fullmatch(r"[a-f0-9]{64}", prompt["sha256"]),
+                    "Audio needs an exact byte identity",
+                )
+                require(
+                    prompt["sample_rate"] == 16000
+                    and type(prompt["sample_rate"]) is int,
+                    "Reviewed speech sampling rate is 16kHz",
+                )
+                continue
             if type(prompt) is dict and set(prompt) == {"prompt_token_ids"}:
                 values = prompt["prompt_token_ids"]
                 require(
@@ -110,6 +168,25 @@ class Batch:
                         type(value) is int and 0 <= value < 2**31 for value in values
                     ),
                     "Invalid bounded token prompt",
+                )
+                continue
+            if type(prompt) is dict and set(prompt) == {"text", "image_path", "sha256"}:
+                from pathlib import Path
+                import re
+
+                require(
+                    type(prompt["text"]) is str and 0 < len(prompt["text"]) <= 16384,
+                    "Invalid image prompt text",
+                )
+                require(
+                    type(prompt["image_path"]) is str
+                    and Path(prompt["image_path"]).is_absolute(),
+                    "Image needs explicit absolute path",
+                )
+                require(
+                    type(prompt["sha256"]) is str
+                    and re.fullmatch(r"[a-f0-9]{64}", prompt["sha256"]),
+                    "Image requires exact byte identity",
                 )
                 continue
             require(
@@ -158,6 +235,8 @@ def parse_request(record):
             if isinstance(prompt, str)
             else "tokens"
             if "prompt_token_ids" in prompt
+            else "audio"
+            if "audio_path" in prompt
             else "image"
             for prompt in batch.prompts
         }
@@ -177,11 +256,20 @@ def parse_request(record):
     )
     require(
         all(
-            (isinstance(prompt, dict) and "rgb" in prompt) == settings.multimodal
+            (isinstance(prompt, dict) and ("rgb" in prompt or "image_path" in prompt))
+            == settings.multimodal
             for batch in batches
             for prompt in batch.prompts
         ),
         "Prompt modality differs from engine configuration",
+    )
+    require(
+        all(
+            (isinstance(prompt, dict) and "audio_path" in prompt) == settings.audio
+            for batch in batches
+            for prompt in batch.prompts
+        ),
+        "Audio modality differs from engine configuration",
     )
     require(
         all(not batch.reset_prefix_cache or settings.prefix_cache for batch in batches),

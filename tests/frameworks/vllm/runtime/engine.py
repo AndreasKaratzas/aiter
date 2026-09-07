@@ -22,7 +22,7 @@ def options_for(settings, model):
         "max_num_batched_tokens": settings.prefill_budget,
         "enable_chunked_prefill": settings.chunked_prefill,
         "kv_cache_memory_bytes": 512 * 1024**2,
-        "gpu_memory_utilization": 0.1,
+        "gpu_memory_utilization": settings.gpu_memory_utilization,
         "enable_prefix_caching": settings.prefix_cache,
         "disable_log_stats": False,
         "async_scheduling": False,
@@ -31,7 +31,13 @@ def options_for(settings, model):
         "kernel_config": {
             "ir_op_priority": {"rms_norm": ["aiter"], "fused_add_rms_norm": ["aiter"]}
         },
-        "attention_config": {"backend": "ROCM_AITER_UNIFIED_ATTN"},
+        "attention_config": {
+            "backend": {
+                "unified": "ROCM_AITER_UNIFIED_ATTN",
+                "flash": "ROCM_AITER_FA",
+                "mla": "ROCM_AITER_MLA",
+            }[settings.attention_backend]
+        },
     }
     if settings.tensor_parallel > 1:
         options["distributed_executor_backend"] = "mp"
@@ -55,19 +61,63 @@ def options_for(settings, model):
         options["limit_mm_per_prompt"] = {"image": 1, "video": 0}
         options["mm_processor_kwargs"] = {
             "min_pixels": 224 * 224,
-            "max_pixels": 224 * 224,
+            "max_pixels": settings.vision_max_pixels,
         }
+    if settings.moe:
+        options["kernel_config"]["moe_backend"] = settings.moe_backend
+    if settings.audio:
+        options["limit_mm_per_prompt"] = {"audio": 1}
     return options
 
 
 def materialize(prompts):
     if isinstance(prompts[0], str) or "prompt_token_ids" in prompts[0]:
         return list(prompts), []
+    if "audio_path" in prompts[0]:
+        import soundfile
+
+        values, hashes = [], []
+        for item in prompts:
+            path = Path(item["audio_path"])
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            if digest != item["sha256"]:
+                raise ValueError("Speech input bytes changed")
+            samples, rate = soundfile.read(path, dtype="float32")
+            if (
+                rate != item["sample_rate"]
+                or samples.ndim != 1
+                or not 0 < len(samples) <= rate * 30
+            ):
+                raise ValueError(
+                    "Speech input must be mono, 16kHz and at most30 seconds"
+                )
+            prompt = "<|im_start|>user\n<|audio_start|><|audio_pad|><|audio_end|>\n<|im_end|>\n<|im_start|>assistant\n"
+            values.append(
+                {"prompt": prompt, "multi_modal_data": {"audio": (samples, rate)}}
+            )
+            hashes.append(
+                {
+                    "kind": "audio",
+                    "source_sha256": digest,
+                    "samples": len(samples),
+                    "sample_rate": rate,
+                }
+            )
+        return values, hashes
     from PIL import Image
 
     values, hashes = [], []
     for item in prompts:
-        image = Image.new("RGB", tuple(item["size"]), tuple(item["rgb"]))
+        source_digest = None
+        if "image_path" in item:
+            path = Path(item["image_path"])
+            source_digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            if source_digest != item["sha256"]:
+                raise ValueError("Image source bytes changed")
+            with Image.open(path) as original:
+                image = original.convert("RGB")
+        else:
+            image = Image.new("RGB", tuple(item["size"]), tuple(item["rgb"]))
         text = (
             "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n"
             "<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>"
@@ -75,7 +125,13 @@ def materialize(prompts):
             + "<|im_end|>\n<|im_start|>assistant\n"
         )
         values.append({"prompt": text, "multi_modal_data": {"image": image}})
-        hashes.append(hashlib.sha256(image.tobytes()).hexdigest())
+        hashes.append(
+            {
+                "kind": "image",
+                "pixel_sha256": hashlib.sha256(image.tobytes()).hexdigest(),
+                "source_sha256": source_digest,
+            }
+        )
     return values, hashes
 
 
@@ -142,7 +198,12 @@ def generate(request):
                         for metric in engine.get_metrics()
                         if isinstance(getattr(metric, "value", None), (int, float))
                     },
-                    "image_pixel_sha256": image_hashes,
+                    "image_pixel_sha256": [
+                        record["pixel_sha256"]
+                        for record in image_hashes
+                        if record["kind"] == "image"
+                    ],
+                    "media_inputs": image_hashes,
                 }
             )
         return {

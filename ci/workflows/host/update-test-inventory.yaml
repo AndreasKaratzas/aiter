@@ -1,8 +1,7 @@
 name: Update Split Tests
 
 on:
-  schedule:
-    - cron: "0 3 * * 1"
+  workflow_call:
   workflow_dispatch:
     inputs:
       runs_count:

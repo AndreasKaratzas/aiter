@@ -11,10 +11,10 @@ Shared runner, dependency and container adapters.
 | Adapter | Responsibility | Direct workflow callers |
 |---|---|---|
 | [common/check_signal.sh](common/check_signal.sh) | Wait for the Checks workflow for the same commit before legacy GPU jobs. | [client-atom.yaml](../workflows/client-atom.yaml), [client-flash-attention.yaml](../workflows/client-flash-attention.yaml), [client-sglang-models.yaml](../workflows/client-sglang-models.yaml), [client-vllm-benchmarks.yaml](../workflows/client-vllm-benchmarks.yaml), [product-legacy.yaml](../workflows/product-legacy.yaml), [product-opus.yaml](../workflows/product-opus.yaml), [product-triton.yaml](../workflows/product-triton.yaml) |
-| [common/cleanup_rocm.sh](common/cleanup_rocm.sh) | Clear GPU processes on dedicated legacy runner hosts; never run on a shared development machine. | [product-legacy.yaml](../workflows/product-legacy.yaml), [product-tuning-validation.yaml](../workflows/product-tuning-validation.yaml), [product-tuning.yaml](../workflows/product-tuning.yaml) |
-| [common/docker_pull.sh](common/docker_pull.sh) | Retry pulling the explicitly selected container image. | [client-flash-attention.yaml](../workflows/client-flash-attention.yaml), [client-vllm-benchmarks.yaml](../workflows/client-vllm-benchmarks.yaml), [client-vllm-disaggregation.yaml](../workflows/client-vllm-disaggregation.yaml), [release-triton-wheel.yaml](../workflows/release-triton-wheel.yaml) |
-| [common/gpu_visibility.sh](common/gpu_visibility.sh) | Inspect the GPU devices exposed to a legacy job. | [product-legacy.yaml](../workflows/product-legacy.yaml) |
-| [common/install_triton.sh](common/install_triton.sh) | Install the legacy job Triton dependency from its declared ROCm wheel source. | [client-atom.yaml](../workflows/client-atom.yaml), [client-sglang-models.yaml](../workflows/client-sglang-models.yaml), [product-legacy.yaml](../workflows/product-legacy.yaml), [product-triton.yaml](../workflows/product-triton.yaml) |
+| [common/cleanup_rocm.sh](common/cleanup_rocm.sh) | Clear GPU processes on dedicated legacy runner hosts; never run on a shared development machine. | [product-tuning-validation.yaml](../workflows/product-tuning-validation.yaml), [product-tuning.yaml](../workflows/product-tuning.yaml) |
+| [common/docker_pull.sh](common/docker_pull.sh) | Retry pulling the explicitly selected container image. | [client-flash-attention.yaml](../workflows/client-flash-attention.yaml), [client-vllm-benchmarks.yaml](../workflows/client-vllm-benchmarks.yaml), [release-triton-wheel.yaml](../workflows/release-triton-wheel.yaml) |
+| [common/gpu_visibility.sh](common/gpu_visibility.sh) | Inspect the GPU devices exposed to a legacy job. | Called by another adapter or used manually |
+| [common/install_triton.sh](common/install_triton.sh) | Install the legacy job Triton dependency from its declared ROCm wheel source. | [client-atom.yaml](../workflows/client-atom.yaml), [product-triton.yaml](../workflows/product-triton.yaml) |
 | [common/verify_triton_pin.py](common/verify_triton_pin.py) | Check the legacy Triton minimum version after installation. | [product-triton.yaml](../workflows/product-triton.yaml) |
 
 ## Product
@@ -23,8 +23,8 @@ Operator drivers, sharding, Triton selection and tuning jobs.
 
 | Adapter | Responsibility | Direct workflow callers |
 |---|---|---|
-| [product/collect_logs.py](product/collect_logs.py) | Summarize retained standalone-driver output for the workflow. | [product-legacy.yaml](../workflows/product-legacy.yaml) |
-| [product/run_tests.sh](product/run_tests.sh) | Run the retained standalone operator and communication drivers. | [product-legacy.yaml](../workflows/product-legacy.yaml) |
+| [product/collect_logs.py](product/collect_logs.py) | Summarize retained standalone-driver output for the workflow. | Called by another adapter or used manually |
+| [product/run_tests.sh](product/run_tests.sh) | Run the retained standalone operator and communication drivers. | Called by another adapter or used manually |
 | [product/split_tests.sh](product/split_tests.sh) | Assign legacy operator drivers to timing-based shards. | [host-update-test-inventory.yaml](../workflows/host-update-test-inventory.yaml), [product-legacy.yaml](../workflows/product-legacy.yaml), [product-triton.yaml](../workflows/product-triton.yaml) |
 | [product/triton/build.sh](product/triton/build.sh) | Prepare the legacy Triton test build environment. | [product-triton.yaml](../workflows/product-triton.yaml), [product-tuning-validation.yaml](../workflows/product-tuning-validation.yaml), [product-tuning.yaml](../workflows/product-tuning.yaml) |
 | [product/triton/select_tests.py](product/triton/select_tests.py) | Select Triton tests and benchmarks from source dependencies. | [product-triton.yaml](../workflows/product-triton.yaml) |

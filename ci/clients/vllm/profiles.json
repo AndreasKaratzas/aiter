@@ -1,6 +1,6 @@
 {
   "vllm": {
-    "description": "Complete product and declared vLLM operator/model scenarios, including daily and extended cases.",
+    "description": "Product checks, candidate import, standard operator matrices and all declared model scenarios, including approved offline GPQA; optional hipBLASLt is selected separately.",
     "client": "vllm",
     "groups": [
       "vllm-import",
@@ -36,11 +36,55 @@
       "vllm-speculative-mixed",
       "vllm-long-context",
       "vllm-model-precision",
-      "vllm-multimodal-serving"
+      "vllm-multimodal-serving",
+      "vllm-gpt-oss",
+      "vllm-gpqa-smoke",
+      "vllm-gpqa-diamond",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
     ],
     "mandatory_groups": [
       "host",
-      "vllm-import"
+      "vllm-import",
+      "vllm-gpt-oss",
+      "vllm-gpqa-smoke",
+      "vllm-gpqa-diamond",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
     ]
   },
   "vllm-image": {
@@ -59,7 +103,7 @@
     ]
   },
   "vllm-e2e": {
-    "description": "All declared bounded model scenarios including daily cases and extended quality, vision ordering and mixed speculation; no all-upstream-model claim.",
+    "description": "Publicly provisionable bounded real-model scenarios; gated GPQA is explicitly selected through vllm-gpqa.",
     "client": "vllm",
     "groups": [
       "vllm-multimodal",
@@ -79,7 +123,14 @@
       "vllm-speculative-mixed",
       "vllm-long-context",
       "vllm-model-precision",
-      "vllm-multimodal-serving"
+      "vllm-multimodal-serving",
+      "vllm-gpt-oss",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa"
     ],
     "mandatory_groups": [
       "vllm-multimodal",
@@ -99,7 +150,14 @@
       "vllm-speculative-mixed",
       "vllm-long-context",
       "vllm-model-precision",
-      "vllm-multimodal-serving"
+      "vllm-multimodal-serving",
+      "vllm-gpt-oss",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa"
     ]
   },
   "vllm-import": {
@@ -113,7 +171,7 @@
     ]
   },
   "vllm-nightly": {
-    "description": "Daily operator and bounded real-model workloads: server APIs,32-question GSM8K, dense Qwen3 and V1 scheduling after separate mandatory imports.",
+    "description": "Daily operator boundary matrices and bounded real-model, speech, FP8-checkpoint and GPT-OSS workloads after separate imports.",
     "client": "vllm",
     "groups": [
       "vllm-bridge",
@@ -134,7 +192,23 @@
       "vllm-entrypoints",
       "vllm-lm-eval",
       "vllm-qwen3-reference",
-      "vllm-chunked-prefill"
+      "vllm-chunked-prefill",
+      "vllm-gpt-oss",
+      "vllm-checkpoint-fp8",
+      "vllm-speech-smoke",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
     ],
     "mandatory_groups": [
       "vllm-bridge",
@@ -155,11 +229,27 @@
       "vllm-entrypoints",
       "vllm-lm-eval",
       "vllm-qwen3-reference",
-      "vllm-chunked-prefill"
+      "vllm-chunked-prefill",
+      "vllm-gpt-oss",
+      "vllm-checkpoint-fp8",
+      "vllm-speech-smoke",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
     ]
   },
   "vllm-extended": {
-    "description": "Weekly superset of daily vLLM workloads, adding held-out128-question GSM8K, image ordering, FP8 likelihoods and mixed speculative verification.",
+    "description": "Weekly superset of daily numerical matrices and real models, adding extended quality datasets, DeepSeek MLA, FA decoding, ChartQA and serving.",
     "client": "vllm",
     "groups": [
       "vllm-bridge",
@@ -187,7 +277,27 @@
       "vllm-speculative-mixed",
       "vllm-long-context",
       "vllm-model-precision",
-      "vllm-multimodal-serving"
+      "vllm-multimodal-serving",
+      "vllm-gpt-oss",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
     ],
     "mandatory_groups": [
       "vllm-bridge",
@@ -215,7 +325,133 @@
       "vllm-speculative-mixed",
       "vllm-long-context",
       "vllm-model-precision",
-      "vllm-multimodal-serving"
+      "vllm-multimodal-serving",
+      "vllm-gpt-oss",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
+    ]
+  },
+  "vllm-gpqa": {
+    "description": "Publisher-approved offline GPQA Diamond evaluation using real GPT-OSS MXFP4 MoE; smoke32 and complete198, no kernel-result substitution.",
+    "client": "vllm",
+    "groups": [
+      "vllm-gpqa-smoke",
+      "vllm-gpqa-diamond"
+    ],
+    "mandatory_groups": [
+      "vllm-gpqa-smoke",
+      "vllm-gpqa-diamond"
+    ]
+  },
+  "vllm-speech": {
+    "description": "Recorded human speech quality on the pinned Qwen3-ASR model; separate4/16 slices.",
+    "client": "vllm",
+    "groups": [
+      "vllm-speech-smoke",
+      "vllm-speech-extended"
+    ],
+    "mandatory_groups": [
+      "vllm-speech-smoke",
+      "vllm-speech-extended"
+    ]
+  },
+  "vllm-model-expansion": {
+    "description": "New real checkpoint pathways and independent quality oracles; no gated GPQA substitution.",
+    "client": "vllm",
+    "groups": [
+      "vllm-gpt-oss",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa"
+    ],
+    "mandatory_groups": [
+      "vllm-gpt-oss",
+      "vllm-speech-smoke",
+      "vllm-speech-extended",
+      "vllm-mla-model",
+      "vllm-checkpoint-fp8",
+      "vllm-flash-model",
+      "vllm-chartqa"
+    ]
+  },
+  "vllm-operators": {
+    "description": "Standard vLLM operator numerical and admission regressions without model assets; optional hipBLASLt has its own explicit profile.",
+    "client": "vllm",
+    "groups": [
+      "vllm-bridge",
+      "vllm-mxfp4",
+      "vllm-fp8",
+      "vllm-fused-quantization",
+      "vllm-position",
+      "vllm-routing",
+      "vllm-experts",
+      "vllm-attention",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
+    ],
+    "mandatory_groups": [
+      "vllm-bridge",
+      "vllm-mxfp4",
+      "vllm-fp8",
+      "vllm-fused-quantization",
+      "vllm-position",
+      "vllm-routing",
+      "vllm-experts",
+      "vllm-attention",
+      "vllm-normalization-boundaries",
+      "vllm-position-boundaries",
+      "vllm-routing-boundaries",
+      "vllm-fp8-boundaries",
+      "vllm-fp8-gemm-boundaries",
+      "vllm-unified-attention",
+      "vllm-flash-boundaries",
+      "vllm-fp8-batched",
+      "vllm-mla-kernels",
+      "vllm-gpt-oss-kernels",
+      "vllm-fp4-projections",
+      "vllm-gpt-oss-native-kernels",
+      "vllm-fp8-projection-paths"
+    ]
+  },
+  "vllm-hipblaslt": {
+    "description": "Strict optional hipBLASLt FP8 adapter contract; current gfx950 ROCm 7.2.3 has no valid solutions, so this profile is expected to fail until that backend prerequisite is resolved. No model assets required.",
+    "client": "vllm",
+    "groups": [
+      "vllm-hipblaslt"
+    ],
+    "mandatory_groups": [
+      "vllm-hipblaslt"
     ]
   }
 }

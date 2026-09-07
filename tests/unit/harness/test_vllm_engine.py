@@ -222,7 +222,7 @@ raise SystemExit(pytest.main(sys.argv[1:]))
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "22 tests collected" in result.stdout
+    assert "32 tests collected" in result.stdout
 
 
 @pytest.mark.parametrize("original_checkout", [False, True])

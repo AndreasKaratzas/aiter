@@ -101,6 +101,9 @@ The site renders the same guides maintained beside the code. A capability descri
    deliver/vllm-upstream
    deliver/vllm-operators
    deliver/vllm-e2e
+   deliver/vllm-evaluation
+   deliver/vllm-disaggregation
+   deliver/speech-fixtures
    deliver/pipelines
    deliver/workflows
    deliver/vllm-workflows

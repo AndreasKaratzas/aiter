@@ -1,0 +1,10 @@
+name: Schedule client-sglang-models
+
+on:
+  schedule:
+    - cron: '0 17 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/client-sglang-models.yaml
+    secrets: inherit

@@ -12,7 +12,8 @@ Reusable execution entrypoints shared by product, client and release jobs.
 
 | Canonical source | GitHub entrypoint | Purpose | Execution |
 |---|---|---|---|
-| [common/run-profile.yaml](../../ci/workflows/common/run-profile.yaml) | [product-run-profile.yaml](product-run-profile.yaml) | Run a source or installed-wheel profile | `ci.pipelines.profile` |
+| [common/product-area.yaml](../../ci/workflows/common/product-area.yaml) | [common-product-area.yaml](common-product-area.yaml) | One product-area bootstrap for the standard eight shards and multi-GPU driver inventory. | `ci.pipelines.bootstrap`, `ci.pipelines.product` |
+| [common/run-profile.yaml](../../ci/workflows/common/run-profile.yaml) | [product-run-profile.yaml](product-run-profile.yaml) | Shared checkout, artifact transfer, typed bootstrap and retained execution for product and client pipelines | `ci.pipelines.bootstrap`, `ci.pipelines.runner` |
 
 ## Host
 
@@ -54,11 +55,11 @@ Framework qualification, rolling canaries and model-specific integration workloa
 |---|---|---|---|
 | [clients/atom/disaggregation.yaml](../../ci/workflows/clients/atom/disaggregation.yaml) | [client-atom-disaggregation.yaml](client-atom-disaggregation.yaml) | ATOM DI CI smoke workflow | Workflow steps |
 | [clients/atom/test.yaml](../../ci/workflows/clients/atom/test.yaml) | [client-atom.yaml](client-atom.yaml) | Atom Test | Workflow steps |
-| [clients/common/canaries.yaml](../../ci/workflows/clients/common/canaries.yaml) | [client-canaries.yaml](client-canaries.yaml) | Rolling framework canaries | `ci.qualification.environments` |
+| [clients/common/canaries.yaml](../../ci/workflows/clients/common/canaries.yaml) | [client-canaries.yaml](client-canaries.yaml) | Rolling framework canaries | `ci.pipelines.canaries` |
 | [clients/flash-attention/integration.yaml](../../ci/workflows/clients/flash-attention/integration.yaml) | [client-flash-attention.yaml](client-flash-attention.yaml) | Flash Attention Integration | Workflow steps |
 | [clients/kimi/correctness.yaml](../../ci/workflows/clients/kimi/correctness.yaml) | [client-kimi-correctness.yaml](client-kimi-correctness.yaml) | Kimi Downstream Test | Workflow steps |
 | [clients/kimi/performance.yaml](../../ci/workflows/clients/kimi/performance.yaml) | [client-kimi-performance.yaml](client-kimi-performance.yaml) | Kimi Perf Downstream | Workflow steps |
-| [clients/sglang/models.yaml](../../ci/workflows/clients/sglang/models.yaml) | [client-sglang-models.yaml](client-sglang-models.yaml) | Sglang Downstream Test | `ci.pipelines.canaries`, `ci.clients.sglang.downstream` |
+| [clients/sglang/models.yaml](../../ci/workflows/clients/sglang/models.yaml) | [client-sglang-models.yaml](client-sglang-models.yaml) | Select and run upstream SGLang model cases through the shared bootstrap and retained platform controller. | `ci.pipelines.bootstrap`, `ci.clients.sglang.downstream` |
 | [clients/vllm/benchmarks.yaml](../../ci/workflows/clients/vllm/benchmarks.yaml) | [client-vllm-benchmarks.yaml](client-vllm-benchmarks.yaml) | vLLM latency canary | `ci.pipelines.canaries`, `ci.clients.vllm.latency` |
 | [clients/vllm/disaggregation.yaml](../../ci/workflows/clients/vllm/disaggregation.yaml) | [client-vllm-disaggregation.yaml](client-vllm-disaggregation.yaml) | vLLM disagg CI smoke workflow | Workflow steps |
 | [clients/vllm/model-benchmarks.yaml](../../ci/workflows/clients/vllm/model-benchmarks.yaml) | [client-vllm-model-benchmarks.yaml](client-vllm-model-benchmarks.yaml) | Advisory daily smoke, Sunday extended and manual real-model measurements after nightly installation and import admission | `ci.pipelines.benchmarks` |
@@ -78,3 +79,29 @@ Build candidate wheels, qualify installed artifacts, compose images, publish com
 | [release/stable.yaml](../../ci/workflows/release/stable.yaml) | [release-stable.yaml](release-stable.yaml) | AITER Release Automation | `ci.release.stable`, `ci.release.manifest` |
 | [release/triton-wheel.yaml](../../ci/workflows/release/triton-wheel.yaml) | [release-triton-wheel.yaml](release-triton-wheel.yaml) | Prepare Triton Wheel | Workflow steps |
 | [release/wheel-smoke.yaml](../../ci/workflows/release/wheel-smoke.yaml) | [release-wheel-smoke.yaml](release-wheel-smoke.yaml) | Test installed wheels | Workflow steps |
+
+## Schedules
+
+Cron-only invocations: choose an execution workflow and fixed profile; no installation or test commands.
+
+| Canonical source | GitHub entrypoint | Purpose | Execution |
+|---|---|---|---|
+| [schedules/clients/atom/disaggregation.yaml](../../ci/workflows/schedules/clients/atom/disaggregation.yaml) | [schedule-client-atom-disaggregation.yaml](schedule-client-atom-disaggregation.yaml) | Scheduled invocation of clients / atom / disaggregation | Workflow steps |
+| [schedules/clients/common/canaries.yaml](../../ci/workflows/schedules/clients/common/canaries.yaml) | [schedule-client-canaries.yaml](schedule-client-canaries.yaml) | Scheduled invocation of clients / common / canaries | Workflow steps |
+| [schedules/clients/kimi/correctness.yaml](../../ci/workflows/schedules/clients/kimi/correctness.yaml) | [schedule-client-kimi-correctness.yaml](schedule-client-kimi-correctness.yaml) | Scheduled invocation of clients / kimi / correctness | Workflow steps |
+| [schedules/clients/kimi/performance.yaml](../../ci/workflows/schedules/clients/kimi/performance.yaml) | [schedule-client-kimi-performance.yaml](schedule-client-kimi-performance.yaml) | Scheduled invocation of clients / kimi / performance | Workflow steps |
+| [schedules/clients/sglang/models.yaml](../../ci/workflows/schedules/clients/sglang/models.yaml) | [schedule-client-sglang-models.yaml](schedule-client-sglang-models.yaml) | Scheduled invocation of clients / sglang / models | Workflow steps |
+| [schedules/clients/vllm/benchmarks-daily.yaml](../../ci/workflows/schedules/clients/vllm/benchmarks-daily.yaml) | [schedule-vllm-benchmarks-daily.yaml](schedule-vllm-benchmarks-daily.yaml) | Scheduled invocation of clients / vllm / benchmarks-daily | Workflow steps |
+| [schedules/clients/vllm/benchmarks-weekly.yaml](../../ci/workflows/schedules/clients/vllm/benchmarks-weekly.yaml) | [schedule-vllm-benchmarks-weekly.yaml](schedule-vllm-benchmarks-weekly.yaml) | Scheduled invocation of clients / vllm / benchmarks-weekly | Workflow steps |
+| [schedules/clients/vllm/disaggregation.yaml](../../ci/workflows/schedules/clients/vllm/disaggregation.yaml) | [schedule-client-vllm-disaggregation.yaml](schedule-client-vllm-disaggregation.yaml) | Scheduled invocation of clients / vllm / disaggregation | Workflow steps |
+| [schedules/clients/vllm/nightly-daily.yaml](../../ci/workflows/schedules/clients/vllm/nightly-daily.yaml) | [schedule-vllm-nightly-daily.yaml](schedule-vllm-nightly-daily.yaml) | Scheduled invocation of clients / vllm / nightly-daily | Workflow steps |
+| [schedules/clients/vllm/nightly-weekly.yaml](../../ci/workflows/schedules/clients/vllm/nightly-weekly.yaml) | [schedule-vllm-nightly-weekly.yaml](schedule-vllm-nightly-weekly.yaml) | Scheduled invocation of clients / vllm / nightly-weekly | Workflow steps |
+| [schedules/host/checks.yaml](../../ci/workflows/schedules/host/checks.yaml) | [schedule-host-checks.yaml](schedule-host-checks.yaml) | Scheduled invocation of host / checks | Workflow steps |
+| [schedules/host/runner-monitor.yml](../../ci/workflows/schedules/host/runner-monitor.yml) | [schedule-host-runner-monitor.yml](schedule-host-runner-monitor.yml) | Scheduled invocation of host / runner-monitor | Workflow steps |
+| [schedules/host/update-test-inventory.yaml](../../ci/workflows/schedules/host/update-test-inventory.yaml) | [schedule-host-update-test-inventory.yaml](schedule-host-update-test-inventory.yaml) | Scheduled invocation of host / update-test-inventory | Workflow steps |
+| [schedules/product/legacy.yaml](../../ci/workflows/schedules/product/legacy.yaml) | [schedule-product-legacy.yaml](schedule-product-legacy.yaml) | Scheduled invocation of product / legacy | Workflow steps |
+| [schedules/product/opus.yaml](../../ci/workflows/schedules/product/opus.yaml) | [schedule-product-opus.yaml](schedule-product-opus.yaml) | Scheduled invocation of product / opus | Workflow steps |
+| [schedules/product/qualification.yaml](../../ci/workflows/schedules/product/qualification.yaml) | [schedule-product-qualification.yaml](schedule-product-qualification.yaml) | Scheduled invocation of product / qualification | Workflow steps |
+| [schedules/product/tuning-validation.yaml](../../ci/workflows/schedules/product/tuning-validation.yaml) | [schedule-product-tuning-validation.yaml](schedule-product-tuning-validation.yaml) | Scheduled invocation of product / tuning-validation | Workflow steps |
+| [schedules/release/nightly.yaml](../../ci/workflows/schedules/release/nightly.yaml) | [schedule-release-nightly.yaml](schedule-release-nightly.yaml) | Scheduled invocation of release / nightly | Workflow steps |
+| [schedules/release/stable.yaml](../../ci/workflows/schedules/release/stable.yaml) | [schedule-release-stable.yaml](schedule-release-stable.yaml) | Scheduled invocation of release / stable | Workflow steps |

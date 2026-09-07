@@ -7,12 +7,27 @@ from vllm.v1.worker.gpu_worker import Worker
 
 from ci.clients.vllm.observation import AiterTrace
 
-from .identity import environment_identity
+from .identity import environment_identity, tensor_identity
 
 
 class ObservedWorker(Worker):
     def load_model(self, *args, **kwargs):
-        self._aiter_test_trace = AiterTrace().start()
+        self._aiter_test_trace = AiterTrace(
+            operations=(
+                "rms_norm",
+                "rmsnorm2d_fwd_with_add",
+                "flash_attn_varlen_func",
+                "hipb_mm",
+                "gemm_a8w8_CK",
+                "gemm_a8w8_bpreshuffle",
+                "gemm_a8w8_blockscale",
+                "gemm_a8w8_blockscale_bpreshuffle",
+            ),
+            module_operations=(
+                ("aiter.ops.moe.dispatch", "fused_moe"),
+                ("aiter.ops.attention.mla", "mla_decode_fwd"),
+            ),
+        ).start()
         self._aiter_test_schedule = []
         return super().load_model(*args, **kwargs)
 
@@ -61,8 +76,21 @@ class ObservedWorker(Worker):
             if str(parameter.dtype).startswith("torch.float8_")
         }
         linear_kernels = {}
+        expert_methods = {}
         for name, module in model.named_modules():
             method = getattr(module, "quant_method", None)
+            if method is not None and (
+                hasattr(module, "w13_weight") or hasattr(module, "w2_weight")
+            ):
+                expert_methods[name] = {
+                    "method": type(method).__module__ + "." + type(method).__name__,
+                    "backend": str(getattr(method, "mxfp4_backend", "")),
+                    "weights": {
+                        key: tensor_identity(getattr(module, key))
+                        for key in ("w13_weight", "w2_weight")
+                        if getattr(module, key, None) is not None
+                    },
+                }
             kernel = getattr(method, "fp8_linear", None)
             if kernel is not None:
                 linear_kernels[name] = (
@@ -80,6 +108,7 @@ class ObservedWorker(Worker):
                 {str(parameter.dtype) for parameter in model.parameters()}
             ),
             "fp8_linear_kernels": linear_kernels,
+            "expert_methods": expert_methods,
             "environment": environment_identity(),
         }
 

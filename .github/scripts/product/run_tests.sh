@@ -23,12 +23,12 @@ testFailed=false
 
 if [[ "$MULTIGPU" == "TRUE" ]]; then
     # Recursively find all files under tests/integration/communication
-    mapfile -t files < <(find tests/integration/communication -type f -name "*.py" | sort)
+    mapfile -t files < <(python3 -S -m ci.pipelines.product --list --area multi-gpu)
 else
     if [[ -z "${AITER_TEST:-}" ]]; then
         echo "AITER_TEST is not set"
         # Preserve the former top-level operator inventory across its backend directories.
-        mapfile -t files < <({ find tests/operators/hip tests/operators/flydsl -maxdepth 1 -type f -name 'test_*.py'; find tests/operators/hip/drivers -maxdepth 1 -type f -name '*.py' ! -name '__init__.py'; printf '%s\n' tests/operators/opus/test_opus_a8w8_bmm.py tests/operators/opus/test_opus_a16w16_gemm.py; } | sort)
+        mapfile -t files < <(python3 -S -m ci.pipelines.product --list --area standard)
     else
         # If AITER_TEST contains multiple files separated by whitespace, convert to an array
         read -r -a files <<< "$AITER_TEST"

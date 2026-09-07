@@ -50,7 +50,7 @@ TEST_DIR="${TEST_DIR%/}"
 # scan test files in TEST_DIR
 # ------------------------------
 if [[ "$TEST_TYPE" == "aiter" ]]; then
-    mapfile -t ALL_FILES < <({ find tests/operators/hip tests/operators/flydsl -maxdepth 1 -type f -name 'test_*.py'; find tests/operators/hip/drivers -maxdepth 1 -type f -name '*.py' ! -name '__init__.py'; printf '%s\n' tests/operators/opus/test_opus_a8w8_bmm.py tests/operators/opus/test_opus_a16w16_gemm.py; } | LC_ALL=C sort)
+    mapfile -t ALL_FILES < <(python3 -S -m ci.pipelines.product --list --area standard)
 elif [[ "$TEST_TYPE" == "triton" ]]; then
     mapfile -t ALL_FILES < <(find "$TEST_DIR" -name 'test_*.py' -type f | LC_ALL=C sort)
 fi

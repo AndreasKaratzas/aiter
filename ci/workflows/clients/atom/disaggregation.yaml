@@ -1,8 +1,7 @@
 name: ATOM DI CI smoke workflow
 
 on:
-  schedule:
-    - cron: "0 16 * * *"  # 12:00 AM Beijing Time (UTC+8)
+  workflow_call:
   workflow_dispatch:
     inputs:
       atom_ref:

@@ -107,10 +107,24 @@ def validate_workers(result, request, expected_root):
                 observed(worker, "operations", "rms_norm") > 0,
                 "Generation bypassed AITER normalization on a worker",
             )
-            require(
-                observed(worker, "kernels", "unified_attention") > 0,
-                "Generation bypassed AITER attention on a worker",
+            validate_attention(
+                worker, request["settings"].get("attention_backend", "unified")
             )
+            if request["settings"].get("moe"):
+                validate_experts(worker, request["settings"].get("moe_backend", "auto"))
+
+
+def validate_attention(worker, backend):
+    evidence = {
+        "unified": observed(worker, "kernels", "unified_attention"),
+        "flash": observed(worker, "operations", "flash_attn_varlen_func"),
+        "mla": observed(worker, "operations", "mla_decode_fwd")
+        + observed(worker, "kernels", "mla"),
+    }
+    require(
+        backend in evidence and evidence[backend] > 0,
+        f"Generation bypassed AITER attention: selected {backend}",
+    )
 
 
 def tokens(batch):
@@ -128,3 +142,14 @@ def replayed_aiter_graphs(worker):
             for kernel, launches in worker["graph_captures"][name]["kernels"].items()
         )
     }
+
+
+def validate_experts(worker, backend):
+    calls = (
+        observed(worker, "kernels", "_moe_gemm_a16w4")
+        if backend == "aiter_triton_mxfp4_bf16"
+        else observed(worker, "operations", "fused_moe")
+    )
+    require(
+        calls > 0, f"Generation bypassed selected AITER expert execution: {backend}"
+    )

@@ -29,6 +29,43 @@
         "image"
       ],
       "checkpoint_dtype": "bfloat16"
+    },
+    "gpt_oss_20b": {
+      "family": "gpt-oss",
+      "architecture": "GptOssForCausalLM",
+      "parameters": "20B MoE",
+      "modalities": [
+        "text"
+      ],
+      "checkpoint_dtype": "mxfp4"
+    },
+    "qwen3_asr_0_6b": {
+      "family": "qwen3-asr",
+      "architecture": "Qwen3ASRForConditionalGeneration",
+      "parameters": "0.6B",
+      "modalities": [
+        "audio",
+        "text"
+      ],
+      "checkpoint_dtype": "bfloat16"
+    },
+    "deepseek_v2_lite_chat": {
+      "family": "deepseek-v2",
+      "architecture": "DeepseekV2ForCausalLM",
+      "parameters": "16B MoE",
+      "modalities": [
+        "text"
+      ],
+      "checkpoint_dtype": "bfloat16"
+    },
+    "qwen3_0_6b_fp8": {
+      "family": "qwen3",
+      "architecture": "Qwen3ForCausalLM",
+      "parameters": "0.6B",
+      "modalities": [
+        "text"
+      ],
+      "checkpoint_dtype": "fp8-block"
     }
   },
   "cases": {
@@ -472,19 +509,246 @@
       ],
       "context_capacity": 4096,
       "oracle": "Real Qwen image grounding through OpenAI HTTP, with per-request AITER worker observations."
+    },
+    "gpqa-smoke32": {
+      "selector": "tests/frameworks/vllm/evaluation/test_gpqa.py::test_gpt_oss_gpqa[smoke32]",
+      "group": "vllm-gpqa-smoke",
+      "model": "gpt_oss_20b",
+      "dtypes": [
+        "bfloat16",
+        "mxfp4"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "sparse-moe",
+        "mxfp4",
+        "gpqa",
+        "quality-evaluation"
+      ],
+      "context_capacity": 16384,
+      "oracle": "First32 pinned GPQA Diamond questions; all in denominator, >=50% exact final choice. Gated offline prerequisite, no synthetic substitute."
+    },
+    "gpqa-diamond198": {
+      "selector": "tests/frameworks/vllm/evaluation/test_gpqa.py::test_gpt_oss_gpqa[diamond198]",
+      "group": "vllm-gpqa-diamond",
+      "model": "gpt_oss_20b",
+      "dtypes": [
+        "bfloat16",
+        "mxfp4"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "sparse-moe",
+        "mxfp4",
+        "gpqa",
+        "quality-evaluation"
+      ],
+      "context_capacity": 16384,
+      "oracle": "Complete198 pinned GPQA Diamond questions; all in denominator, >=50% exact final choice; redacted retained dataset records."
+    },
+    "speech-smoke4": {
+      "selector": "tests/frameworks/vllm/models/speech/test_qwen_asr.py::test_qwen_asr_transcribes_real_librispeech[smoke]",
+      "group": "vllm-speech-smoke",
+      "model": "qwen3_asr_0_6b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "speech",
+        "asr",
+        "human-transcripts",
+        "flash-attention",
+        "unified-attention"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Four original LibriSpeech test-clean recordings; corpus WER<=15% vs human transcripts; observed FA encoder and UA decoder."
+    },
+    "speech-retained16": {
+      "selector": "tests/frameworks/vllm/models/speech/test_qwen_asr.py::test_qwen_asr_transcribes_real_librispeech[retained16]",
+      "group": "vllm-speech-extended",
+      "model": "qwen3_asr_0_6b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "speech",
+        "asr",
+        "human-transcripts",
+        "flash-attention",
+        "unified-attention"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Complete retained16 original LibriSpeech recordings; corpus WER<=15%, all utterances retained."
+    },
+    "deepseek-mla-model": {
+      "selector": "tests/frameworks/vllm/attention/mla/test_deepseek.py::test_deepseek_mla_moe_likelihoods_match_reference",
+      "group": "vllm-mla-model",
+      "model": "deepseek_v2_lite_chat",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "sparse-moe",
+        "mla",
+        "independent-hf-likelihoods"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Real16B DeepSeek weights, AITER MLA/expert execution and all prompt likelihoods vs independent eager HF."
+    },
+    "checkpoint-fp8": {
+      "selector": "tests/frameworks/vllm/quantization/test_checkpoint_fp8.py::test_qwen_checkpoint_fp8_matches_dequantized_reference",
+      "group": "vllm-checkpoint-fp8",
+      "model": "qwen3_0_6b_fp8",
+      "dtypes": [
+        "bfloat16",
+        "fp8-block"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "checkpoint-fp8",
+        "independent-hf-likelihoods",
+        "unified-attention"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Publisher FP8 weights and actual blockscale GEMM; full prompt likelihoods bounded vs independently block-dequantized eager HF."
+    },
+    "flash-decoder-model": {
+      "selector": "tests/frameworks/vllm/attention/flash/test_decoder.py::test_flash_and_unified_attention_match_model_reference",
+      "group": "vllm-flash-model",
+      "model": "qwen3_1_7b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "flash-attention",
+        "unified-attention",
+        "independent-hf-likelihoods"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Both actual dense decoder attention backends agree with independent eager HF prompt likelihoods and greedy outputs."
+    },
+    "chartqa-human16": {
+      "selector": "tests/frameworks/vllm/models/multimodal/test_chartqa.py::test_qwen_chartqa_human_questions",
+      "group": "vllm-chartqa",
+      "model": "qwen25_vl_3b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "image",
+        "charts",
+        "chartqa",
+        "human-questions",
+        "flash-attention",
+        "unified-attention"
+      ],
+      "context_capacity": 4096,
+      "oracle": "First16 human-authored ChartQA test rows, >=50% exact-label or declared5% numeric answers; actual image encoder plus decoder paths."
+    },
+    "gpt-oss-native-ck": {
+      "selector": "tests/frameworks/vllm/models/moe/test_gpt_oss.py::test_gpt_oss_packed_experts_preserve_semantic_answers[native-ck]",
+      "group": "vllm-gpt-oss",
+      "model": "gpt_oss_20b",
+      "dtypes": [
+        "bfloat16",
+        "mxfp4"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "sparse-moe",
+        "mxfp4-checkpoint",
+        "semantic-arithmetic",
+        "unified-attention",
+        "native-ck"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Eight independently specified arithmetic/queue tasks through real OpenAI final responses; all answers exact, actual packed weights and selected expert backend observed. Separate from GPQA and failed likelihood diagnostics."
+    },
+    "gpt-oss-aiter-triton": {
+      "selector": "tests/frameworks/vllm/models/moe/test_gpt_oss.py::test_gpt_oss_packed_experts_preserve_semantic_answers[aiter-triton]",
+      "group": "vllm-gpt-oss",
+      "model": "gpt_oss_20b",
+      "dtypes": [
+        "bfloat16",
+        "mxfp4"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "sparse-moe",
+        "mxfp4-checkpoint",
+        "semantic-arithmetic",
+        "unified-attention",
+        "aiter-triton"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Eight independently specified arithmetic/queue tasks through real OpenAI final responses; all answers exact, actual packed weights and selected expert backend observed. Separate from GPQA and failed likelihood diagnostics."
     }
   },
   "uncovered": {
-    "model-moe": "No pinned real expert-model numerical acceptance; tensor MoE bridges are separate.",
-    "model-mxfp4": "No pinned real MXFP4 checkpoint acceptance; packed operator bridge and dummy-weight canaries do not substitute.",
     "learned-draft": "Only ngram_gpu speculation; no Eagle/MTP/DFlash learned draft qualification.",
     "hybrid-recurrent": "No real hybrid/recurrent checkpoint state-lifecycle acceptance.",
-    "audio-video": "Only controlled images with Qwen2.5-VL; audio and video unported.",
     "pooling-reranking": "Embedding, pooling, scoring and reranking models unported.",
     "kv-transfer": "No disaggregated prefill/decode or multi-node KV transport qualification.",
     "tp4-tp8": "Real-weight assertions cover TP1/TP2, not larger or multi-node topologies.",
-    "gpt-oss": "No real GPT-OSS or expert MXFP4 model acceptance; operator packing tests do not establish model behavior.",
-    "deepseek-mla": "No real DeepSeek/MLA model cache/decode qualification; dummy-weight latency canaries are separate."
+    "additional-moe-families": "GPT-OSS20B and DeepSeekV2Lite cases are declared; this does not establish other MoE layouts, routing algorithms or full family support.",
+    "additional-speech": "Qwen3-ASR0.6B English LibriSpeech retained slice only; no multilingual, streamingASR, TTS or other audio-model claim.",
+    "video": "No real video checkpoint/dataset execution case is registered.",
+    "gated-gpqa-execution": "Real GPQA cases require publisher-approved exact dataset bytes; collection cannot establish evaluation accuracy."
   },
   "upstream_revision": "5690b02c03832a4ac3af231d3ecebe649c188095"
 }

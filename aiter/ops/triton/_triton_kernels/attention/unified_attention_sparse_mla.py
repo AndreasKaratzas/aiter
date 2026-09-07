@@ -94,7 +94,6 @@ def _kernel_unified_attention_sparse_mla_2d(
     """
     TODO:
     -- Masking can be simplified
-    -- Tests fail when all topk indices are all -1, not likely to be the case in practice
     """
     # only one query per program
     # these can be removed but keeps the kernel similar to the MHA way
@@ -255,7 +254,9 @@ def _kernel_unified_attention_sparse_mla_2d(
         acc = tl.dot(P.to(V_lora.dtype), V_lora, acc=acc)
 
     # epilogue
-    one_over_L = 1.0 / L[:, None]
+    # A query may have no selected cache rows (all top-k slots are -1).
+    # Its accumulator is zero and the defined output is zero, not 0 / 0.
+    one_over_L = 1.0 / tl.where(L[:, None] > 0, L[:, None], 1.0)
     acc = acc * one_over_L
 
     output_offs_lora = (

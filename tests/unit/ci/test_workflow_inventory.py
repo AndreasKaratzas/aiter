@@ -8,7 +8,6 @@ import re
 import subprocess
 import sys
 import tempfile
-import textwrap
 import unittest
 from pathlib import Path
 
@@ -38,7 +37,14 @@ class WorkflowInventoryTests(unittest.TestCase):
             "schema_version": 1,
             "domains": {
                 name: name
-                for name in ("common", "host", "product", "clients", "release")
+                for name in (
+                    "common",
+                    "host",
+                    "product",
+                    "clients",
+                    "release",
+                    "schedules",
+                )
             },
             "workflows": [
                 {
@@ -145,7 +151,7 @@ class WorkflowInventoryTests(unittest.TestCase):
                             self.render()
             path.unlink()
 
-    def test_real_benchmark_workflow_forwards_profile_cases_and_gpus_as_arguments(self):
+    def test_workflow_definitions_delegate_and_cron_files_only_select_profiles(self):
         controls = Path(ci.workflows.__file__).resolve().parents[2]
         workflow = (
             controls / "ci/workflows/clients/vllm/model-benchmarks.yaml"
@@ -155,91 +161,37 @@ class WorkflowInventoryTests(unittest.TestCase):
             (controls / "benchmarks/vllm/models/cases.json").read_text()
         )
         self.assertEqual(set(declared.split(", ")), set(catalog["profiles"]))
-        self.assertEqual(
-            set(re.findall(r"- cron: '([^']+)'", workflow)),
-            {"45 19 * * *", "15 22 * * 0"},
-        )
-        step = workflow.split("      - name: Install the nightly,", 1)[1]
-        script = textwrap.dedent(
-            step.split("        run: |\n", 1)[1].split("      - name:", 1)[0]
-        )
-        self.assertNotIn("${{ inputs.", script)
-        binary = self.root / "python3"
-        binary.write_text(
-            f"#!{sys.executable}\n"
-            "import json, os, sys\n"
-            "with open(os.environ['CAPTURE'], 'w') as output:\n"
-            "    json.dump(sys.argv[1:], output)\n"
-        )
-        binary.chmod(0o755)
-        capture = self.root / "arguments.json"
-        manual = (
-            ("baseline", "", "0"),
-            ("topology", "llama-tp2-eager,llama-tp2-graph", "0,1"),
-            ("$(touch PWNED)", "one; touch PWNED `touch PWNED`", "0; touch PWNED"),
-        )
-        cases = [
-            (("workflow_dispatch", ""), selection, selection) for selection in manual
-        ]
-        cases += [
-            (("schedule", "45 19 * * *"), manual[2], ("smoke", "", "0")),
-            (("schedule", "15 22 * * 0"), manual[2], ("extended", "", "0,1")),
-            (("schedule", "0 0 * * *"), manual[0], None),
-            (("pull_request", ""), manual[0], None),
-        ]
-        for (event, schedule), (profile, selected, gpus), expected_selection in cases:
-            with self.subTest(event=event, schedule=schedule, profile=profile):
-                capture.unlink(missing_ok=True)
-                result = subprocess.run(
-                    ["bash", "-euo", "pipefail", "-c", script],
-                    cwd=self.root,
-                    env=dict(
-                        os.environ,
-                        PATH=str(self.root) + os.pathsep + os.defpath,
-                        CAPTURE=str(capture),
-                        GITHUB_WORKSPACE="/space in/workspace",
-                        RUNNER_TEMP="/space in/temp",
-                        EXECUTOR_IMAGE="image@sha256:approved",
-                        BENCHMARK_EVENT=event,
-                        BENCHMARK_SCHEDULE=schedule,
-                        BENCHMARK_PROFILE=profile,
-                        BENCHMARK_CASES=selected,
-                        BENCHMARK_GPUS=gpus,
-                    ),
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
+        for name in ("nightly.yaml", "model-benchmarks.yaml"):
+            definition = (controls / "ci/workflows/clients/vllm" / name).read_text()
+            self.assertNotIn("cron:", definition)
+            self.assertNotIn("run:", definition)
+            self.assertIn("workflow_call:", definition)
+            self.assertIn(
+                "uses: ./.github/workflows/product-run-profile.yaml", definition
+            )
+        schedules = controls / "ci/workflows/schedules"
+        for path in schedules.rglob("*.yaml"):
+            with self.subTest(path=path):
+                body = path.read_text()
+                self.assertIn("  schedule:", body)
+                self.assertNotIn("workflow_dispatch:", body)
+                self.assertNotIn("steps:", body)
+                self.assertNotIn("run: |", body)
+                self.assertNotRegex(body, r"(?m)^[ \t]+run:[ \t]+\S")
+                self.assertNotIn("runs-on:", body)
+                self.assertEqual(
+                    len(re.findall(r"uses: \./\.github/workflows/", body)), 1
                 )
-                self.assertFalse((self.root / "PWNED").exists())
-                if expected_selection is None:
-                    self.assertEqual(result.returncode, 2, result.stderr)
-                    self.assertFalse(capture.exists())
-                    continue
-                self.assertEqual(result.returncode, 0, result.stderr)
-                profile, selected, gpus = expected_selection
-                expected = [
-                    "-m",
-                    "ci.pipelines",
-                    "vllm-benchmark",
-                    "--source",
-                    "/space in/workspace/candidate",
-                    "--controls",
-                    "/space in/workspace/control",
-                    "--wheel-dir",
-                    "/space in/workspace/dist",
-                    "--output",
-                    "/space in/temp/vllm-model-benchmark",
-                    "--image",
-                    "image@sha256:approved",
-                    "--gpus",
-                    gpus,
-                    "--benchmark-profile",
-                    profile,
-                ]
-                if selected:
-                    expected += ["--benchmark-cases", selected]
-                self.assertEqual(json.loads(capture.read_text()), expected)
+        expected = {
+            "benchmarks-daily.yaml": ("45 19 * * *", "smoke", "0"),
+            "benchmarks-weekly.yaml": ("15 22 * * 0", "extended", "0,1"),
+        }
+        for name, (cron, profile, gpus) in expected.items():
+            body = (schedules / "clients/vllm" / name).read_text()
+            self.assertIn(f"cron: '{cron}'", body)
+            self.assertIn(f"benchmark_profile: '{profile}'", body)
+            self.assertIn(f"gpus: '{gpus}'", body)
+            self.assertIn("benchmark_cases: ''", body)
 
     def test_changed_source_generated_output_and_index_are_independently_rejected(self):
         self.render()

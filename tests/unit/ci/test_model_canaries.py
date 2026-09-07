@@ -9,8 +9,15 @@ from common.paths import source_root
 
 from benchmarks.vllm.latency import benchmark_command
 from ci.clients.manifest import client_cases
-from ci.common.json import load_json
-from ci.pipelines.canaries import selected_case, sglang_model, vllm_latency
+from ci.common.json import load_json, write_json
+from ci.pipelines import canaries
+from ci.pipelines.canaries import (
+    resolve_environments,
+    selected_case,
+    sglang_model,
+    vllm_latency,
+)
+from unit.ci.test_delivery import environment
 
 
 class ModelCanaryTests(unittest.TestCase):
@@ -37,6 +44,76 @@ class ModelCanaryTests(unittest.TestCase):
         case["command"] = ["bash", "-c", "unreviewed command"]
         with self.assertRaisesRegex(ValueError, "reviewed manifest"):
             selected_case("sglang", case)
+
+    def test_framework_resolution_uses_source_free_observer_and_retained_docker_port(
+        self,
+    ):
+        output = self.root / "resolution"
+        calls = []
+
+        class Transport:
+            def resolve(self, reference):
+                return {
+                    "Id": "sha256:" + "a" * 64,
+                    "RepoDigests": ["registry/image@sha256:" + "b" * 64],
+                }
+
+            def managed_container(self, command, **options):
+                calls.append(command)
+                client = command[command.index("--client") + 1]
+                lock = environment()
+                lock.update(
+                    status="canary",
+                    image=command[command.index("--image") + 1],
+                    frameworks={client: {"version": "1.0", "revision": "a" * 40}},
+                )
+                write_json(output / (client + "-lock.json"), lock)
+
+        result = resolve_environments(
+            controls=Path(canaries.__file__).resolve().parents[2],
+            images={
+                "vllm": "registry/vllm:nightly",
+                "sglang": "registry/sglang:nightly",
+            },
+            output=output,
+            docker=Transport(),
+        )
+        self.assertEqual(
+            [row["profile"] for row in result["include"]], ["vllm", "sglang"]
+        )
+        self.assertTrue((output / "matrix.json").is_file())
+        self.assertTrue((output / "suite/ci/qualification/environments.py").is_file())
+        self.assertFalse((output / "suite/aiter").exists())
+        for command in calls:
+            self.assertEqual(command[command.index("--entrypoint") + 1], "python3")
+            self.assertIn("PYTHONPATH=/instructions", command)
+            self.assertIn("sha256:" + "a" * 64, command)
+
+    def test_failed_canary_observation_cannot_emit_a_passing_matrix(self):
+        output = self.root / "failed-resolution"
+
+        class Transport:
+            def resolve(self, reference):
+                return {
+                    "Id": "sha256:" + "a" * 64,
+                    "RepoDigests": ["registry/image@sha256:" + "b" * 64],
+                }
+
+            def managed_container(self, command, **options):
+                raise ValueError("observer failed")
+
+        with self.assertRaisesRegex(ValueError, "observer failed"):
+            resolve_environments(
+                controls=Path(canaries.__file__).resolve().parents[2],
+                images={
+                    "vllm": "registry/vllm:nightly",
+                    "sglang": "registry/sglang:nightly",
+                },
+                output=output,
+                docker=Transport(),
+            )
+        self.assertTrue((output / "vllm-image.json").is_file())
+        self.assertFalse((output / "matrix.json").exists())
 
     def test_all_sglang_commands_and_environments_are_structured(self):
         for case in client_cases("sglang")["include"]:

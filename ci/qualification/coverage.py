@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ci.common.json import require
-from ci.qualification.catalog import validate_catalog
+from ci.qualification.catalog import execution_subject, validate_catalog
 
 
 def _test_files(directory: Path):
@@ -104,6 +104,7 @@ def selection_inventory(catalog: dict, controls: Path, *, client: str | None = N
         "scope": "File and node selectors only; execution, numerical coverage and shell-driver internals are not inferred.",
         "client": client,
         "profiles": sorted(profiles),
+        "profile_definitions": profiles,
         "groups": [
             {
                 "name": name,
@@ -111,6 +112,11 @@ def selection_inventory(catalog: dict, controls: Path, *, client: str | None = N
                 "architectures": groups[name]["architectures"],
                 "gpus": groups[name]["gpus"],
                 "minimum_cases": groups[name]["minimum_cases"],
+                "timeout_seconds": groups[name]["timeout_seconds"],
+                "subject": execution_subject(groups[name]),
+                "adapter": groups[name]["adapter"],
+                "pytest_options": groups[name].get("pytest_options", []),
+                "model_manifest": groups[name].get("model_manifest"),
                 "targets": groups[name]["targets"],
             }
             for name in sorted(groups)
@@ -137,13 +143,50 @@ def render_inventory(inventory: dict) -> str:
             f"{len(inventory['unselected_files'])} files have no direct selector."
         ),
         "",
-        "| Group | GPUs | Targets | Profiles |",
-        "| --- | --- | --- | --- |",
+        "## Profiles choose groups",
+        "",
+        "| Profile | Purpose | Groups |",
+        "| --- | --- | --- |",
+    ]
+    for name, profile in inventory["profile_definitions"].items():
+        lines.append(
+            f"| `{name}` | {profile['description']} | {', '.join(profile['groups'])} |"
+        )
+    lines += [
+        "",
+        "## Groups choose tests and prerequisites",
+        "",
+        "GPU counts are minimum requirements, not a scheduler reservation. The execution plan also binds its environment lock and artifact. Selected pytest groups require their declared capabilities; a missing prerequisite cannot count as a passing qualification.",
+        "",
     ]
     for group in inventory["groups"]:
-        targets = ", ".join(f"`{target}`" for target in group["targets"])
-        profiles = ", ".join(group["profiles"]) or "None"
-        lines.append(f"| {group['name']} | {group['gpus']} | {targets} | {profiles} |")
+        architectures = ", ".join(group["architectures"]) or "CPU"
+        lines += [
+            f"### {group['name']}",
+            "",
+            f"{group['gpus']} GPU(s); architectures: {architectures}; timeout: {group['timeout_seconds']} seconds; minimum {group['minimum_cases']} cases. Adapter: `{group['adapter']}`. Execution subject: {group['subject']}.",
+            "",
+            "Profiles: "
+            + (", ".join(f"`{name}`" for name in group["profiles"]) or "None")
+            + ".",
+            "",
+            "Selected paths:",
+            "",
+        ]
+        lines += [f"- `{target}`" for target in group["targets"]]
+        if group["model_manifest"]:
+            lines += [
+                "",
+                f"Required model bytes: `{group['model_manifest']}`. Provision the declared revisions before execution; tests do not select substitute checkpoints.",
+            ]
+        if group["pytest_options"]:
+            lines += [
+                "",
+                "Selected test options: "
+                + ", ".join(f"`{option}`" for option in group["pytest_options"])
+                + ".",
+            ]
+        lines.append("")
     lines.extend(["", "## Files without a direct selector", ""])
     lines.extend(f"- `{path}`" for path in inventory["unselected_files"])
     if not inventory["unselected_files"]:

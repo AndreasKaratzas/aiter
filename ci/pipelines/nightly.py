@@ -27,6 +27,8 @@ from ci.qualification.substitution import validate_rule, verify_pip_result
 from ci.release.artifacts import hash_file
 from ci.release.wheels import collect_source_identity, load_receipt, verify_wheel
 
+WORKLOAD_PROFILES = ("vllm-nightly", "vllm-extended", "vllm-hipblaslt")
+
 
 def platform_identity() -> dict:
     paths = {str(Path(sys.executable).resolve())}
@@ -146,7 +148,7 @@ def validate_request(request: dict) -> None:
         request["through"] in ("imports", "workloads"), "invalid nightly stage limit"
     )
     require(
-        request["workload_profile"] in ("vllm-nightly", "vllm-extended"),
+        request["workload_profile"] in WORKLOAD_PROFILES,
         "unknown rolling workload profile",
     )
     require(request["architecture"] == "gfx950", "nightly model scope requires gfx950")
@@ -167,7 +169,7 @@ def validate_request(request: dict) -> None:
 
 def admitted_plan(request: dict, catalog: dict, lock: dict, profile: str) -> dict:
     require(
-        request["workload_profile"] in ("vllm-nightly", "vllm-extended"),
+        request["workload_profile"] in WORKLOAD_PROFILES,
         "unknown rolling workload profile",
     )
     require(
@@ -217,6 +219,8 @@ def installation_commands(
             resolution["wheel_url"],
             "-r",
             str(controls / "requirements/test/host.txt"),
+            "-r",
+            str(controls / "requirements/clients/vllm-models.txt"),
             "-r",
             str(controls / "requirements/runtime/base.txt"),
             "-r",

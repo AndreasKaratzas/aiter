@@ -1148,6 +1148,47 @@
         "tests/operators/hip/test_sampling.py::test_top_k_renorm_probs[100-500-1]"
       ],
       "minimum_cases": 4
+    },
+    "quantization-zero-scale": {
+      "description": "Native tensor/token FP8 and INT8 quantization retains a positive scale floor for zero and mixed rows, finite reciprocals and the declared rounding rule.",
+      "components": [
+        "quantization"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/operators/hip/test_quant_zero_scale.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx942",
+        "gfx950"
+      ],
+      "timeout_seconds": 1800,
+      "minimum_cases": 64,
+      "environment": {
+        "MAX_JOBS": "8",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
+    },
+    "blas-tuning": {
+      "description": "Online hipBLASLt tuning returns a correct BF16 result and handles unavailable FP8 algorithms without killing the process; a clean rejection is a lifecycle pass, not optional FP8 support.",
+      "components": [
+        "gemm"
+      ],
+      "adapter": "pytest",
+      "targets": [
+        "tests/integration/runtime/test_blas_tuning.py"
+      ],
+      "gpus": 1,
+      "architectures": [
+        "gfx950"
+      ],
+      "timeout_seconds": 600,
+      "minimum_cases": 2,
+      "environment": {
+        "MAX_JOBS": "8",
+        "AITER_USE_SYSTEM_TRITON": "1"
+      }
     }
   },
   "profiles": {
@@ -1181,7 +1222,9 @@
         "sequence-delta-state",
         "paged-attention-addressing",
         "gemm-dense",
-        "sampling"
+        "sampling",
+        "quantization-zero-scale",
+        "blas-tuning"
       ],
       "mandatory_groups": [
         "host"
@@ -1213,7 +1256,9 @@
         "sequence-delta-state",
         "paged-attention-addressing",
         "gemm-dense",
-        "sampling"
+        "sampling",
+        "quantization-zero-scale",
+        "blas-tuning"
       ],
       "mandatory_groups": [
         "host"
@@ -1258,7 +1303,9 @@
         "sequence-delta-state",
         "paged-attention-addressing",
         "gemm-dense",
-        "sampling"
+        "sampling",
+        "quantization-zero-scale",
+        "blas-tuning"
       ],
       "mandatory_groups": [
         "host"
@@ -1349,7 +1396,7 @@
       ]
     },
     "product-features": {
-      "description": "Bounded numerical checks for position, routing, recurrent state, paged addressing, dense GEMM and sampling.",
+      "description": "Bounded numerical checks for position, routing, recurrent state, paged addressing, dense GEMM, sampling, quantization and BLAS tuning lifecycle.",
       "client": "aiter",
       "groups": [
         "host",
@@ -1360,7 +1407,9 @@
         "sequence-delta-state",
         "paged-attention-addressing",
         "gemm-dense",
-        "sampling"
+        "sampling",
+        "quantization-zero-scale",
+        "blas-tuning"
       ],
       "mandatory_groups": [
         "host"

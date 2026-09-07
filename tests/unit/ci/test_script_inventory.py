@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import shlex
 import shutil
 import subprocess
 import sys
@@ -47,35 +46,37 @@ class ScriptInventoryTests(unittest.TestCase):
     def test_disaggregation_build_selects_staged_module_instead_of_checkout_prebuild(
         self,
     ):
+        root = SUITE_ROOT.parent
+        from ci.clients.vllm.disaggregation import __main__ as controller
+        from ci.clients.vllm.disaggregation import artifacts
+
         workflow = (
             self.root / ".github/workflows/client-vllm-disaggregation.yaml"
         ).read_text()
-        self.assertIn("-e PREBUILD_KERNELS=0", workflow)
+        build = (root / "ci/clients/vllm/disaggregation/build-wheel.sh").read_text()
+        application = Path(controller.__file__).read_text()
+        admission = Path(artifacts.__file__).read_text()
+        self.assertIn("ci.pipelines.bootstrap", workflow)
+        self.assertIn("PREBUILD_KERNELS=0", application)
         self.assertIn(
-            "-e PREBUILD_MODULES=module_gemm_a8w8_blockscale_cktile", workflow
+            "PREBUILD_MODULES=module_gemm_a8w8_blockscale_cktile", application
         )
-        self.assertIn("python setup.py bdist_wheel", workflow)
-        self.assertIn("aiter/jit/module_gemm_a8w8_blockscale_cktile.so", workflow)
-        self.assertIn("aiter/kernels/data/gfx950/", workflow)
-        self.assertNotIn("aiter_meta/kernels/", workflow)
-        self.assertNotIn("prebuild_disagg_cktile.py", workflow)
+        self.assertIn("python setup.py bdist_wheel", build)
+        self.assertIn("ci.clients.vllm.disaggregation.artifacts dist", build)
+        self.assertIn("aiter/kernels/data/gfx950/", admission)
+        self.assertNotIn("aiter_meta/kernels/", admission)
+        self.assertNotIn("prebuild_disagg_cktile.py", workflow + application + build)
         self.assertFalse(
             (
                 self.root / ".github/scripts/clients/vllm/prebuild_disagg_cktile.py"
             ).exists()
         )
-
-    def test_actual_workflow_archive_check_rejects_changed_prebuild_bytes(self):
-        workflow = (
-            self.root / ".github/workflows/client-vllm-disaggregation.yaml"
-        ).read_text()
-        line = next(
-            line.strip()
-            for line in workflow.splitlines()
-            if "json.loads(archive.read" in line
+        subprocess.run(
+            ["bash", "-n", str(root / "ci/clients/vllm/disaggregation/build-wheel.sh")],
+            check=True,
         )
-        command = shlex.split(line)
-        self.assertEqual(command[:3], ["python3", "-I", "-c"])
+
+    def test_artifact_command_rejects_changed_prebuild_bytes(self):
         payload = {
             "aiter/__init__.py": b"",
             "aiter/kernels/data/gfx950/fixture.co": b"code-object-fixture",
@@ -99,7 +100,13 @@ class ScriptInventoryTests(unittest.TestCase):
             "native": native,
         }
         for mode in ("valid", "changed-bytes", "wrong-selection"):
-            archive_path = self.root / (mode + ".whl")
+            directory = self.root / mode
+            directory.mkdir()
+            archive_path = directory / "amd_aiter-1.0-py3-none-any.whl"
+            with zipfile.ZipFile(
+                directory / "flydsl-1.0-py3-none-any.whl", "w"
+            ) as archive:
+                archive.writestr("flydsl/__init__.py", b"")
             contents = dict(payload)
             declaration = json.loads(json.dumps(receipt))
             if mode == "changed-bytes":
@@ -113,7 +120,13 @@ class ScriptInventoryTests(unittest.TestCase):
                 for name, data in contents.items():
                     archive.writestr(name, data)
             result = subprocess.run(
-                [sys.executable, *command[1:-1], str(archive_path)],
+                [
+                    sys.executable,
+                    "-m",
+                    "ci.clients.vllm.disaggregation.artifacts",
+                    str(directory),
+                ],
+                cwd=SUITE_ROOT.parent,
                 capture_output=True,
                 text=True,
                 check=False,

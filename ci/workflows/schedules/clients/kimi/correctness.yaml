@@ -1,0 +1,10 @@
+name: Schedule client-kimi-correctness
+
+on:
+  schedule:
+    - cron: '17 19 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/client-kimi-correctness.yaml
+    secrets: inherit

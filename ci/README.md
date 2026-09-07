@@ -44,7 +44,7 @@ The [model benchmark workflow](workflows/clients/vllm/README.md) schedules its s
 
 | Directory | Responsibility |
 |---|---|
-| `pipelines/` | Shared source, wheel and image orchestration; one Docker process boundary |
+| `pipelines/` | Common job bootstrap, typed runner and existing source/wheel/image controllers; one Docker process boundary |
 | [`workflows/`](workflows/README.md) | Hierarchical workflow sources, source mapping and deterministic flat GitHub entrypoints |
 | `qualification/` | Source impact, test groups, runtime requirements, execution and independent evidence checks |
 | `clients/registry.json` and named client directories | Reviewed client group/profile definitions; adding a client does not automatically add it to release policy |
@@ -52,4 +52,4 @@ The [model benchmark workflow](workflows/clients/vllm/README.md) schedules its s
 | `ownership/` | Product domains, reviewers and generated CODEOWNERS rules |
 | `common/` | Strict JSON serialization, validation and content identities shared by these applications |
 
-Tests follow the same separation under `tests/unit/`, `tests/integration/` and `tests/frameworks/`. Operator measurements live under `benchmarks/`; CI invokes their module entrypoint and checks their raw observations. GitHub requires workflow files directly under `.github/workflows`. Canonical definitions live in `ci/workflows/{common,host,product,clients,release}`; `python -m ci.workflows --write` generates the stable prefixed GitHub filenames and `--check` rejects drift. The Python application holds shared behavior instead of duplicating it across workflow files.
+Tests follow the same separation under `tests/unit/`, `tests/integration/` and `tests/frameworks/`. Operator measurements live under `benchmarks/`; CI invokes their module entrypoint and checks their raw observations. GitHub requires workflow files directly under `.github/workflows`. Canonical definitions live in `ci/workflows/{common,host,product,clients,release,schedules}`; `python -m ci.workflows --write` generates the stable prefixed GitHub filenames and `--check` rejects drift. Cron-only files select reusable executions. The common workflow performs checkout and artifact transfer, then `ci.pipelines.bootstrap` passes typed arguments to the existing runner and Docker controllers. `python -m ci coverage --client vllm` explains the selected profiles, group paths and prerequisites without importing tests.

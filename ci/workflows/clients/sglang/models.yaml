@@ -1,10 +1,9 @@
 name: Sglang Downstream Test
 
 on:
+  workflow_call:
   push:
     branches: [main]
-  schedule:
-    - cron: '0 17 * * *'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, labeled]
     branches: [main]  # Triggers on PRs targeting `main`
@@ -76,30 +75,21 @@ jobs:
       max-parallel: 1
       matrix: ${{ fromJSON(needs.select-sglang-tests.outputs.matrix) }}
 
-    env:
-      # Track SGLang AMD CI branch for https://github.com/ROCm/aiter/issues/2751.
-      SGL_BRANCH: amd/aiter-ci
-      GPU_ARCH: gfx950
-      SGLANG_CI_HOSTNAME_OVERRIDE: linux-mi35x-gpu-8
-      GITHUB_REPO_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/ROCm/aiter.git' }}
-      GITHUB_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.event.head_commit.id || github.sha }}
-
     steps:
       - name: Checkout reviewed SGLang platform controls
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
+          path: control
 
-      - name: Prepare sglang workspace
-        run: |
-          set -ex
-          SGLANG_WORKSPACE="${RUNNER_TEMP}/sglang-downstream"
-          rm -rf "${SGLANG_WORKSPACE}"
-          git clone --depth 1 -b ${SGL_BRANCH} https://github.com/sgl-project/sglang.git "${SGLANG_WORKSPACE}"
-          test -d "${SGLANG_WORKSPACE}/python/sglang/kernels/aot"
-          test -d "${SGLANG_WORKSPACE}/python"
-          echo "SGLANG_WORKSPACE=${SGLANG_WORKSPACE}" >> "${GITHUB_ENV}"
+      - name: Checkout the candidate AITER version
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: candidate
+          submodules: recursive
+          persist-credentials: false
 
       - name: Docker login
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
@@ -120,70 +110,26 @@ jobs:
           echo "Docker login failed after 3 attempts, continuing anyway"
           exit 0
 
-      - name: Patch sglang CI scripts for aiter runners
-        run: python3 -m ci.clients.sglang.downstream patch-sglang "${SGLANG_WORKSPACE}"
-
-      - name: Start CI container
-        run: |
-          set -ex
-          docker rm -f ci_sglang || true
-          cd "${SGLANG_WORKSPACE}"
-          GITHUB_WORKSPACE="${SGLANG_WORKSPACE}" HF_TOKEN="${{ secrets.HF_TOKEN_TEST }}" bash scripts/ci/amd/amd_ci_start_container.sh --rocm-version rocm720
-          docker exec ci_sglang bash -lc 'pwd; ls -la /sglang-checkout; test -d /sglang-checkout/python/sglang/kernels/aot; test -d /sglang-checkout/python; test -d /models'
-
-      - name: Setup pip config
-        run: |
-          docker exec -u root ci_sglang bash -c "pip config set global.default-timeout 60"
-          docker exec -u root ci_sglang bash -c "pip config set global.retries 10"
-
-      - name: Install dependencies
-        run: |
-          cd "${SGLANG_WORKSPACE}"
-          bash scripts/ci/amd/amd_ci_install_dependency.sh --skip-aiter-build
-          docker cp "$GITHUB_WORKSPACE/requirements/clients/sglang-models.txt" ci_sglang:/tmp/aiter-client-requirements.txt
-          bash scripts/ci/amd/amd_ci_exec.sh pip install -r /tmp/aiter-client-requirements.txt
-
-      - name: Install aiter under test
-        id: install_aiter_under_test
-        run: |
-          set -ex
-          docker exec ci_sglang bash -lc "
-            set -ex
-            pip uninstall -y amd-aiter aiter || true
-            rm -rf /tmp/aiter-under-test
-            git clone '${GITHUB_REPO_URL}' /tmp/aiter-under-test
-            cd /tmp/aiter-under-test
-            git checkout '${GITHUB_COMMIT_SHA}'
-            git submodule sync --recursive
-            git submodule update --init --recursive
-            pip install -e .
-            # ./.github/scripts/common/install_triton.sh
-            pip show triton || true
-            pip show amd-aiter || pip show aiter
-          "
-
-      - name: Run the declared SGLang model canary
-        timeout-minutes: ${{ matrix.timeout_minutes }}
+      - name: Bootstrap the declared SGLang platform and model case
         env:
-          TEST_SPEC: ${{ toJson(matrix) }}
-        run: |
-          python3 -m ci.pipelines canary --client sglang --case-json "$TEST_SPEC" \
-            --container ci_sglang --output "$RUNNER_TEMP/sglang-model-canary"
-          if [ -f "$SGLANG_WORKSPACE/github_summary.md" ]; then
-            cat "$SGLANG_WORKSPACE/github_summary.md" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          PYTHONPATH: ${{ github.workspace }}/control
+          PIPELINE_OPERATION: sglang-downstream
+          PIPELINE_CASE: ${{ toJson(matrix) }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN_TEST }}
+        working-directory: control
+        run: python3 -S -m ci.pipelines.bootstrap --output "$RUNNER_TEMP/sglang-model-canary"
 
-      - name: Retain the model command and actual executor evidence
+      - name: Retain platform, import and model evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sglang-model-${{ strategy.job-index }}
-          path: ${{ runner.temp }}/sglang-model-canary
+          path: |
+            ${{ runner.temp }}/sglang-model-canary
+            !${{ runner.temp }}/sglang-model-canary/sglang/**
           if-no-files-found: error
           retention-days: 14
 
-      - name: Clean Up
+      - name: Drop registry credentials
         if: always()
-        run: |
-          docker rm -f ci_sglang || true
-          rm -rf "${SGLANG_WORKSPACE}" || true
+        run: docker logout || true
