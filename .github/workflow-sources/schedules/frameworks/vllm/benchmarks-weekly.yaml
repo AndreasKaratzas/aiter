@@ -1,0 +1,19 @@
+name: Schedule vLLM weekly model benchmarks
+
+on:
+  schedule:
+    - cron: '15 22 * * 0'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  run:
+    uses: ./.github/workflows/frameworks-vllm-model-benchmarks.yaml
+    with:
+      benchmark_profile: 'extended'
+      gpus: '0,1'
+      benchmark_cases: ''
+    secrets: inherit

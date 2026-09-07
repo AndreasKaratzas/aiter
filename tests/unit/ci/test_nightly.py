@@ -303,9 +303,9 @@ class NightlyFailureHistory(unittest.TestCase):
         import fnmatch
 
         root = Path(__file__).resolve().parents[3]
-        workflow = (root / ".github/workflows/client-vllm-nightly.yaml").read_text()
+        workflow = (root / ".github/workflows/frameworks-vllm-nightly.yaml").read_text()
         builder = (root / ".github/workflows/release-build-wheels.yaml").read_text()
-        common = (root / ".github/workflows/product-run-profile.yaml").read_text()
+        common = (root / ".github/workflows/reusable-run-profile.yaml").read_text()
         downloads = re.findall(
             r"uses: actions/download-artifact@([^\s]+)[^\n]*\n\s+with:\n\s+pattern: ([^\n]+)",
             common,
@@ -377,9 +377,9 @@ class NightlyStageScope(unittest.TestCase):
                 ]
             )
         self.assertEqual(execute.call_args.kwargs["workload_profile"], "vllm-hipblaslt")
-        workflow = (root / ".github/workflows/client-vllm-nightly.yaml").read_text()
+        workflow = (root / ".github/workflows/frameworks-vllm-nightly.yaml").read_text()
         self.assertIn("options: [" + ", ".join(WORKLOAD_PROFILES) + "]", workflow)
-        for path in (root / "ci/workflows/schedules/clients/vllm").glob("*.yaml"):
+        for path in (root / ".github/workflow-sources/schedules/frameworks/vllm").glob("*.yaml"):
             self.assertNotIn("vllm-hipblaslt", path.read_text())
         self.assertNotIn("vllm-gpqa", WORKLOAD_PROFILES)
 
@@ -389,9 +389,9 @@ class NightlyStageScope(unittest.TestCase):
             [("vllm-import", "imports"), ("vllm-extended", "workloads")],
         )
         root = Path(__file__).resolve().parents[3]
-        workflow = (root / ".github/workflows/client-vllm-nightly.yaml").read_text()
+        workflow = (root / ".github/workflows/frameworks-vllm-nightly.yaml").read_text()
         schedule = (
-            root / ".github/workflows/schedule-vllm-nightly-weekly.yaml"
+            root / ".github/workflows/schedule-frameworks-vllm-nightly-weekly.yaml"
         ).read_text()
         self.assertIn("cron: '15 20 * * 0'", schedule)
         self.assertIn("workload_profile: 'vllm-extended'", schedule)

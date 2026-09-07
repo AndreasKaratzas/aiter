@@ -1,0 +1,467 @@
+{
+  "schema_version": 1,
+  "domains": {
+    "repository": "Checks for the source repository, documentation, packaging and CI workers.",
+    "library": "AITER operator, kernel, communication and tuning tests.",
+    "frameworks": "Integration tests and measurements for software that uses AITER, grouped by framework.",
+    "release": "Build, qualify and publish wheels, container images and release channels.",
+    "reusable": "Complete shared jobs called by other workflows; they do not start themselves.",
+    "schedules": "Cron triggers grouped by the work they schedule; test definitions stay in the execution workflows."
+  },
+  "workflows": [
+    {
+      "file": "frameworks-atom-disaggregation.yaml",
+      "domain": "frameworks",
+      "purpose": "Run the upstream ATOM split-serving matrix",
+      "application": [],
+      "source": "frameworks/atom/disaggregation.yaml"
+    },
+    {
+      "file": "frameworks-atom.yaml",
+      "domain": "frameworks",
+      "purpose": "Run the upstream ATOM integration test harness",
+      "application": [],
+      "source": "frameworks/atom/test.yaml"
+    },
+    {
+      "file": "frameworks-canaries.yaml",
+      "domain": "frameworks",
+      "purpose": "Run rolling compatibility checks for the declared framework profiles",
+      "application": [
+        "ci.pipelines.canaries"
+      ],
+      "source": "frameworks/common/canaries.yaml"
+    },
+    {
+      "file": "frameworks-flash-attention.yaml",
+      "domain": "frameworks",
+      "purpose": "Check the upstream FlashAttention integration against AITER",
+      "application": [],
+      "source": "frameworks/flash-attention/integration.yaml"
+    },
+    {
+      "file": "frameworks-kimi-correctness.yaml",
+      "domain": "frameworks",
+      "purpose": "Run Kimi serving accuracy checks through both vLLM and SGLang",
+      "application": [],
+      "source": "frameworks/common/kimi/correctness.yaml"
+    },
+    {
+      "file": "frameworks-kimi-performance.yaml",
+      "domain": "frameworks",
+      "purpose": "Compare Kimi serving performance through vLLM and SGLang",
+      "application": [],
+      "source": "frameworks/common/kimi/performance.yaml"
+    },
+    {
+      "file": "frameworks-sglang-models.yaml",
+      "domain": "frameworks",
+      "purpose": "Install rolling SGLang with candidate AITER and run declared model cases",
+      "application": [
+        "ci.pipelines.bootstrap",
+        "ci.clients.sglang.downstream"
+      ],
+      "source": "frameworks/sglang/models.yaml"
+    },
+    {
+      "file": "frameworks-vllm-benchmarks.yaml",
+      "domain": "frameworks",
+      "purpose": "Measure the existing synthetic vLLM latency workload",
+      "application": [
+        "ci.pipelines.canaries",
+        "ci.clients.vllm.latency"
+      ],
+      "source": "frameworks/vllm/benchmarks.yaml"
+    },
+    {
+      "file": "frameworks-vllm-disaggregation.yaml",
+      "domain": "frameworks",
+      "purpose": "Exercise split prefill and decode serving on a configured Slurm cluster",
+      "application": [
+        "ci.pipelines.bootstrap",
+        "ci.clients.vllm.disaggregation"
+      ],
+      "source": "frameworks/vllm/disaggregation.yaml"
+    },
+    {
+      "file": "frameworks-vllm-nightly.yaml",
+      "domain": "frameworks",
+      "purpose": "Install the current ROCm vLLM nightly, verify imports and run a selected test profile",
+      "application": [
+        "ci.pipelines.nightly"
+      ],
+      "source": "frameworks/vllm/nightly.yaml"
+    },
+    {
+      "file": "repository-checks.yaml",
+      "domain": "repository",
+      "purpose": "Validate repository structure and run CPU and packaging checks",
+      "application": [
+        "ci.qualification.run",
+        "ci.architecture",
+        "ci.workflows",
+        "ci.pipelines.scripts"
+      ],
+      "source": "repository/checks.yaml"
+    },
+    {
+      "file": "repository-docs.yml",
+      "domain": "repository",
+      "purpose": "Build, browser-test and publish the documentation website",
+      "application": [
+        "docs.website"
+      ],
+      "source": "repository/docs.yml"
+    },
+    {
+      "file": "repository-legacy-config.yaml",
+      "domain": "repository",
+      "purpose": "Choose runner and environment settings for retained GPU jobs",
+      "application": [],
+      "source": "repository/legacy-config.yaml"
+    },
+    {
+      "file": "repository-pr-title.yaml",
+      "domain": "repository",
+      "purpose": "Apply pull request title and label rules",
+      "application": [],
+      "source": "repository/pr-title.yaml"
+    },
+    {
+      "file": "repository-pr-welcome.yaml",
+      "domain": "repository",
+      "purpose": "Post the configured welcome message on a pull request",
+      "application": [],
+      "source": "repository/pr-welcome.yaml"
+    },
+    {
+      "file": "repository-prechecks.yaml",
+      "domain": "repository",
+      "purpose": "Run formatting and dependency prechecks under the existing Checks gate",
+      "application": [],
+      "source": "repository/prechecks.yaml"
+    },
+    {
+      "file": "repository-runner-monitor.yml",
+      "domain": "repository",
+      "purpose": "Report queued and running CI work on configured workers",
+      "application": [],
+      "source": "repository/runner-monitor.yml"
+    },
+    {
+      "file": "repository-update-test-inventory.yaml",
+      "domain": "repository",
+      "purpose": "Refresh operator test timings used to balance shards",
+      "application": [],
+      "source": "repository/update-test-inventory.yaml"
+    },
+    {
+      "file": "repository-workflow-lint.yaml",
+      "domain": "repository",
+      "purpose": "Verify generated workflows and validate GitHub Actions syntax",
+      "application": [
+        "ci.workflows"
+      ],
+      "source": "repository/workflow-lint.yaml"
+    },
+    {
+      "file": "library-extended.yaml",
+      "domain": "library",
+      "purpose": "Run the extended operator test matrix",
+      "application": [],
+      "source": "library/extended.yaml"
+    },
+    {
+      "file": "library-fmha.yaml",
+      "domain": "library",
+      "purpose": "Exercise specialized fused-attention kernel bring-up cases",
+      "application": [],
+      "source": "library/fmha.yaml"
+    },
+    {
+      "file": "library-legacy.yaml",
+      "domain": "library",
+      "purpose": "Build AITER and run retained operator and communication test shards",
+      "application": [],
+      "source": "library/legacy.yaml"
+    },
+    {
+      "file": "library-network.yaml",
+      "domain": "library",
+      "purpose": "Check worker access to package and source hosting services",
+      "application": [],
+      "source": "library/network.yaml"
+    },
+    {
+      "file": "library-opus.yaml",
+      "domain": "library",
+      "purpose": "Build and test OPUS kernel implementations",
+      "application": [],
+      "source": "library/opus.yaml"
+    },
+    {
+      "file": "library-qualification.yaml",
+      "domain": "library",
+      "purpose": "Select affected AITER and framework test groups and collect qualification evidence",
+      "application": [
+        "ci.release.matrix"
+      ],
+      "source": "library/qualification.yaml"
+    },
+    {
+      "file": "reusable-run-profile.yaml",
+      "domain": "reusable",
+      "purpose": "Prepare reviewed controls and the candidate artifact, then run a declared pipeline",
+      "application": [
+        "ci.pipelines.bootstrap",
+        "ci.pipelines.runner"
+      ],
+      "source": "reusable/run-profile.yaml"
+    },
+    {
+      "file": "library-triton.yaml",
+      "domain": "library",
+      "purpose": "Build and test Triton operator implementations",
+      "application": [],
+      "source": "library/triton.yaml"
+    },
+    {
+      "file": "library-tuning-validation.yaml",
+      "domain": "library",
+      "purpose": "Validate tuned configurations on the selected GPU workers",
+      "application": [],
+      "source": "library/tuning-validation.yaml"
+    },
+    {
+      "file": "library-tuning.yaml",
+      "domain": "library",
+      "purpose": "Tune operator configurations and run their numerical checks",
+      "application": [],
+      "source": "library/tuning.yaml"
+    },
+    {
+      "file": "release-build-wheels.yaml",
+      "domain": "release",
+      "purpose": "Aiter Release Package",
+      "application": [
+        "ci.release.builders"
+      ],
+      "source": "release/build-wheels.yaml"
+    },
+    {
+      "file": "release-channels.yaml",
+      "domain": "release",
+      "purpose": "Record delivery outcomes and last qualified artifacts",
+      "application": [
+        "ci.release.channel_delivery",
+        "ci.release.storage"
+      ],
+      "source": "release/channels.yaml"
+    },
+    {
+      "file": "release-images.yaml",
+      "domain": "release",
+      "purpose": "Build and qualify delivery images",
+      "application": [
+        "ci.pipelines.images",
+        "ci.release.images"
+      ],
+      "source": "release/images.yaml"
+    },
+    {
+      "file": "release-nightly.yaml",
+      "domain": "release",
+      "purpose": "Nightly delivery",
+      "application": [
+        "ci.release.matrix",
+        "ci.release.manifest"
+      ],
+      "source": "release/nightly.yaml"
+    },
+    {
+      "file": "release-promote.yaml",
+      "domain": "release",
+      "purpose": "Promote verified wheels",
+      "application": [
+        "ci.release.manifest"
+      ],
+      "source": "release/promote.yaml"
+    },
+    {
+      "file": "release-stable.yaml",
+      "domain": "release",
+      "purpose": "AITER Release Automation",
+      "application": [
+        "ci.release.stable",
+        "ci.release.manifest"
+      ],
+      "source": "release/stable.yaml"
+    },
+    {
+      "file": "release-triton-wheel.yaml",
+      "domain": "release",
+      "purpose": "Prepare Triton Wheel",
+      "application": [],
+      "source": "release/triton-wheel.yaml"
+    },
+    {
+      "file": "release-wheel-smoke.yaml",
+      "domain": "release",
+      "purpose": "Test installed wheels",
+      "application": [],
+      "source": "release/wheel-smoke.yaml"
+    },
+    {
+      "file": "frameworks-vllm-model-benchmarks.yaml",
+      "domain": "frameworks",
+      "purpose": "Measure real model workloads with selected profiles and retained metrics",
+      "application": [
+        "ci.pipelines.benchmarks"
+      ],
+      "source": "frameworks/vllm/model-benchmarks.yaml"
+    },
+    {
+      "file": "schedule-frameworks-atom-disaggregation.yaml",
+      "source": "schedules/frameworks/atom/disaggregation.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule ATOM disaggregated serving",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-canaries.yaml",
+      "source": "schedules/frameworks/common/canaries.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule framework compatibility canaries",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-kimi-correctness.yaml",
+      "source": "schedules/frameworks/common/kimi/correctness.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule Kimi accuracy across frameworks",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-kimi-performance.yaml",
+      "source": "schedules/frameworks/common/kimi/performance.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule Kimi performance across frameworks",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-sglang-models.yaml",
+      "source": "schedules/frameworks/sglang/models.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule SGLang model tests",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-vllm-disaggregation.yaml",
+      "source": "schedules/frameworks/vllm/disaggregation.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule vLLM disaggregated serving",
+      "application": []
+    },
+    {
+      "file": "schedule-repository-checks.yaml",
+      "source": "schedules/repository/checks.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule repository checks",
+      "application": []
+    },
+    {
+      "file": "schedule-repository-runner-monitor.yml",
+      "source": "schedules/repository/runner-monitor.yml",
+      "domain": "schedules",
+      "purpose": "Schedule CI worker monitoring",
+      "application": []
+    },
+    {
+      "file": "schedule-repository-update-test-inventory.yaml",
+      "source": "schedules/repository/update-test-inventory.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule test timing updates",
+      "application": []
+    },
+    {
+      "file": "schedule-library-legacy.yaml",
+      "source": "schedules/library/legacy.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule AITER operator tests",
+      "application": []
+    },
+    {
+      "file": "schedule-library-opus.yaml",
+      "source": "schedules/library/opus.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule AITER OPUS tests",
+      "application": []
+    },
+    {
+      "file": "schedule-library-qualification.yaml",
+      "source": "schedules/library/qualification.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule AITER and framework qualification",
+      "application": []
+    },
+    {
+      "file": "schedule-library-tuning-validation.yaml",
+      "source": "schedules/library/tuning-validation.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule AITER tuning validation",
+      "application": []
+    },
+    {
+      "file": "schedule-release-nightly.yaml",
+      "source": "schedules/release/nightly.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule nightly release preparation",
+      "application": []
+    },
+    {
+      "file": "schedule-release-stable.yaml",
+      "source": "schedules/release/stable.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule stable release preparation",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-vllm-nightly-daily.yaml",
+      "source": "schedules/frameworks/vllm/nightly-daily.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule vLLM daily tests",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-vllm-nightly-weekly.yaml",
+      "source": "schedules/frameworks/vllm/nightly-weekly.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule vLLM weekly tests",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-vllm-benchmarks-daily.yaml",
+      "source": "schedules/frameworks/vllm/benchmarks-daily.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule vLLM daily model benchmarks",
+      "application": []
+    },
+    {
+      "file": "schedule-frameworks-vllm-benchmarks-weekly.yaml",
+      "source": "schedules/frameworks/vllm/benchmarks-weekly.yaml",
+      "domain": "schedules",
+      "purpose": "Schedule vLLM weekly model benchmarks",
+      "application": []
+    },
+    {
+      "file": "reusable-library-area.yaml",
+      "source": "reusable/library-area.yaml",
+      "domain": "reusable",
+      "purpose": "Run a selected operator or communication test shard through the shared Docker controller",
+      "application": [
+        "ci.pipelines.bootstrap",
+        "ci.pipelines.product"
+      ]
+    }
+  ]
+}

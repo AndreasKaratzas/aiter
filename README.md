@@ -118,9 +118,12 @@ bindings/rust/    Typed Rust client of the same native SDK
 csrc/             Native kernel sources; blas/ owns tuning bridges
 build_backend/    Immutable build plans, phase controller and package adapters
 ci/               Architecture checks, qualification, pipelines and delivery
-  workflows/      Editable common/, host/, product/, clients/, release/ workflows
+  workflows/      Python workflow generator and validator
+.github/workflow-sources/ Editable repository/, library/, frameworks/, release/ YAML
+  reusable/       Complete shared jobs; schedules/ holds cron-only callers
 .github/workflows/ Generated GitHub entrypoints; edit their linked source instead
-.github/scripts/  common/, host/, product/, clients/, release/ adapters
+.github/actions/  Small reusable job steps
+.github/scripts/  common/, repository/, library/, frameworks/, release/ adapters
 tests/            unit/, integration/, frameworks/{common,pytorch,vllm,sglang}
   common/         Hardware markers, model fixtures and process/origin helpers
 benchmarks/       operators/, vllm/, model-shape sweeps and traces/
@@ -132,6 +135,6 @@ docs/             Website, canonical-guide mapping and browser checks
 
 `aiter/` is the installed library. `ci/` is repository automation and does not ship in the SDK. Kernel bytes belong to the library under `aiter/kernels/data/`; logs, reports and writable compilation caches belong outside the checkout.
 
-For a vLLM workflow, start in [`ci/workflows/clients/vllm/`](ci/workflows/clients/vllm/README.md). GitHub requires its executable workflow files in a flat directory, so `python -m ci.workflows --write` copies the organized sources into `.github/workflows/`. CI rejects a stale copy. The [workflow guide](ci/workflows/README.md) explains how to add or change a job.
+For a vLLM workflow, start in [`.github/workflow-sources/frameworks/vllm/`](.github/workflow-sources/frameworks/vllm/README.md). GitHub requires its executable workflow files in a flat directory, so `python -m ci.workflows --write` copies the organized sources into `.github/workflows/`. CI rejects a stale copy. The [workflow guide](.github/workflow-sources/README.md) explains how to add or change a job.
 
 For implementation details, see [Opus](csrc/include/opus/README.md), [Triton development](aiter/ops/triton/README.md), [native attention benchmarks](benchmarks/native/mha/README.md) and [Triton communication](docs/triton_comms.md).

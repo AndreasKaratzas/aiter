@@ -1,0 +1,15 @@
+name: Schedule CI worker monitoring
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  run:
+    uses: ./.github/workflows/repository-runner-monitor.yml
+    secrets: inherit

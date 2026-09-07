@@ -1,0 +1,14 @@
+name: Schedule vLLM disaggregated serving
+
+on:
+  schedule:
+    - cron: '30 18 * * *'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  contents: read
+
+jobs:
+  run:
+    uses: ./.github/workflows/frameworks-vllm-disaggregation.yaml
+    secrets: inherit

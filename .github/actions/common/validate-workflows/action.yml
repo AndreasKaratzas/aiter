@@ -1,0 +1,15 @@
+name: Validate generated workflows
+description: Check that GitHub workflow entrypoints match the checked-out AITER workflow sources.
+runs:
+  using: composite
+  steps:
+    - name: Check workflow source and generated entrypoint parity
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        cd -- "${GITHUB_WORKSPACE:?GITHUB_WORKSPACE must identify the checkout}"
+        if [[ ! -f ci/workflows/__main__.py ]]; then
+          echo "::error::Check out AITER at GITHUB_WORKSPACE before using validate-workflows."
+          exit 1
+        fi
+        python3 -S -m ci.workflows --check

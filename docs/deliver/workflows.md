@@ -1,1 +1,1 @@
-<!-- Content is rendered from ci/workflows/README.md by docs.website.extension. -->
+<!-- Content is rendered from .github/workflow-sources/README.md by docs.website.extension. -->

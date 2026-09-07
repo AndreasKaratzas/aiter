@@ -22,7 +22,7 @@ The workflow selects a case ID. The runner derives its argument list and environ
 
 | File | Responsibility |
 | --- | --- |
-| [Workflow source](../../../workflows/clients/vllm/disaggregation.yaml) | Checkouts, job dependencies, artifact transfer |
+| [Workflow source](../../../../.github/workflow-sources/frameworks/vllm/disaggregation.yaml) | Checkouts, job dependencies, artifact transfer |
 | [selection.json](selection.json) | Pinned upstream revision, images, model families and topology definitions |
 | [selection.py](selection.py) | Compare the declared cases with the exact upstream pipeline bytes |
 | [\_\_main\_\_.py](__main__.py) | Admit inputs and execute the four phases |

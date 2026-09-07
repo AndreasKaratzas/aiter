@@ -60,7 +60,7 @@ The report hashes the bounded `e2e/` evidence tree. Model copies and compiler ca
 
 ## Install a fresh ROCm nightly
 
-The [daily scheduler](../../workflows/schedules/clients/vllm/nightly-daily.yaml) runs at 17:45 UTC, and the [weekly scheduler](../../workflows/schedules/clients/vllm/nightly-weekly.yaml) runs Sundays at 20:15 UTC. Both call the same [reusable/manual execution workflow](../../workflows/clients/vllm/nightly.yaml), selecting `vllm-nightly` or `vllm-extended`. The shared execution builds one candidate Python 3.12 wheel, then calls `ci.pipelines vllm-nightly` in the immutable executor configured by `AITER_VLLM_NIGHTLY_EXECUTOR`. The base needs the ROCm/native compiler toolchain and the Python/glibc required by the resolved wheel.
+The [daily scheduler](../../../.github/workflow-sources/schedules/frameworks/vllm/nightly-daily.yaml) runs at 17:45 UTC, and the [weekly scheduler](../../../.github/workflow-sources/schedules/frameworks/vllm/nightly-weekly.yaml) runs Sundays at 20:15 UTC. Both call the same [reusable/manual execution workflow](../../../.github/workflow-sources/frameworks/vllm/nightly.yaml), selecting `vllm-nightly` or `vllm-extended`. The shared execution builds one candidate Python 3.12 wheel, then calls `ci.pipelines vllm-nightly` in the immutable executor configured by `AITER_VLLM_NIGHTLY_EXECUTOR`. The base needs the ROCm/native compiler toolchain and the Python/glibc required by the resolved wheel.
 
 Before installation, a retained C++17 syntax check includes the selected interpreter’s `Python.h`, resolves its transitive configuration headers and checks Python major/minor compatibility. Missing development headers fail this prerequisite.
 

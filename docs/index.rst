@@ -105,8 +105,9 @@ The site renders the same guides maintained beside the code. A capability descri
    deliver/vllm-disaggregation
    deliver/speech-fixtures
    deliver/pipelines
+   deliver/github-overview
    deliver/workflows
-   deliver/vllm-workflows
+   deliver/github-directories
    deliver/workflow-index
    deliver/github-entrypoints
    deliver/scripts

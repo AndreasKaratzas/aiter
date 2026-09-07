@@ -10,7 +10,7 @@ Two coverage modes:
   path -- 1-stage, 2-stage, fallback) at ``stage=auto`` /
   ``emit_bf16=False``, sweeping ``tp_size in [2, 4, 8]`` so every
   production TP is covered. Picked up automatically by
-  ``.github/scripts/product/run_tests.sh`` which executes every multi-GPU test
+  ``.github/scripts/library/run_tests.sh`` which executes every multi-GPU test
   with no flags. Pass ``-t N`` to restrict to a single TP for debugging.
 * Local full sweep (~50 min across TP=2/4/8): ``--full`` runs
   ``FULL_SHAPES`` x stage=both x emit_bf16=[False, True], i.e. forces

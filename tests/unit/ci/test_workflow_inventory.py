@@ -22,9 +22,9 @@ class WorkflowInventoryTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        (self.root / "ci/workflows/host").mkdir(parents=True)
+        (self.root / ".github/workflow-sources/repository").mkdir(parents=True)
         (self.root / ".github/workflows").mkdir(parents=True)
-        self.source = self.root / "ci/workflows/host/docs.yml"
+        self.source = self.root / ".github/workflow-sources/repository/docs.yml"
         self.body = (
             b"name: Docs\n\non:\n  pull_request:\n  workflow_dispatch:\n"
             b"permissions:\n  contents: read\nconcurrency:\n  group: ${{ github.workflow }}-${{ github.ref }}\n"
@@ -32,25 +32,25 @@ class WorkflowInventoryTests(unittest.TestCase):
             b"      - run: |\n          printf '%s\\n' '${{ github.sha }}'\n"
         )
         self.source.write_bytes(self.body)
-        self.output = self.root / ".github/workflows/host-docs.yml"
+        self.output = self.root / ".github/workflows/repository-docs.yml"
         self.inventory = {
             "schema_version": 1,
             "domains": {
                 name: name
                 for name in (
-                    "common",
-                    "host",
-                    "product",
-                    "clients",
+                    "reusable",
+                    "repository",
+                    "library",
+                    "frameworks",
                     "release",
                     "schedules",
                 )
             },
             "workflows": [
                 {
-                    "file": "host-docs.yml",
-                    "source": "host/docs.yml",
-                    "domain": "host",
+                    "file": "repository-docs.yml",
+                    "source": "repository/docs.yml",
+                    "domain": "repository",
                     "purpose": "Documentation",
                     "application": [],
                 }
@@ -58,7 +58,7 @@ class WorkflowInventoryTests(unittest.TestCase):
         }
 
     def save(self):
-        write_json(self.root / "ci/workflows/registry.json", self.inventory)
+        write_json(self.root / ".github/workflow-sources/registry.json", self.inventory)
 
     def render(self):
         self.save()
@@ -68,19 +68,19 @@ class WorkflowInventoryTests(unittest.TestCase):
         self.render()
         generated = self.output.read_bytes()
         self.assertEqual(generated.split(b"\n\n", 1)[1], self.body)
-        self.assertIn(b"ci/workflows/host/docs.yml", generated)
+        self.assertIn(b".github/workflow-sources/repository/docs.yml", generated)
         self.assertIn(hashlib.sha256(self.body).hexdigest().encode(), generated)
         before = self.output.stat().st_mtime_ns
         generate(root=self.root, check=True)
         generate(root=self.root, write=True)
         self.assertEqual(self.output.stat().st_mtime_ns, before)
         self.assertIn(
-            "../../ci/workflows/host/docs.yml",
+            "../workflow-sources/repository/README.md",
             (self.root / ".github/workflows/README.md").read_text(),
         )
         self.assertIn(
-            "../../.github/workflows/host-docs.yml",
-            (self.root / "ci/workflows/index.md").read_text(),
+            "../workflows/repository-docs.yml",
+            (self.root / ".github/workflow-sources/index.md").read_text(),
         )
 
     def test_documentation_application_is_located_without_executing_package(self):
@@ -89,7 +89,11 @@ class WorkflowInventoryTests(unittest.TestCase):
         (self.root / "docs/website/__init__.py").write_text(
             "raise RuntimeError('inventory imported application')\n"
         )
-        self.assertIn("`docs.website`", self.render())
+        self.render()
+        self.assertIn(
+            "`docs.website`",
+            (self.root / ".github/workflow-sources/index.md").read_text(),
+        )
         workflow_index(root=self.root, check=True)
 
     def test_missing_application_cannot_borrow_an_ambient_installed_module(self):
@@ -97,47 +101,53 @@ class WorkflowInventoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "module is missing"):
             self.render()
 
-    def test_specialized_entrypoints_are_described_as_workflow_steps(self):
-        self.assertIn("| Workflow steps |", self.render())
+    def test_specialized_entrypoints_link_source_without_inventing_a_controller(self):
+        self.render()
+        index = (self.root / ".github/workflow-sources/index.md").read_text()
+        self.assertIn("[Edit source](repository/docs.yml)", index)
+        self.assertNotIn("Execution:", index)
 
-    def test_shared_sources_accept_common_prefix_and_only_the_legacy_mapping(self):
+    def test_full_shared_jobs_use_reusable_prefix(self):
         self.source.unlink()
-        self.source = self.root / "ci/workflows/common/run-profile.yaml"
+        self.source = self.root / ".github/workflow-sources/reusable/run-profile.yaml"
         self.source.parent.mkdir()
         self.source.write_bytes(self.body)
         record = self.inventory["workflows"][0]
-        record.update(domain="common", source="common/run-profile.yaml")
-        for filename in ("common-run-profile.yaml", "product-run-profile.yaml"):
-            record["file"] = filename
-            self.render()
-            generate(root=self.root, check=True)
-            (self.root / ".github/workflows" / filename).unlink()
-        for filename in ("host-run-profile.yaml", "product-other.yaml"):
+        record.update(
+            domain="reusable",
+            source="reusable/run-profile.yaml",
+            file="reusable-run-profile.yaml",
+        )
+        self.render()
+        generate(root=self.root, check=True)
+        (self.root / ".github/workflows/reusable-run-profile.yaml").unlink()
+        for filename in ("repository-run-profile.yaml", "library-run-profile.yaml"):
             with self.subTest(filename=filename):
                 record["file"] = filename
                 with self.assertRaisesRegex(ValueError, "does not match its domain"):
                     self.render()
-        record["file"] = "product-run-profile.yaml"
-        record["source"] = "common/other.yaml"
-        self.source.rename(self.source.with_name("other.yaml"))
-        with self.assertRaisesRegex(ValueError, "does not match its domain"):
-            self.render()
 
     def test_each_owner_requires_its_own_entrypoint_prefix(self):
         self.source.unlink()
-        for domain in ("host", "product", "clients", "release"):
+        for domain in ("repository", "library", "frameworks", "release"):
             source = (
                 f"{domain}/vllm/check.yaml"
-                if domain == "clients"
+                if domain == "frameworks"
                 else f"{domain}/check.yaml"
             )
-            path = self.root / "ci/workflows" / source
+            path = self.root / ".github/workflow-sources" / source
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(self.body)
             record = self.inventory["workflows"][0]
             record.update(domain=domain, source=source)
-            expected = "client" if domain == "clients" else domain
-            for prefix in ("common", "host", "product", "client", "release"):
+            expected = "frameworks" if domain == "frameworks" else domain
+            for prefix in (
+                "reusable",
+                "repository",
+                "library",
+                "frameworks",
+                "release",
+            ):
                 record["file"] = f"{prefix}-check.yaml"
                 with self.subTest(domain=domain, prefix=prefix):
                     if prefix == expected:
@@ -154,7 +164,7 @@ class WorkflowInventoryTests(unittest.TestCase):
     def test_workflow_definitions_delegate_and_cron_files_only_select_profiles(self):
         controls = Path(ci.workflows.__file__).resolve().parents[2]
         workflow = (
-            controls / "ci/workflows/clients/vllm/model-benchmarks.yaml"
+            controls / ".github/workflow-sources/frameworks/vllm/model-benchmarks.yaml"
         ).read_text()
         declared = workflow.split("        options: [", 1)[1].split("]", 1)[0]
         catalog = json.loads(
@@ -162,14 +172,16 @@ class WorkflowInventoryTests(unittest.TestCase):
         )
         self.assertEqual(set(declared.split(", ")), set(catalog["profiles"]))
         for name in ("nightly.yaml", "model-benchmarks.yaml"):
-            definition = (controls / "ci/workflows/clients/vllm" / name).read_text()
+            definition = (
+                controls / ".github/workflow-sources/frameworks/vllm" / name
+            ).read_text()
             self.assertNotIn("cron:", definition)
             self.assertNotIn("run:", definition)
             self.assertIn("workflow_call:", definition)
             self.assertIn(
-                "uses: ./.github/workflows/product-run-profile.yaml", definition
+                "uses: ./.github/workflows/reusable-run-profile.yaml", definition
             )
-        schedules = controls / "ci/workflows/schedules"
+        schedules = controls / ".github/workflow-sources/schedules"
         for path in schedules.rglob("*.yaml"):
             with self.subTest(path=path):
                 body = path.read_text()
@@ -187,7 +199,7 @@ class WorkflowInventoryTests(unittest.TestCase):
             "benchmarks-weekly.yaml": ("15 22 * * 0", "extended", "0,1"),
         }
         for name, (cron, profile, gpus) in expected.items():
-            body = (schedules / "clients/vllm" / name).read_text()
+            body = (schedules / "frameworks/vllm" / name).read_text()
             self.assertIn(f"cron: '{cron}'", body)
             self.assertIn(f"benchmark_profile: '{profile}'", body)
             self.assertIn(f"gpus: '{gpus}'", body)
@@ -198,7 +210,7 @@ class WorkflowInventoryTests(unittest.TestCase):
         for path in (
             self.source,
             self.output,
-            self.root / "ci/workflows/index.md",
+            self.root / ".github/workflow-sources/index.md",
             self.root / ".github/workflows/README.md",
         ):
             with self.subTest(path=path.name):
@@ -211,10 +223,10 @@ class WorkflowInventoryTests(unittest.TestCase):
 
     def test_reusable_calls_require_stable_flat_declared_entrypoints(self):
         self.source.write_text(
-            "name: Docs\non: workflow_dispatch\njobs:\n  test:\n    uses: './.github/workflows/host-docs.yml'\n"
+            "name: Docs\non: workflow_dispatch\njobs:\n  test:\n    uses: './.github/workflows/repository-docs.yml'\n"
         )
         self.render()
-        for target in ("missing.yaml", "host/docs.yml"):
+        for target in ("missing.yaml", "repository/docs.yml"):
             with self.subTest(target=target):
                 self.source.write_text(
                     f"jobs:\n  test:\n    uses: ./.github/workflows/{target}\n"
@@ -225,7 +237,7 @@ class WorkflowInventoryTests(unittest.TestCase):
     def test_unknown_extra_domain_cannot_hide_behind_complete_real_inventory(self):
         self.inventory["workflows"].append(
             {
-                "file": "host-hidden.yaml",
+                "file": "repository-hidden.yaml",
                 "source": "unknown/hidden.yaml",
                 "domain": "unknown",
                 "purpose": "Unreviewed extra entry",
@@ -241,8 +253,8 @@ class WorkflowInventoryTests(unittest.TestCase):
         valid = copy.deepcopy(self.inventory)
         changes = [
             lambda value: value.update(schema_version=True),
-            lambda value: value["domains"].update(host=" "),
-            lambda value: value["domains"].update(host=[]),
+            lambda value: value["domains"].update(repository=" "),
+            lambda value: value["domains"].update(repository=[]),
             lambda value: value["workflows"][0].update(purpose=" "),
             lambda value: value["workflows"][0].update(purpose="one\ntwo"),
             lambda value: value["workflows"][0].update(application={}),
@@ -256,21 +268,21 @@ class WorkflowInventoryTests(unittest.TestCase):
             ),
         ]
         for source in (
-            "/host/docs.yml",
-            "host/../host/docs.yml",
-            "host/./docs.yml",
-            "host//docs.yml",
-            "host/\0docs.yml",
-            "clients/vllm/docs.yml",
+            "/repository/docs.yml",
+            "repository/../repository/docs.yml",
+            "repository/./docs.yml",
+            "repository//docs.yml",
+            "repository/\0docs.yml",
+            "frameworks/vllm/docs.yml",
         ):
             changes.append(
                 lambda value, source=source: value["workflows"][0].update(source=source)
             )
         for filename in (
-            "../host-docs.yml",
-            "host/docs.yml",
-            "client-docs.yml",
-            "host-docs.yml\0",
+            "../repository-docs.yml",
+            "repository/docs.yml",
+            "frameworks-docs.yml",
+            "repository-docs.yml\0",
         ):
             changes.append(
                 lambda value, filename=filename: value["workflows"][0].update(
@@ -288,9 +300,9 @@ class WorkflowInventoryTests(unittest.TestCase):
     def test_unregistered_sources_outputs_and_nested_github_yaml_are_rejected(self):
         self.render()
         for name in (
-            "ci/workflows/host/forgotten.yaml",
-            ".github/workflows/host-forgotten.yaml",
-            ".github/workflows/host/nested.yml",
+            ".github/workflow-sources/repository/forgotten.yaml",
+            ".github/workflows/repository-forgotten.yaml",
+            ".github/workflows/repository/nested.yml",
         ):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -304,7 +316,11 @@ class WorkflowInventoryTests(unittest.TestCase):
         self.render()
         outside = self.root / "outside.yml"
         outside.write_text("DO NOT REPLACE\n")
-        for path in (self.source, self.output, self.root / "ci/workflows/index.md"):
+        for path in (
+            self.source,
+            self.output,
+            self.root / ".github/workflow-sources/index.md",
+        ):
             with self.subTest(path=path):
                 original = path.read_bytes()
                 path.unlink()
@@ -314,7 +330,7 @@ class WorkflowInventoryTests(unittest.TestCase):
                 self.assertEqual(outside.read_text(), "DO NOT REPLACE\n")
                 path.unlink()
                 path.write_bytes(original)
-        directory = self.root / "ci/workflows/host"
+        directory = self.root / ".github/workflow-sources/repository"
         moved = self.root / "outside-owner"
         directory.rename(moved)
         directory.symlink_to(moved, target_is_directory=True)
@@ -355,5 +371,5 @@ class WorkflowInventoryTests(unittest.TestCase):
         self.assertEqual(
             self.output.read_text(), "name: candidate-changed-permissions\n"
         )
-        (self.root / "ci/workflows/registry.json").unlink()
+        (self.root / ".github/workflow-sources/registry.json").unlink()
         self.assertEqual(invoke().returncode, 2)

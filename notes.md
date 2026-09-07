@@ -4,6 +4,25 @@ This file records the local implementation, the defects found during review and 
 
 The working branch is `akaratza_aiter_implementation`, based on `456b92780c8b650c1e3e4b0fa1ca21f0d1fb363d`. The latest request authorizes publishing this branch in an AITER fork and deploying its documentation. Implementation and local acceptance precede that publication. The proposal and manual have separate repositories. The September 7 proposal rewrite is recorded in the proposal repository; the manual was not changed in this round.
 
+## September 7: GitHub workflow navigation
+
+The editable GitHub configuration now lives together under `.github/`. [Start with its directory guide](.github/README.md), then choose [vLLM](.github/workflow-sources/frameworks/vllm/README.md), [SGLang](.github/workflow-sources/frameworks/sglang/README.md) or the AITER library. `repository` replaces the ambiguous workflow label `host`; `frameworks` replaces `clients`; `library` replaces `product`. These names describe what is being checked. Existing profile identifiers such as `host` and `product-nightly`, and the Python `ci.clients` application, keep their established interfaces.
+
+| Files | Change and reason |
+| --- | --- |
+| `.github/workflow-sources/` | Move all 58 canonical YAML files and their registry out of the Python generator package. Group execution by repository, library, framework and release; mirror those groups under `schedules/`. Give every directory a guide. |
+| `.github/workflows/`, `ci/workflows/` | Generate the flat files GitHub requires, with explicit source and directory-guide comments. Use descriptive filename prefixes and update every local reusable call. Keep a short starting page here and the complete mapping beside the sources. |
+| `.github/actions/common/validate-workflows/`, `.github/workflow-sources/reusable/` | Separate a shared validation step from complete shared jobs. The action checks the root checkout and propagates validation failure; it does not install dependencies or select tests. |
+| `.github/scripts/`, `ci/pipelines/scripts.{py,json}` | Move 16 adapters into the same repository/library/framework naming scheme, update their callers and retain all 25 scripts in the checked inventory. |
+| `ci/ownership/owners.json`, `.github/CODEOWNERS`, `ci/qualification/catalog.json` | Update review ownership and test-selection paths along with the physical moves. Framework schedules have framework ownership. |
+| `docs/website/`, current directory guides, `docs/migrations/paths.json` | Preserve existing website guide URLs, add grouped directory navigation and map historical filenames to their current destinations. |
+
+The migration keeps the same 134 job identifiers and 19 cron selections. The `Checks` and `Documentation` workflow names remain because existing callers use them. Schedule display names now explain their work, and `Host checks` is displayed as `Repository checks`. The workflow-lint trigger also includes the new source and action directories. QA compares the complete job definitions with the previous commit, allowing only the explicit path, display-name and shared-step changes.
+
+Both clean Python 3.10 and 3.12 environments pass the final complete CPU suite: 677 tests and 1,349 subtests per interpreter. The first 3.10 attempt loaded an unfinished QA matcher that mistook a job named `run` for a shell command; its 19 false failures are retained separately, and the corrected complete suite passes. The independent workflow comparison records zero unapproved changes across all 58 workflows. Generation, script inventory, ownership, Actionlint and architecture checks pass; the architecture check still accounts for 1,058 Python files and 9,100 dependency edges. Reports are retained under `/tmp/aiter-workflow-layout-*`, including the final interpreter XML files and `qa/final-semantic-audit.json`.
+
+This round changes orchestration and navigation, not kernels or model selections. The existing GPU acceptance records below retain their original scope; they are not counted again as execution of the renamed workflows. The GitHub default-branch rule for scheduled runs still applies.
+
 ## September 7: upstream proposal, numerical coverage and pipeline execution
 
 The proposal is maintained separately in `AndreasKaratzas/aiter-proposal`. Its five pages now compare the proposed design with upstream ROCm/AITER at `24a62b1c122f23645a19b9d8b0abd4750c59359b`. They describe the real wrapper/JIT/native flow, recipe evaluation, tuning/code-object handling, existing test and release jobs, and documentation gaps. They do not cite this implementation branch as evidence of upstream behavior or completed proposal work.

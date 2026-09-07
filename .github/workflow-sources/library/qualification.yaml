@@ -1,0 +1,65 @@
+name: AITER and framework qualification
+
+on:
+  workflow_call:
+    inputs:
+      product_profile:
+        type: string
+        default: product-fast
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+permissions:
+  contents: read
+
+concurrency:
+  group: product-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  plan:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has_jobs: ${{ steps.plan.outputs.has_jobs }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: plan
+        env:
+          AITER_SUPPORT_PROFILES: ${{ vars.AITER_SUPPORT_PROFILES }}
+          BASE_REVISION: ${{ github.event.pull_request.base.sha || '' }}
+          PRODUCT_PROFILE: ${{ inputs.product_profile || 'product-fast' }}
+        run: |
+          python3 -m ci.qualification.changes --base "$BASE_REVISION" --output "$RUNNER_TEMP/changed-paths.txt"
+          python3 -m ci.release.matrix --channel changes --product-profile "$PRODUCT_PROFILE" --changed-paths "$RUNNER_TEMP/changed-paths.txt" --output "$RUNNER_TEMP/change-matrix.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: affected-support-requirements
+          path: |
+            ${{ runner.temp }}/changed-paths.txt
+            ${{ runner.temp }}/change-matrix.json
+          if-no-files-found: error
+  execute:
+    needs: plan
+    if: needs.plan.outputs.has_jobs == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/reusable-run-profile.yaml
+    with:
+      base_revision: ${{ github.event.pull_request.base.sha || '' }}
+      profile: ${{ matrix.profile }}
+      architecture: ${{ matrix.architecture }}
+      image: ${{ matrix.image }}
+      environment_lock: ${{ matrix.environment_lock }}
+      runner: ${{ matrix.runner }}
+      gpus: ${{ matrix.gpus }}
+      label: ${{ matrix.label }}
+      source_revision: ${{ matrix.source_revision }}

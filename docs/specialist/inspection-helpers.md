@@ -1,1 +1,1 @@
-<!-- Content is rendered from the canonical guide in website/guides.json. -->
+<!-- Content is rendered from docs/examples/isa_optimization/README.md by docs.website.extension. -->

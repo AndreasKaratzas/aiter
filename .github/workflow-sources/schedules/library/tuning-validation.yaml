@@ -1,0 +1,10 @@
+name: Schedule AITER tuning validation
+
+on:
+  schedule:
+    - cron: '0 20 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/library-tuning-validation.yaml
+    secrets: inherit

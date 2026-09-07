@@ -1,0 +1,17 @@
+name: Schedule vLLM weekly tests
+
+on:
+  schedule:
+    - cron: '15 20 * * 0'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  run:
+    uses: ./.github/workflows/frameworks-vllm-nightly.yaml
+    with:
+      workload_profile: 'vllm-extended'
+    secrets: inherit

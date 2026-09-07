@@ -247,11 +247,11 @@
       "domain": "clients"
     },
     {
-      "pattern": "/.github/workflows/client-vllm-benchmarks.yaml",
+      "pattern": "/.github/workflows/frameworks-vllm-benchmarks.yaml",
       "domain": "clients"
     },
     {
-      "pattern": "/.github/workflows/client-sglang-models.yaml",
+      "pattern": "/.github/workflows/frameworks-sglang-models.yaml",
       "domain": "clients"
     },
     {
@@ -467,7 +467,7 @@
       "domain": "clients"
     },
     {
-      "pattern": "/.github/scripts/clients/",
+      "pattern": "/.github/scripts/frameworks/",
       "domain": "clients"
     },
     {
@@ -479,15 +479,31 @@
       "domain": "delivery"
     },
     {
-      "pattern": "/ci/workflows/clients/",
+      "pattern": "/.github/workflow-sources/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/.github/actions/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/.github/workflow-sources/frameworks/",
       "domain": "clients"
     },
     {
-      "pattern": "/.github/workflows/client-*.yaml",
+      "pattern": "/.github/workflows/frameworks-*.yaml",
       "domain": "clients"
     },
     {
-      "pattern": "/.github/workflows/client-*.yml",
+      "pattern": "/.github/workflows/frameworks-*.yml",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/workflow-sources/schedules/frameworks/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/workflows/schedule-frameworks-*",
       "domain": "clients"
     }
   ]

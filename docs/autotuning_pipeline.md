@@ -24,6 +24,6 @@ Prepared execution can instead bind a reviewed dispatch manifest to an exact req
 
 ## Run and review through CI
 
-The operator tuning workflow is a manual experiment entry point. The separate tuning test workflow checks the tuning infrastructure. Their current definitions are [product-tuning.yaml](../.github/workflows/product-tuning.yaml) and [product-tuning-validation.yaml](../.github/workflows/product-tuning-validation.yaml); inspect their declared inputs before starting a run.
+The operator tuning workflow is a manual experiment entry point. The separate tuning test workflow checks the tuning infrastructure. Their current definitions are [library-tuning.yaml](../.github/workflows/library-tuning.yaml) and [library-tuning-validation.yaml](../.github/workflows/library-tuning-validation.yaml); inspect their declared inputs before starting a run.
 
 For product and framework acceptance, choose an explicit [qualification profile](../ci/README.md). Keep the candidate observations, correctness outcomes, environment and comparison alongside the proposed configuration change. Publishing a wheel or advancing a channel is a separate delivery decision.

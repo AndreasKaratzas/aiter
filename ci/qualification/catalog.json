@@ -117,12 +117,12 @@
     },
     "vllm": {
       "paths": [
-        ".github/workflows/client-vllm-benchmarks.yaml",
-        ".github/workflows/client-vllm-disaggregation.yaml",
+        ".github/workflows/frameworks-vllm-benchmarks.yaml",
+        ".github/workflows/frameworks-vllm-disaggregation.yaml",
         "tests/frameworks/vllm/",
         "docker/vllm/",
-        ".github/workflows/client-vllm-nightly.yaml",
-        "ci/workflows/clients/vllm/",
+        ".github/workflows/frameworks-vllm-nightly.yaml",
+        ".github/workflow-sources/frameworks/vllm/",
         "benchmarks/vllm/"
       ],
       "depends_on": [
@@ -132,11 +132,11 @@
     },
     "sglang": {
       "paths": [
-        ".github/workflows/client-sglang-models.yaml",
+        ".github/workflows/frameworks-sglang-models.yaml",
         "ci/clients/sglang/downstream.py",
         "tests/frameworks/sglang/",
         "docker/sglang/",
-        "ci/workflows/clients/sglang/"
+        ".github/workflow-sources/frameworks/sglang/"
       ],
       "depends_on": [
         "pytorch",
@@ -328,7 +328,7 @@
       ],
       "adapter": "bash",
       "targets": [
-        ".github/scripts/product/run_tests.sh"
+        ".github/scripts/library/run_tests.sh"
       ],
       "gpus": 1,
       "architectures": [
@@ -354,7 +354,7 @@
       ],
       "adapter": "bash",
       "targets": [
-        ".github/scripts/product/run_tests.sh"
+        ".github/scripts/library/run_tests.sh"
       ],
       "gpus": 8,
       "architectures": [
@@ -1450,29 +1450,29 @@
     "notes.md"
   ],
   "retained_workflows": {
-    ".github/workflows/host-workflow-lint.yaml": "Existing actionlint coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-legacy.yaml": "Existing aiter test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/host-runner-monitor.yml": "Existing amd ci job monitor coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-atom-disaggregation.yaml": "Existing atom di ci smoke workflow coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-atom.yaml": "Existing atom test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/host-legacy-config.yaml": "Existing ci config coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-extended.yaml": "Existing extended test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-fmha.yaml": "Existing ffm bringup coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-flash-attention.yaml": "Existing flash attention integration coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-kimi-correctness.yaml": "Existing kimi downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-kimi-performance.yaml": "Existing kimi perf downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-tuning.yaml": "Existing operators tuning coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-opus.yaml": "Existing opus test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/host-prechecks.yaml": "Existing pre checks coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/repository-workflow-lint.yaml": "Existing actionlint coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-legacy.yaml": "Existing aiter test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/repository-runner-monitor.yml": "Existing amd ci job monitor coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-atom-disaggregation.yaml": "Existing atom di ci smoke workflow coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-atom.yaml": "Existing atom test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/repository-legacy-config.yaml": "Existing ci config coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-extended.yaml": "Existing extended test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-fmha.yaml": "Existing ffm bringup coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-flash-attention.yaml": "Existing flash attention integration coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-kimi-correctness.yaml": "Existing kimi downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-kimi-performance.yaml": "Existing kimi perf downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-tuning.yaml": "Existing operators tuning coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-opus.yaml": "Existing opus test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/repository-prechecks.yaml": "Existing pre checks coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
     ".github/workflows/release-triton-wheel.yaml": "Existing prepare triton wheel coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
     ".github/workflows/release-stable.yaml": "Existing release automation coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-sglang-models.yaml": "Existing sglang downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-network.yaml": "Existing test network coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-triton.yaml": "Existing triton test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/product-tuning-validation.yaml": "Existing tuning tests coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/host-update-test-inventory.yaml": "Existing update split tests coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-vllm-disaggregation.yaml": "Existing vllm disagg ci smoke workflow coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
-    ".github/workflows/client-vllm-benchmarks.yaml": "Existing vllm benchmark coverage; remains active while its model, topology and environment requirements are transferred to client profiles."
+    ".github/workflows/frameworks-sglang-models.yaml": "Existing sglang downstream coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-network.yaml": "Existing test network coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-triton.yaml": "Existing triton test coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/library-tuning-validation.yaml": "Existing tuning tests coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/repository-update-test-inventory.yaml": "Existing update split tests coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-vllm-disaggregation.yaml": "Existing vllm disagg ci smoke workflow coverage; remains active while its model, topology and environment requirements are transferred to client profiles.",
+    ".github/workflows/frameworks-vllm-benchmarks.yaml": "Existing vllm benchmark coverage; remains active while its model, topology and environment requirements are transferred to client profiles."
   },
   "clients": [
     "aiter"

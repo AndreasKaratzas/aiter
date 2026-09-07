@@ -2,26 +2,26 @@
   "schema_version": 1,
   "domains": {
     "common": "Shared runner, dependency and container adapters.",
-    "product": "Operator drivers, sharding, Triton selection and tuning jobs.",
-    "host": "Repository checks and runner monitoring.",
-    "clients": "Framework-specific serving adapters.",
+    "library": "Operator drivers, sharding, Triton selection and tuning jobs.",
+    "repository": "Repository checks and runner monitoring.",
+    "frameworks": "Framework-specific serving adapters.",
     "release": "Wheel acquisition and build summaries."
   },
   "scripts": [
     {
-      "file": "clients/sglang/kimi_accuracy.sh",
+      "file": "frameworks/sglang/kimi_accuracy.sh",
       "purpose": "Run the specialized Kimi SGLang serving accuracy workload."
     },
     {
-      "file": "clients/sglang/kimi_perf.sh",
+      "file": "frameworks/sglang/kimi_perf.sh",
       "purpose": "Run the specialized Kimi SGLang serving throughput sweep."
     },
     {
-      "file": "clients/vllm/kimi_accuracy.sh",
+      "file": "frameworks/vllm/kimi_accuracy.sh",
       "purpose": "Run the specialized Kimi vLLM serving accuracy workload."
     },
     {
-      "file": "clients/vllm/kimi_perf.sh",
+      "file": "frameworks/vllm/kimi_perf.sh",
       "purpose": "Run the specialized Kimi vLLM serving throughput sweep."
     },
     {
@@ -49,51 +49,51 @@
       "purpose": "Check the legacy Triton minimum version after installation."
     },
     {
-      "file": "host/check_deps.sh",
+      "file": "repository/check_deps.sh",
       "purpose": "Check whether the CK gitlink belongs to upstream develop history."
     },
     {
-      "file": "host/list_jobs.py",
+      "file": "repository/list_jobs.py",
       "purpose": "Read workflow job matrices for runner monitoring."
     },
     {
-      "file": "host/query_job_status.py",
+      "file": "repository/query_job_status.py",
       "purpose": "Report queued and running jobs using the declared runner configuration."
     },
     {
-      "file": "host/update_split_test_times.py",
+      "file": "repository/update_split_test_times.py",
       "purpose": "Refresh legacy shard timing data from retained job artifacts."
     },
     {
-      "file": "product/collect_logs.py",
+      "file": "library/collect_logs.py",
       "purpose": "Summarize retained standalone-driver output for the workflow."
     },
     {
-      "file": "product/run_tests.sh",
+      "file": "library/run_tests.sh",
       "purpose": "Run the retained standalone operator and communication drivers."
     },
     {
-      "file": "product/split_tests.sh",
+      "file": "library/split_tests.sh",
       "purpose": "Assign legacy operator drivers to timing-based shards."
     },
     {
-      "file": "product/triton/build.sh",
+      "file": "library/triton/build.sh",
       "purpose": "Prepare the legacy Triton test build environment."
     },
     {
-      "file": "product/triton/select_tests.py",
+      "file": "library/triton/select_tests.py",
       "purpose": "Select Triton tests and benchmarks from source dependencies."
     },
     {
-      "file": "product/tuning/check_regression.sh",
+      "file": "library/tuning/check_regression.sh",
       "purpose": "Apply the legacy tuning regression thresholds to two CSV inputs."
     },
     {
-      "file": "product/tuning/compare.py",
+      "file": "library/tuning/compare.py",
       "purpose": "Compare retained baseline and candidate tuning CSV measurements."
     },
     {
-      "file": "product/tuning/run.sh",
+      "file": "library/tuning/run.sh",
       "purpose": "Execute the selected tuning and post-tuning numerical drivers."
     },
     {
@@ -111,32 +111,32 @@
   ],
   "external_references": [
     {
-      "workflow": "client-atom-disaggregation.yaml",
+      "workflow": "frameworks-atom-disaggregation.yaml",
       "file": "atomesh/pd_matrix.py",
       "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
     },
     {
-      "workflow": "client-atom-disaggregation.yaml",
+      "workflow": "frameworks-atom-disaggregation.yaml",
       "file": "atomesh/pd_submit.sh",
       "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
     },
     {
-      "workflow": "client-atom-disaggregation.yaml",
+      "workflow": "frameworks-atom-disaggregation.yaml",
       "file": "atomesh/process_result.py",
       "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
     },
     {
-      "workflow": "client-atom-disaggregation.yaml",
+      "workflow": "frameworks-atom-disaggregation.yaml",
       "file": "atomesh/slurm_submit_helpers.sh",
       "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
     },
     {
-      "workflow": "client-atom.yaml",
+      "workflow": "frameworks-atom.yaml",
       "file": "atom_test.sh",
       "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
     },
     {
-      "workflow": "client-atom.yaml",
+      "workflow": "frameworks-atom.yaml",
       "file": "download_model_with_lock.sh",
       "reason": "This workflow executes the checked-out ATOM repository, which owns this helper."
     }

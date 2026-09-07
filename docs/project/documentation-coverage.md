@@ -1,1 +1,1 @@
-<!-- Content is rendered from the canonical guide in website/guides.json. -->
+<!-- Content is rendered from docs/DOCUMENTATION_AUDIT_REPORT.md by docs.website.extension. -->

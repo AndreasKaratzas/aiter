@@ -21,7 +21,8 @@ def script_index(*, root=None, check=False, write=False):
     domains = inventory["domains"]
     require(
         isinstance(domains, dict)
-        and set(domains) == {"common", "product", "host", "clients", "release"},
+        and set(domains)
+        == {"common", "library", "repository", "frameworks", "release"},
         "invalid script owners",
     )
     require(
@@ -101,7 +102,7 @@ def script_index(*, root=None, check=False, write=False):
             continue
         text = workflow.read_text()
         names = re.findall(r"\.github/scripts/([A-Za-z0-9_./-]+\.(?:py|sh))", text)
-        names += re.findall(r"script:\s*(clients/[A-Za-z0-9_./-]+\.(?:py|sh))", text)
+        names += re.findall(r"script:\s*(frameworks/[A-Za-z0-9_./-]+\.(?:py|sh))", text)
         for name in names:
             if name in entries:
                 callers[name].add(workflow.name)
@@ -116,9 +117,9 @@ def script_index(*, root=None, check=False, write=False):
     lines = [
         "# Workflow script owners",
         "",
-        "These adapters support retained specialized workflows. Qualified delivery orchestration lives in [ci/pipelines](../../ci/pipelines/README.md); numerical and model acceptance belongs in [tests](../../tests/README.md), and measurements belong in [benchmarks](../../benchmarks/README.md). The script directory contains no flat executable files. [Hierarchical workflow sources](../../ci/workflows/README.md) generate the flat GitHub callers listed below.",
+        "These adapters support retained specialized workflows. Qualified delivery orchestration lives in [ci/pipelines](../../ci/pipelines/README.md); numerical and model acceptance belongs in [tests](../../tests/README.md), and measurements belong in [benchmarks](../../benchmarks/README.md). The script directory contains no flat executable files. [Workflow sources](../workflow-sources/README.md) generate the flat GitHub callers listed below.",
         "",
-        "Edit `ci/pipelines/scripts.json` when changing an adapter, then run `python -m ci.pipelines scripts --write-index`. Host checks verify every maintained script, its owner, workflow references and this index. ATOM helpers listed separately below belong to its external checkout.",
+        "Choose the owner that matches the caller: repository maintenance, library testing, framework integration or release work. `common` contains small shared adapters. Each directory has a short guide. Edit `ci/pipelines/scripts.json` when changing an adapter, then run `python -m ci.pipelines scripts --write-index`. Repository checks verify every maintained script, its owner, workflow references and this index. ATOM helpers listed separately below belong to its external checkout.",
         "",
     ]
     for domain, description in domains.items():
@@ -126,7 +127,7 @@ def script_index(*, root=None, check=False, write=False):
             [
                 "## " + domain.title(),
                 "",
-                description,
+                description + f" See the [{domain} guide]({domain}/README.md).",
                 "",
                 "| Adapter | Responsibility | Direct workflow callers |",
                 "|---|---|---|",

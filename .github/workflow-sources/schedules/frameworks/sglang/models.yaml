@@ -1,0 +1,10 @@
+name: Schedule SGLang model tests
+
+on:
+  schedule:
+    - cron: '0 17 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/frameworks-sglang-models.yaml
+    secrets: inherit

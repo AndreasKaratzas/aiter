@@ -1,1 +1,1 @@
-<!-- Content is rendered from ci/workflows/index.md by docs.website.extension. -->
+<!-- Content is rendered from .github/workflow-sources/index.md by docs.website.extension. -->

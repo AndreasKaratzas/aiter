@@ -2,10 +2,12 @@
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 import zipfile
 from pathlib import Path
@@ -43,6 +45,87 @@ class ScriptInventoryTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_every_script_directory_has_a_guide_and_uses_the_new_taxonomy(self):
+        directory = self.root / ".github/scripts"
+        self.assertEqual(
+            {path.name for path in directory.iterdir() if path.is_dir()},
+            {"common", "repository", "library", "frameworks", "release"},
+        )
+        for path in directory.rglob("*"):
+            if path.is_dir():
+                with self.subTest(path=path.relative_to(directory)):
+                    self.assertTrue((path / "README.md").is_file())
+
+    def validation_action(self):
+        action = (
+            SUITE_ROOT.parent / ".github/actions/common/validate-workflows/action.yml"
+        ).read_text()
+        self.assertIn("using: composite", action)
+        self.assertIn("shell: bash", action)
+        self.assertIn("working-directory: ${{ github.workspace }}", action)
+        _, separator, script = action.partition("      run: |\n")
+        self.assertTrue(separator)
+        return textwrap.dedent(script)
+
+    def run_validation_action(self, workspace, *, include_workspace=True):
+        foreign = self.root / "foreign working directory"
+        foreign.mkdir(exist_ok=True)
+        env = dict(
+            os.environ, PYTHONPATH="", ACTION_RECORD=str(self.root / "record.json")
+        )
+        env.pop("GITHUB_WORKSPACE", None)
+        if include_workspace:
+            env["GITHUB_WORKSPACE"] = str(workspace)
+        return subprocess.run(
+            [
+                "bash",
+                "--noprofile",
+                "--norc",
+                "-e",
+                "-o",
+                "pipefail",
+                "-c",
+                self.validation_action(),
+            ],
+            cwd=foreign,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_validation_action_uses_checkout_root_and_preserves_checker_status(self):
+        for returncode in (0, 7):
+            with self.subTest(returncode=returncode):
+                workspace = self.root / f"checkout {returncode} with spaces"
+                module = workspace / "ci/workflows"
+                module.mkdir(parents=True)
+                (workspace / "ci/__init__.py").write_text("")
+                (module / "__init__.py").write_text("")
+                (module / "__main__.py").write_text(
+                    "import json, os, pathlib, sys\n"
+                    "pathlib.Path(os.environ['ACTION_RECORD']).write_text(json.dumps({"
+                    "'cwd': os.getcwd(), 'args': sys.argv[1:], 'no_site': sys.flags.no_site}))\n"
+                    f"sys.exit({returncode})\n"
+                )
+                result = self.run_validation_action(workspace)
+                self.assertEqual(result.returncode, returncode, result.stderr)
+                self.assertEqual(
+                    json.loads((self.root / "record.json").read_text()),
+                    {"cwd": str(workspace), "args": ["--check"], "no_site": 1},
+                )
+
+    def test_validation_action_rejects_missing_checkout_or_workspace(self):
+        workspace = self.root / "empty checkout"
+        workspace.mkdir()
+        missing = self.run_validation_action(workspace)
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("Check out AITER", missing.stdout)
+        unset = self.run_validation_action(workspace, include_workspace=False)
+        self.assertNotEqual(unset.returncode, 0)
+        self.assertIn("GITHUB_WORKSPACE", unset.stderr)
+        self.assertFalse((self.root / "record.json").exists())
+
     def test_disaggregation_build_selects_staged_module_instead_of_checkout_prebuild(
         self,
     ):
@@ -51,7 +134,7 @@ class ScriptInventoryTests(unittest.TestCase):
         from ci.clients.vllm.disaggregation import artifacts
 
         workflow = (
-            self.root / ".github/workflows/client-vllm-disaggregation.yaml"
+            self.root / ".github/workflows/frameworks-vllm-disaggregation.yaml"
         ).read_text()
         build = (root / "ci/clients/vllm/disaggregation/build-wheel.sh").read_text()
         application = Path(controller.__file__).read_text()
@@ -68,7 +151,7 @@ class ScriptInventoryTests(unittest.TestCase):
         self.assertNotIn("prebuild_disagg_cktile.py", workflow + application + build)
         self.assertFalse(
             (
-                self.root / ".github/scripts/clients/vllm/prebuild_disagg_cktile.py"
+                self.root / ".github/scripts/frameworks/vllm/prebuild_disagg_cktile.py"
             ).exists()
         )
         subprocess.run(
@@ -147,7 +230,7 @@ class ScriptInventoryTests(unittest.TestCase):
             script_index(root=self.root)
 
     def test_missing_workflow_target_is_not_treated_as_external(self):
-        path = self.root / ".github/workflows/host-checks.yaml"
+        path = self.root / ".github/workflows/repository-checks.yaml"
         path.write_text(path.read_text() + "\n# .github/scripts/common/missing.sh\n")
         with self.assertRaisesRegex(ValueError, "unowned script"):
             script_index(root=self.root)
@@ -157,7 +240,7 @@ class ScriptInventoryTests(unittest.TestCase):
         mutations = [
             lambda r: r.update(schema_version=True),
             lambda r: r["scripts"].append(r["scripts"][0]),
-            lambda r: r["scripts"][0].update(file="common/../host/check_deps.sh"),
+            lambda r: r["scripts"][0].update(file="common/../repository/check_deps.sh"),
             lambda r: r["scripts"][0].update(file="common//check_signal.sh"),
             lambda r: r["scripts"][0].update(purpose=" "),
         ]

@@ -1,0 +1,10 @@
+name: Schedule Kimi performance across frameworks
+
+on:
+  schedule:
+    - cron: '43 20 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/frameworks-kimi-performance.yaml
+    secrets: inherit

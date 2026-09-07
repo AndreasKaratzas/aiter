@@ -1,8 +1,8 @@
 # Review and publish the website
 
-The documentation workflow, [ci/workflows/host/docs.yml](../ci/workflows/host/docs.yml), builds the site, checks it in Chromium and publishes the checked HTML through GitHub Pages. A pull request produces downloadable HTML and browser evidence for review. Publication runs only after both the build and browser checks pass.
+The documentation workflow, [.github/workflow-sources/repository/docs.yml](../.github/workflow-sources/repository/docs.yml), builds the site, checks it in Chromium and publishes the checked HTML through GitHub Pages. A pull request produces downloadable HTML and browser evidence for review. Publication runs only after both the build and browser checks pass.
 
-Edit that organized source and run `python -m ci.workflows --write`. GitHub executes the generated [host-docs.yml](../.github/workflows/host-docs.yml); the workflow check rejects differences between it and its source.
+Edit that organized source and run `python -m ci.workflows --write`. GitHub executes the generated [repository-docs.yml](../.github/workflows/repository-docs.yml); the workflow check rejects differences between it and its source.
 
 The HTML artifact and browser evidence serve different purposes. HTML is the site to preview. The browser report and screenshots show which pages and interactions were checked, including failures. Retain both when reviewing a documentation change.
 

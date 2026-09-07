@@ -1,0 +1,10 @@
+name: Schedule AITER OPUS tests
+
+on:
+  schedule:
+    - cron: '0 22 * * *'
+
+jobs:
+  run:
+    uses: ./.github/workflows/library-opus.yaml
+    secrets: inherit

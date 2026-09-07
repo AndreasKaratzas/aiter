@@ -69,7 +69,7 @@ python -c 'from benchmarks.vllm.models.suite import check_suite; check_suite("/t
 
 ## CI entrypoint
 
-The [model benchmark workflow](../../ci/workflows/clients/vllm/model-benchmarks.yaml) selects a profile and optional case IDs, with separate GPU allocation. Configured schedules request daily `smoke` and weekly `extended`; deployment and runner availability still determine whether those schedules execute. Its controller runs the fresh official-nightly install/import prerequisite before any benchmark:
+The [model benchmark workflow](../../.github/workflow-sources/frameworks/vllm/model-benchmarks.yaml) selects a profile and optional case IDs, with separate GPU allocation. Configured schedules request daily `smoke` and weekly `extended`; deployment and runner availability still determine whether those schedules execute. Its controller runs the fresh official-nightly install/import prerequisite before any benchmark:
 
 ```bash
 python -m ci.pipelines vllm-benchmark \
@@ -81,4 +81,4 @@ python -m ci.pipelines vllm-benchmark \
 
 The schema-2 pipeline request seals resolved cases, workload settings, catalog and model-manifest hashes, and installation identity. Candidate AITER is installed last, and source-free controls execute the benchmark. Final dependency and package-payload checks bind every worker to that installed candidate. Installation failures remain separate from measurement failures. No benchmark advances a release channel.
 
-The retained [dummy-weight latency canary](../../ci/workflows/clients/vllm/benchmarks.yaml) uses `benchmarks.vllm.latency` for its established large-model matrix. It remains separately labeled and does not inherit the real-checkpoint benchmark's scope.
+The retained [dummy-weight latency canary](../../.github/workflow-sources/frameworks/vllm/benchmarks.yaml) uses `benchmarks.vllm.latency` for its established large-model matrix. It remains separately labeled and does not inherit the real-checkpoint benchmark's scope.

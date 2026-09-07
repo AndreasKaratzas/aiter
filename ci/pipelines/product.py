@@ -259,7 +259,7 @@ def run(
             env=environment,
         )
         bash.command(
-            [str(suite / ".github/scripts/product/run_tests.sh")],
+            [str(suite / ".github/scripts/library/run_tests.sh")],
             cwd=suite,
             env=environment,
             timeout=request["definition"]["timeout_seconds"],

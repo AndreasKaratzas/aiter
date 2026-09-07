@@ -1,0 +1,384 @@
+#!/usr/bin/env bash
+# split_tests.sh — shards tests in tests/operators/triton
+# N shards, shards with similar total test time
+
+# Usage:
+#   bash .github/scripts/library/split_tests.sh --shards N [--test-dir DIR]
+#
+# Parameters:
+#   --shards N     number of shards (required)
+#   --test-type TYPE test type, default aiter
+#   --dry-run      only output allocation plan, do not execute
+#   -v             Pytest's -v option, no effect
+# Exit code: always 0
+
+set -euo pipefail
+
+SHARDS=0
+TEST_TYPE="aiter"
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --shards) SHARDS="$2"; shift 2 ;;
+        --test-type) TEST_TYPE="$2"; shift 2 ;;
+        --dry-run) DRY_RUN=1; shift ;;
+        -v|--verbose) shift ;; # compatibility, ignore
+        *)
+            echo "Unknown argument: $1" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [[ "$TEST_TYPE" == "aiter" ]]; then
+    TEST_DIR="tests/operators"
+elif [[ "$TEST_TYPE" == "triton" ]]; then
+    TEST_DIR="tests/operators/triton"
+else
+    echo "Unknown test type: $TEST_TYPE" >&2
+    exit 1
+fi
+
+if ! [[ "$SHARDS" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Use --shards N to specify the number of shards (positive integer)" >&2
+    exit 1
+fi
+TEST_DIR="${TEST_DIR%/}"
+
+# ------------------------------
+# scan test files in TEST_DIR
+# ------------------------------
+if [[ "$TEST_TYPE" == "aiter" ]]; then
+    mapfile -t ALL_FILES < <(python3 -S -m ci.pipelines.product --list --area standard)
+elif [[ "$TEST_TYPE" == "triton" ]]; then
+    mapfile -t ALL_FILES < <(find "$TEST_DIR" -name 'test_*.py' -type f | LC_ALL=C sort)
+fi
+if [[ ${#ALL_FILES[@]} -eq 0 ]]; then
+    echo "No test files found: $TEST_DIR/test_*.py" >&2
+    exit 1
+fi
+
+# ------------------------------
+# FILE_TIMES (seconds), unknown files default 15
+# ------------------------------
+declare -A FILE_TIMES
+if [[ "$TEST_TYPE" == "aiter" ]]; then
+    echo "Aiter test files:"
+    FILE_TIMES[tests/operators/hip/test_fused_qk_norm_rope_cache_quant.py]=1101
+    FILE_TIMES[tests/operators/hip/test_fused_qk_norm_mrope_cache_quant.py]=1081
+    FILE_TIMES[tests/operators/hip/drivers/mla_persistent.py]=1007
+    FILE_TIMES[tests/operators/hip/test_mla_v4_nm.py]=906
+    FILE_TIMES[tests/operators/hip/test_batch_prefill.py]=848
+    FILE_TIMES[tests/operators/hip/test_mha.py]=820
+    FILE_TIMES[tests/operators/hip/drivers/mla.py]=819
+    FILE_TIMES[tests/operators/hip/drivers/pa.py]=720
+    FILE_TIMES[tests/operators/hip/test_mha_varlen.py]=696
+    FILE_TIMES[tests/operators/hip/drivers/mla_sparse.py]=590
+    FILE_TIMES[tests/operators/hip/drivers/mla_persistent_round_robin.py]=498
+    FILE_TIMES[tests/operators/hip/drivers/moe_2stage.py]=448
+    FILE_TIMES[tests/operators/hip/test_rope.py]=406
+    FILE_TIMES[tests/operators/hip/drivers/gemm_a8w8.py]=379
+    FILE_TIMES[tests/operators/hip/drivers/topk_per_row.py]=374
+    FILE_TIMES[tests/operators/hip/test_gated_delta_rule.py]=342
+    FILE_TIMES[tests/operators/hip/drivers/concat_cache_mla.py]=282
+    FILE_TIMES[tests/operators/hip/drivers/pa_mtp.py]=164
+    FILE_TIMES[tests/operators/hip/drivers/moe_dp_share_expert.py]=152
+    FILE_TIMES[tests/operators/hip/test_moe_topk_gating.py]=104
+    FILE_TIMES[tests/operators/hip/drivers/activation.py]=90
+    FILE_TIMES[tests/operators/flydsl/test_flydsl_qk_norm_rope_quant.py]=88
+    FILE_TIMES[tests/operators/hip/drivers/kvcache.py]=73
+    FILE_TIMES[tests/operators/hip/drivers/gemm_a8w8_blockscale.py]=69
+    FILE_TIMES[tests/operators/hip/test_jit_dir_with_enum.py]=69
+    FILE_TIMES[tests/operators/hip/drivers/mhc.py]=68
+    FILE_TIMES[tests/operators/hip/test_topk_plain.py]=66
+    FILE_TIMES[tests/operators/hip/test_gdn_prepare.py]=62
+    FILE_TIMES[tests/operators/hip/test_moe_sorting.py]=62
+    FILE_TIMES[tests/operators/flydsl/test_flydsl_compress_attn.py]=61
+    FILE_TIMES[tests/operators/hip/drivers/pa_ps.py]=60
+    FILE_TIMES[tests/operators/hip/drivers/quant.py]=60
+    FILE_TIMES[tests/operators/hip/test_batched_gemm_bf16.py]=58
+    FILE_TIMES[tests/operators/hip/drivers/rmsnorm2d.py]=54
+    FILE_TIMES[tests/operators/hip/drivers/causal_conv1d_update.py]=52
+    FILE_TIMES[tests/operators/hip/drivers/batched_gemm_a8w8.py]=51
+    FILE_TIMES[tests/operators/hip/test_mha_varlen_large_kv.py]=46
+    FILE_TIMES[tests/operators/hip/test_mla_reduce.py]=44
+    FILE_TIMES[tests/operators/hip/test_pa_sparse_prefill.py]=44
+    FILE_TIMES[tests/operators/hip/test_pa_ragged.py]=40
+    FILE_TIMES[tests/operators/hip/drivers/moe_topk_softmax.py]=39
+    FILE_TIMES[tests/operators/hip/drivers/moe_sorting_mxfp4.py]=39
+    FILE_TIMES[tests/operators/flydsl/test_flydsl_mla_reduce.py]=36
+    FILE_TIMES[tests/operators/hip/test_inverse_rope_group_quant.py]=36
+    FILE_TIMES[tests/operators/hip/test_sampling.py]=35
+    FILE_TIMES[tests/operators/hip/test_pa_ragged_experimental.py]=34
+    FILE_TIMES[tests/operators/hip/test_gated_rmsnorm_fp8_quant.py]=33
+    FILE_TIMES[tests/operators/hip/drivers/aiter_add.py]=32
+    FILE_TIMES[tests/operators/hip/drivers/aiter_add_inp.py]=32
+    FILE_TIMES[tests/operators/hip/drivers/gemm_a4w4.py]=32
+    FILE_TIMES[tests/operators/hip/test_pa_v1.py]=30
+    FILE_TIMES[tests/operators/hip/drivers/kvcache_blockscale.py]=28
+    FILE_TIMES[tests/operators/hip/drivers/moe_blockscale.py]=28
+    FILE_TIMES[tests/operators/hip/drivers/sample.py]=27
+    FILE_TIMES[tests/operators/hip/test_mla_ltx.py]=25
+    FILE_TIMES[tests/operators/hip/drivers/mla_prefill_ps.py]=24
+    FILE_TIMES[tests/operators/hip/test_fused_qk_norm_rope_group_quant.py]=22
+    FILE_TIMES[tests/operators/hip/drivers/moe_tkw1.py]=22
+    FILE_TIMES[tests/operators/hip/drivers/gemm_a16w16.py]=20
+    FILE_TIMES[tests/operators/hip/test_mla_stage2_merge.py]=20
+    FILE_TIMES[tests/operators/hip/drivers/fused_qk_norm.py]=19
+    FILE_TIMES[tests/operators/hip/test_layernorm2dFusedAddQuant.py]=18
+    FILE_TIMES[tests/operators/hip/test_quant_mxfp4.py]=18
+    FILE_TIMES[tests/operators/hip/drivers/moe.py]=17
+    FILE_TIMES[tests/operators/hip/test_causal_conv1d_prefill_split_qkv.py]=16
+    FILE_TIMES[tests/operators/hip/drivers/moe_ep.py]=16
+    FILE_TIMES[tests/operators/hip/drivers/deepgemm.py]=14
+    FILE_TIMES[tests/operators/hip/test_rmsnorm2dFusedAddQuant.py]=12
+    FILE_TIMES[tests/operators/hip/test_smoothquant.py]=12
+    FILE_TIMES[tests/operators/hip/test_fused_qk_rmsnorm_group_quant.py]=11
+    FILE_TIMES[tests/operators/hip/test_topk_per_row_stable.py]=11
+    FILE_TIMES[tests/operators/flydsl/test_flydsl_pa_mqa_logits_fp4.py]=10
+    FILE_TIMES[tests/operators/flydsl/test_flydsl_pa_mqa_logits_fp4_prefill.py]=10
+    FILE_TIMES[tests/operators/hip/drivers/fused_kv_norm_rope_group_quant.py]=10
+    FILE_TIMES[tests/operators/hip/test_fused_qk_norm_rope_2way_perhead.py]=10
+    FILE_TIMES[tests/operators/hip/drivers/fused_qknorm_idxrqknorm.py]=10
+    FILE_TIMES[tests/operators/hip/test_metadata.py]=10
+    FILE_TIMES[tests/operators/opus/test_opus_a16w16_gemm.py]=10
+    FILE_TIMES[tests/operators/hip/test_pa_mqa_logits_offset.py]=10
+    FILE_TIMES[tests/operators/hip/test_fused_qk_norm_rope_1way_perhead.py]=9
+    FILE_TIMES[tests/operators/hip/drivers/aiter_sigmoid.py]=8
+    FILE_TIMES[tests/operators/hip/test_fused_qk_rmsnorm_per_token_quant.py]=8
+    FILE_TIMES[tests/operators/hip/test_gdr_decode_packed_bf16.py]=8
+    FILE_TIMES[tests/operators/hip/test_gemm_a8w8_blockscale_cktile_aq_rowmajor.py]=8
+    FILE_TIMES[tests/operators/hip/test_groupnorm.py]=8
+    FILE_TIMES[tests/operators/hip/drivers/indexer_k_quant_and_cache.py]=8
+    FILE_TIMES[tests/operators/hip/drivers/layernorm2d.py]=8
+    FILE_TIMES[tests/operators/hip/test_mha_fp8.py]=8
+    FILE_TIMES[tests/operators/hip/test_mha_varlen_fp8.py]=8
+    FILE_TIMES[tests/operators/hip/test_mla_decode_gate.py]=8
+    FILE_TIMES[tests/operators/opus/test_opus_a8w8_bmm.py]=8
+    FILE_TIMES[tests/operators/hip/test_pa_block_id_truncation.py]=8
+    FILE_TIMES[tests/operators/hip/drivers/split_gdr_update.py]=8
+    FILE_TIMES[tests/operators/hip/drivers/topk_row_prefill.py]=8
+    FILE_TIMES[tests/operators/hip/drivers/dsv4_rotate_quant.py]=7
+    FILE_TIMES[tests/operators/hip/test_f4gemm.py]=7
+    FILE_TIMES[tests/operators/hip/test_fhmoe.py]=7
+    FILE_TIMES[tests/operators/flydsl/test_flydsl_grouped_gemm_gfx1250.py]=7
+    FILE_TIMES[tests/operators/hip/test_fmha_fwd_mxfp8_asm.py]=7
+    FILE_TIMES[tests/operators/hip/test_fmha_fwd_with_sink_asm.py]=7
+    FILE_TIMES[tests/operators/hip/test_fmha_fwd_with_sink_varlen_asm.py]=7
+    FILE_TIMES[tests/operators/hip/test_gemm_a8w8_bpreshuffle_pad_k.py]=7
+    FILE_TIMES[tests/operators/hip/test_gemm_codegen.py]=7
+    FILE_TIMES[tests/operators/hip/test_jit_arch_guard.py]=7
+    FILE_TIMES[tests/operators/flydsl/test_mha_flydsl.py]=7
+    FILE_TIMES[tests/operators/hip/test_mla_decode_pagesize64.py]=7
+    FILE_TIMES[tests/operators/hip/drivers/mla_v40_persistent.py]=7
+    FILE_TIMES[tests/operators/hip/test_mla_v4_kargpreld.py]=7
+    FILE_TIMES[tests/operators/hip/test_moe_local_expert_ids.py]=7
+    FILE_TIMES[tests/operators/hip/test_mxfp8fp4gemm.py]=7
+    FILE_TIMES[tests/operators/hip/test_pa_decode_bf16_asm.py]=7
+    FILE_TIMES[tests/operators/hip/test_vsa_sparse_attention.py]=6
+    FILE_TIMES[tests/operators/hip/test_pretune.py]=1
+elif [[ "$TEST_TYPE" == "triton" ]]; then
+    echo "Triton test files:"
+    FILE_TIMES[tests/operators/triton/attention/test_mha_v3.py]=1435
+    FILE_TIMES[tests/operators/triton/conv/test_causal_conv1d.py]=946
+    FILE_TIMES[tests/operators/triton/test_pa_decode_gluon.py]=742
+    FILE_TIMES[tests/operators/triton/attention/test_mha_fp8.py]=727
+    FILE_TIMES[tests/operators/triton/gemm/batched/test_batched_gemm_a8w8_a_per_token_group_prequant_w_per_batched_tensor_quant.py]=384
+    FILE_TIMES[tests/operators/triton/attention/test_mha_dao_ai.py]=323
+    FILE_TIMES[tests/operators/triton/attention/test_unified_attention.py]=312
+    FILE_TIMES[tests/operators/triton/attention/test_fav3_sage.py]=296
+    FILE_TIMES[tests/operators/triton/rope/test_fused_qkv_split_qk_rope.py]=242
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_afp4wfp4_a16w16.py]=240
+    FILE_TIMES[tests/operators/triton/attention/test_mla.py]=210
+    FILE_TIMES[tests/operators/triton/attention/test_mha.py]=208
+    FILE_TIMES[tests/operators/triton/moe/test_moe_gemm_a8w4.py]=203
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a8w8.py]=202
+    FILE_TIMES[tests/operators/triton/moe/test_moe.py]=176
+    FILE_TIMES[tests/operators/triton/attention/test_pa_decode.py]=168
+    FILE_TIMES[tests/operators/triton/attention/test_mha_with_pe.py]=166
+    FILE_TIMES[tests/operators/triton/gemm/batched/test_batched_gemm_afp4wfp4.py]=156
+    FILE_TIMES[tests/operators/triton/rope/test_rope.py]=152
+    FILE_TIMES[tests/operators/triton/attention/test_unified_attention_sparse_mla.py]=148
+    FILE_TIMES[tests/operators/triton/fusions/test_mhc.py]=141
+    FILE_TIMES[tests/operators/triton/moe/test_moe_gemm_a8w8.py]=136
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a8w8_blockscale.py]=134
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_afp4wfp4_mul_add.py]=129
+    FILE_TIMES[tests/operators/triton/gemm/feed_forward/test_ff_a16w16_fused.py]=126
+    FILE_TIMES[tests/operators/triton/moe/test_moe_gemm_a8w8_blockscale.py]=122
+    FILE_TIMES[tests/operators/triton/attention/test_mha_with_sink.py]=118
+    FILE_TIMES[tests/operators/triton/moe/test_moe_routing.py]=116
+    FILE_TIMES[tests/operators/triton/normalization/test_rmsnorm.py]=115
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_afp4wfp4.py]=110
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_a8w8_blockscale_a16w16.py]=106
+    FILE_TIMES[tests/operators/triton/quant/test_fused_mxfp4_quant.py]=100
+    FILE_TIMES[tests/operators/triton/gemm/feed_forward/test_ff_a16w16.py]=94
+    FILE_TIMES[tests/operators/triton/test_gmm.py]=92
+    FILE_TIMES[tests/operators/triton/conv/test_conv2d.py]=88
+    FILE_TIMES[tests/operators/triton/normalization/test_layernorm.py]=88
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_kv_cache.py]=85
+    FILE_TIMES[tests/operators/triton/moe/test_moe_gemm_a16w4.py]=80
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_bmm_rope_kv_cache.py]=79
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a16w16_gated.py]=74
+    FILE_TIMES[tests/operators/triton/moe/test_moe_gemm_a4w4.py]=74
+    FILE_TIMES[tests/operators/triton/moe/test_moe_gemm_int8_smoothquant.py]=58
+    FILE_TIMES[tests/operators/triton/test_activation.py]=58
+    FILE_TIMES[tests/operators/triton/chunk_delta_attn/test_flash_kda.py]=56
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_afp4wfp4_split_cat.py]=48
+    FILE_TIMES[tests/operators/triton/test_gather_kv_b_proj.py]=46
+    FILE_TIMES[tests/operators/triton/attention/test_la_paged.py]=41
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a16w16.py]=38
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_a8w8_blockscale_mul_add.py]=36
+    FILE_TIMES[tests/operators/triton/attention/test_mla_decode_rope.py]=34
+    FILE_TIMES[tests/operators/triton/attention/test_chunked_pa_prefill.py]=32
+    FILE_TIMES[tests/operators/triton/attention/test_mha_spatial_swizzle.py]=32
+    FILE_TIMES[tests/operators/triton/attention/test_pa_prefill.py]=32
+    FILE_TIMES[tests/operators/triton/gemm/batched/test_batched_gemm_a8w8.py]=28
+    FILE_TIMES[tests/operators/triton/attention/test_pa_decode_sparse.py]=26
+    FILE_TIMES[tests/operators/triton/moe/test_moe_routing_herd.py]=24
+    FILE_TIMES[tests/operators/triton/test_fused_kda_decode.py]=24
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_reduce_qk_norm_rope_swa_write.py]=23
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a16w8_blockscale.py]=22
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_afp8wfp8.py]=22
+    FILE_TIMES[tests/operators/triton/gemm/batched/test_batched_gemm_a16wfp4.py]=22
+    FILE_TIMES[tests/operators/triton/quant/test_fused_fp8_quant.py]=21
+    FILE_TIMES[tests/operators/triton/test_fused_rearrange_sigmoid_gdr.py]=20
+    FILE_TIMES[tests/operators/triton/fusions/test_attn_res.py]=18
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a8w8_per_token_scale.py]=18
+    FILE_TIMES[tests/operators/triton/attention/test_fav3_sage_compile.py]=15
+    FILE_TIMES[tests/operators/triton/chunk_delta_attn/test_chunk_delta_attn_fwd.py]=15
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_a16w16_quant_x.py]=15
+    FILE_TIMES[tests/operators/triton/attention/test_pa_prefill_sparse.py]=13
+    FILE_TIMES[tests/operators/triton/moe/test_moe_mx.py]=13
+    FILE_TIMES[tests/operators/triton/attention/test_fp8_mqa_logits.py]=12
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_clamp_act_mul.py]=11
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a16wfp4.py]=11
+    FILE_TIMES[tests/operators/triton/gemm/fused/test_fused_gemm_a8w8_blockscale_split_cat.py]=11
+    FILE_TIMES[tests/operators/triton/quant/test_fused_rms_gated_fp8_group_quant.py]=10
+    FILE_TIMES[tests/operators/triton/quant/test_quant_mxfp8.py]=10
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_gemm_a16w16.py]=10
+    FILE_TIMES[tests/operators/triton/attention/test_extend_attention.py]=8
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_qk_concat.py]=8
+    FILE_TIMES[tests/operators/triton/gemm/batched/test_batched_gemm_bf16.py]=8
+    FILE_TIMES[tests/operators/triton/normalization/test_fused_add_rmsnorm_pad.py]=7
+    FILE_TIMES[tests/operators/triton/conv/test_causal_conv1d_update_single_token.py]=6
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_mul_add.py]=6
+    FILE_TIMES[tests/operators/triton/gemm/basic/test_gemm_a8wfp4.py]=6
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_activation.py]=6
+    FILE_TIMES[tests/operators/triton/attention/test_prefill_attention.py]=5
+    FILE_TIMES[tests/operators/triton/test_topk.py]=5
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_moe_routing.py]=5
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_rope.py]=5
+    FILE_TIMES[tests/operators/triton/quant/test_quant.py]=4
+    FILE_TIMES[tests/operators/triton/quant/test_quant_mxfp4.py]=4
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_rmsnorm.py]=4
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_softmax.py]=4
+    FILE_TIMES[tests/operators/triton/attention/test_hstu_attn.py]=3
+    FILE_TIMES[tests/operators/triton/test_softmax.py]=3
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_fused_mul_add.py]=3
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_quant_per_token.py]=3
+    FILE_TIMES[tests/operators/triton/normalization/test_fused_rmsnorm_add.py]=2
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_constexpr_mutation.py]=2
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_quant_per_tensor.py]=2
+    FILE_TIMES[tests/operators/triton/torch_compile/test_compile_topk.py]=2
+    FILE_TIMES[tests/operators/triton/fusions/test_fused_silu_mul.py]=1
+    FILE_TIMES[tests/operators/triton/moe/test_moe_align_block_size.py]=1
+    FILE_TIMES[tests/operators/triton/moe/test_moe_routing_sigmoid_top1_fused.py]=1
+    FILE_TIMES[tests/operators/triton/moe/test_shuffle_scale_moe.py]=1
+    FILE_TIMES[tests/operators/triton/test_common_utils.py]=1
+    FILE_TIMES[tests/operators/triton/test_kv_cache.py]=1
+    FILE_TIMES[tests/operators/triton/triton_metadata_redirect/test_metadata_redirect.py]=1
+fi
+
+get_time() {
+    local abs="$1"
+    local seconds
+    # FILE_TIMES keys use full path (e.g. tests/operators/hip/drivers/mla.py), so look up with abs
+    if [[ -n "${FILE_TIMES[$abs]+x}" ]]; then
+        seconds="${FILE_TIMES[$abs]}"
+    else
+        seconds=15
+    fi
+
+    if [[ -n "${MEMORY_WEIGHT_FLOOR[$abs]+x}" && "$seconds" -lt "${MEMORY_WEIGHT_FLOOR[$abs]}" ]]; then
+        echo "${MEMORY_WEIGHT_FLOOR[$abs]}"
+    else
+        echo "$seconds"
+    fi
+}
+
+# Some tests have short wall time but high peak memory usage. Give them a
+# scheduling weight floor so the greedy splitter avoids packing them together.
+declare -A MEMORY_WEIGHT_FLOOR
+if [[ "$TEST_TYPE" == "aiter" ]]; then
+    MEMORY_WEIGHT_FLOOR[tests/operators/flydsl/test_flydsl_qk_norm_rope_quant.py]=300
+    MEMORY_WEIGHT_FLOOR[tests/operators/hip/drivers/kvcache.py]=300
+    MEMORY_WEIGHT_FLOOR[tests/operators/hip/drivers/mla_prefill_ps.py]=300
+fi
+
+# ------------------------------
+# LPT greedy allocation: sort first then distribute
+# ------------------------------
+declare -a SORTED_FILES
+for f in "${ALL_FILES[@]}"; do
+    t=$(get_time "$f")
+    SORTED_FILES+=("$t $f")
+done
+
+IFS=$'\n' SORTED_FILES=($(sort -nr <<<"${SORTED_FILES[*]}"))
+unset IFS
+
+declare -a SHARD_LOADS
+declare -a SHARD_FILES
+
+for ((i=0; i < SHARDS; i++)); do
+    SHARD_LOADS[$i]=0
+    SHARD_FILES[$i]=""
+done
+
+for entry in "${SORTED_FILES[@]}"; do
+    t="${entry%% *}"
+    f="${entry#* }"
+    min_shard=0
+    min_load="${SHARD_LOADS[0]}"
+    for ((s=1; s < SHARDS; s++)); do
+        if [[ ${SHARD_LOADS[$s]} -lt $min_load ]]; then
+            min_shard=$s
+            min_load=${SHARD_LOADS[$s]}
+        fi
+    done
+    SHARD_LOADS[$min_shard]=$(( ${SHARD_LOADS[$min_shard]} + t ))
+    if [[ -z "${SHARD_FILES[$min_shard]}" ]]; then
+        SHARD_FILES[$min_shard]="$f"
+    else
+        SHARD_FILES[$min_shard]+=" $f"
+    fi
+done
+
+# ------------------------------
+# output allocation plan
+# ------------------------------
+echo "================= ${TEST_TYPE} Shard Assignment ================="
+for ((s=0; s < SHARDS; s++)); do
+    nfiles=0
+    if [[ -n "${SHARD_FILES[$s]}" ]]; then
+        nfiles=$(wc -w <<< "${SHARD_FILES[$s]}")
+    fi
+    echo "Shard $s: ${nfiles} files, est. ${SHARD_LOADS[$s]}s"
+    for f in ${SHARD_FILES[$s]}; do
+        printf "  [%4ss] %s\n" "$(get_time "$f")" "$f"
+    done
+    echo ""
+done
+echo "==========================================================="
+
+if [[ $DRY_RUN -eq 1 ]]; then
+    exit 0
+fi
+
+# output each shard's test files list to local text file
+for ((s=0; s < SHARDS; s++)); do
+    echo "${SHARD_FILES[$s]}" > "${TEST_TYPE}_shard_${s}.list"
+done
+
+exit 

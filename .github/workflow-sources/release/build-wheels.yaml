@@ -1,0 +1,324 @@
+name: Aiter Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit hash to build (leave empty to use current commit)'
+        required: false
+      build_py310:
+        description: 'Build with Python 3.10'
+        type: boolean
+        default: true
+      build_py312:
+        description: 'Build with Python 3.12'
+        type: boolean
+        default: true
+      docker_image_py310:
+        description: 'Docker image for Python 3.10 build'
+        required: true
+        default: 'rocm/pytorch:rocm7.2_ubuntu22.04_py3.10_pytorch_release_2.9.1'
+      docker_image_py312:
+        description: 'Docker image for Python 3.12 build'
+        required: true
+        default: 'rocm/pytorch:rocm7.2_ubuntu24.04_py3.12_pytorch_release_2.9.1'
+      gpu_archs:
+        description: 'GPU architectures (e.g. gfx942;gfx950)'
+        required: false
+        default: 'gfx942;gfx950'
+      runner:
+        description: 'Select build host'
+        required: true
+        default: 'build-only-aiter'
+        type: choice
+        options:
+          - build-only-aiter
+          - linux-aiter-mi35x-1
+          - linux-aiter-mi355-1
+          - linux-aiter-oci-mi300x-1
+      release_type:
+        description: 'Delivery channel for candidate collection; publication runs separately'
+        type: choice
+        required: false
+        default: none
+        options:
+          - none
+          - nightlies
+          - devreleases
+      add_date_stamp:
+        description: 'Add date stamp to version (+yyyymmdd)'
+        type: boolean
+        default: false
+      use_manylinux:
+        description: 'Use pytorch/manylinux2_28-builder ROCm image (AlmaLinux 8 + devtoolset, glibc 2.28). Produces wheels ABI-compatible with vLLM/Ubuntu 22 containers.'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      release_type:
+        description: 'Delivery channel for candidate collection; publication runs separately'
+        type: string
+        required: true
+      docker_image_py310:
+        description: 'Docker image for Python 3.10 build'
+        type: string
+        required: true
+      docker_image_py312:
+        description: 'Docker image for Python 3.12 build'
+        type: string
+        required: true
+      build_py310:
+        description: 'Build Python 3.10 wheel'
+        type: boolean
+        required: false
+        default: true
+      build_py312:
+        description: 'Build Python 3.12 wheel'
+        type: boolean
+        required: false
+        default: true
+      gpu_archs:
+        description: 'GPU architectures'
+        type: string
+        required: false
+        default: 'gfx942;gfx950'
+      runner:
+        description: 'Build host'
+        type: string
+        required: false
+        default: 'build-only-aiter'
+      add_date_stamp:
+        description: 'Add date stamp to version'
+        type: boolean
+        required: false
+        default: false
+      use_manylinux:
+        description: 'Use pytorch/manylinux2_28-builder ROCm image for ABI-compatible wheels'
+        type: boolean
+        required: false
+        default: false
+      docker_login:
+        description: 'Log in to Docker Hub before pulling the build image'
+        type: boolean
+        required: false
+        default: false
+      commit:
+        description: 'Git ref, tag, or commit hash to build'
+        type: string
+        required: false
+        default: ''
+      artifact_suffix:
+        description: 'Optional suffix for uploaded wheel artifact names'
+        type: string
+        required: false
+        default: ''
+      torch_pin:
+        description: 'Optional torch version pin for the manylinux build (e.g. 2.10.0+rocm7.1). Empty = latest.'
+        type: string
+        required: false
+        default: ''
+      torch_index_url:
+        description: 'Optional torch index URL override. Empty = auto-derive from builder image tag.'
+        type: string
+        required: false
+        default: ''
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_PASSWORD:
+        required: false
+    outputs:
+      wheel_names:
+        description: 'Space-separated list of built wheel filenames'
+        value: ${{ jobs.collect.outputs.wheel_names }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.artifact_suffix || 'default' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/v') }}
+
+jobs:
+  ci_config:
+    uses: ./.github/workflows/repository-legacy-config.yaml
+
+  build_whl_package:
+    needs: ci_config
+    runs-on: ${{ inputs.runner || github.event.inputs.runner }}
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python_version: "3.10"
+            docker_image: ${{ inputs.docker_image_py310 || github.event.inputs.docker_image_py310 }}
+            build_enabled: ${{ (inputs.build_py310 != false && inputs.release_type != '') || github.event.inputs.build_py310 == 'true' || github.event.inputs.build_py310 == true }}
+          - python_version: "3.12"
+            docker_image: ${{ inputs.docker_image_py312 || github.event.inputs.docker_image_py312 }}
+            build_enabled: ${{ (inputs.build_py312 != false && inputs.release_type != '') || github.event.inputs.build_py312 == 'true' || github.event.inputs.build_py312 == true }}
+
+    defaults:
+      run:
+        working-directory: control
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}/control
+      CONTROL_ROOT: ${{ github.workspace }}/control
+      CANDIDATE_ROOT: ${{ github.workspace }}/candidate
+      ARTIFACT_DIRECTORY: ${{ github.workspace }}/wheel-artifacts
+      BUILD_DOCKER_IMAGE: ${{ matrix.docker_image }}
+      PYTHON_VERSION: ${{ matrix.python_version }}
+      GPU_ARCHS: ${{ inputs.gpu_archs || github.event.inputs.gpu_archs }}
+      RELEASE_TYPE: ${{ inputs.release_type || github.event.inputs.release_type || 'none' }}
+      ADD_DATE_STAMP: ${{ inputs.add_date_stamp || github.event.inputs.add_date_stamp }}
+      USE_MANYLINUX: ${{ inputs.use_manylinux || github.event.inputs.use_manylinux || (startsWith(matrix.docker_image, 'pytorch/manylinux') && 'true') || 'false' }}
+      TORCH_PIN: ${{ inputs.torch_pin || '' }}
+      TORCH_INDEX_URL: ${{ inputs.torch_index_url || '' }}
+      DOCKER_USERNAME_SECRET: ${{ inputs.docker_login && needs.ci_config.outputs.docker_username_secret || '' }}
+      DOCKER_PASSWORD_SECRET: ${{ inputs.docker_login && needs.ci_config.outputs.docker_password_secret || '' }}
+      BUILD_REF: ${{ inputs.commit || github.event.inputs.commit || '' }}
+      ARTIFACT_SUFFIX: ${{ inputs.artifact_suffix || '' }}
+      DOCKER_LOGIN: ${{ inputs.docker_login }}
+
+    steps:
+      - name: Checkout trusted build controls
+        if: ${{ matrix.build_enabled }}
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: control
+          persist-credentials: false
+
+      - name: Checkout candidate source
+        if: ${{ matrix.build_enabled }}
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit || github.event.inputs.commit || github.sha }}
+          path: candidate
+          persist-credentials: false
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Docker login
+        if: ${{ matrix.build_enabled && env.DOCKER_LOGIN == 'true' && env.DOCKER_USERNAME_SECRET != '' && env.DOCKER_PASSWORD_SECRET != '' }}
+        env:
+          DOCKER_USERNAME: ${{ secrets[env.DOCKER_USERNAME_SECRET] }}
+          DOCKER_PASSWORD: ${{ secrets[env.DOCKER_PASSWORD_SECRET] }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DOCKER_USERNAME}" ] || [ -z "${DOCKER_PASSWORD}" ]; then
+            echo "::error::Missing Docker Hub credentials"
+            exit 1
+          fi
+          echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+
+      - name: Generate version with date stamp
+        if: ${{ matrix.build_enabled && env.ADD_DATE_STAMP == 'true' }}
+        id: version
+        run: python3 -m ci.release.builders version --source "$CANDIDATE_ROOT" --date-stamp --output "$GITHUB_OUTPUT"
+
+      - name: Run the container
+        if: ${{ matrix.build_enabled }}
+        run: |
+          python3 -m ci.release.builders start --python "$PYTHON_VERSION" \
+            --image "$BUILD_DOCKER_IMAGE" --control "$CONTROL_ROOT" \
+            --source "$CANDIDATE_ROOT" --directory "$ARTIFACT_DIRECTORY"
+
+      - name: Install Dependencies (legacy rocm/pytorch image)
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX != 'true' }}
+        run: python3 -m ci.release.builders dependencies --flavor legacy --python "$PYTHON_VERSION"
+
+      - name: Build Aiter (legacy)
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX != 'true' }}
+        env:
+          NIGHTLY_VERSION: ${{ steps.version.outputs.nightly_version }}
+        run: |
+          python3 -m ci.release.builders build --flavor legacy --python "$PYTHON_VERSION" \
+            --gpu-archs "$GPU_ARCHS" --version "$NIGHTLY_VERSION" --source "$CANDIDATE_ROOT"
+
+      - name: Resolve manylinux Python path
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX == 'true' }}
+        id: ml_py
+        run: python3 -m ci.release.builders python-path --python "$PYTHON_VERSION" --output "$GITHUB_OUTPUT"
+
+      - name: Install Dependencies (manylinux)
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX == 'true' }}
+        env:
+          PYBIN: ${{ steps.ml_py.outputs.pybin }}
+        run: |
+          python3 -m ci.release.builders dependencies --flavor manylinux --python "$PYTHON_VERSION" \
+            --image "$BUILD_DOCKER_IMAGE" --torch-pin "$TORCH_PIN" --torch-index-url "$TORCH_INDEX_URL"
+
+      - name: Build Aiter (manylinux)
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX == 'true' }}
+        env:
+          PYBIN: ${{ steps.ml_py.outputs.pybin }}
+          NIGHTLY_VERSION: ${{ steps.version.outputs.nightly_version }}
+        run: |
+          python3 -m ci.release.builders build --flavor manylinux --python "$PYTHON_VERSION" \
+            --image "$BUILD_DOCKER_IMAGE" --gpu-archs "$GPU_ARCHS" --version "$NIGHTLY_VERSION" --source "$CANDIDATE_ROOT"
+
+      - name: Repair wheel for manylinux compliance
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX == 'true' }}
+        env:
+          PYBIN: ${{ steps.ml_py.outputs.pybin }}
+        run: python3 -m ci.release.builders container-repair --flavor manylinux --python "$PYTHON_VERSION"
+
+      - name: Verify wheel symbol floor (auditwheel + objdump)
+        if: ${{ matrix.build_enabled && env.USE_MANYLINUX == 'true' }}
+        env:
+          PYBIN: ${{ steps.ml_py.outputs.pybin }}
+        run: python3 -m ci.release.builders container-symbols --flavor manylinux --python "$PYTHON_VERSION"
+
+      - name: Record final wheel identities
+        if: ${{ matrix.build_enabled }}
+        env:
+          BUILD_IMAGE: ${{ matrix.docker_image }}
+          BUILD_PYTHON: ${{ matrix.python_version }}
+        run: |
+          python3 -m ci.release.builders receipts --directory "$ARTIFACT_DIRECTORY" --source "$CANDIDATE_ROOT" \
+            --image "$BUILD_IMAGE" --python "$BUILD_PYTHON"
+
+      - name: Upload whl file as artifact
+        if: ${{ matrix.build_enabled }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: aiter-whl-packages-py${{ matrix.python_version }}${{ env.ARTIFACT_SUFFIX != '' && format('-{0}', env.ARTIFACT_SUFFIX) || '' }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            wheel-artifacts/*.whl
+            wheel-artifacts/*.whl.receipt.json
+          retention-days: 14
+
+      - name: Build summary
+        if: ${{ matrix.build_enabled && always() }}
+        run: python3 -m ci.release.builders collect --directory "$ARTIFACT_DIRECTORY" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f "aiter_build_${PYTHON_VERSION}" || true
+
+  collect:
+    if: ${{ (inputs.release_type || github.event.inputs.release_type || 'none') != 'none' }}
+    needs: build_whl_package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      wheel_names: ${{ steps.collect-wheels.outputs.wheel_names }}
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        timeout-minutes: 30
+        with:
+          pattern: aiter-whl-packages-py*
+          path: all-wheels
+          merge-multiple: true
+
+      - name: Collect wheel names
+        id: collect-wheels
+        run: |
+          cd all-wheels
+          WHEELS=$(ls *.whl | tr '\n' ' ')
+          echo "wheel_names=${WHEELS}" >> "$GITHUB_OUTPUT"
+          echo "Built wheels: ${WHEELS}"

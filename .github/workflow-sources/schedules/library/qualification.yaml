@@ -1,0 +1,17 @@
+name: Schedule AITER and framework qualification
+
+on:
+  schedule:
+    - cron: '15 6 * * 6'
+
+# Preserve the token scopes already declared by the called jobs.
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  run:
+    uses: ./.github/workflows/library-qualification.yaml
+    with:
+      product_profile: 'product-extended'
+    secrets: inherit

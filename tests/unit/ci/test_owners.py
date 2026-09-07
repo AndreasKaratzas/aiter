@@ -80,9 +80,9 @@ class CodeOwnerTests(unittest.TestCase):
             "csrc/runtime/plan.cpp": "api-runtime",
             "tests/frameworks/vllm/operators/normalization/test_rmsnorm.py": "clients",
             "benchmarks/operators/rmsnorm.py": "numerics",
-            "ci/workflows/host/checks.yaml": "delivery",
-            "ci/workflows/clients/vllm/nightly.yaml": "clients",
-            ".github/workflows/client-vllm-nightly.yaml": "clients",
+            ".github/workflow-sources/repository/checks.yaml": "delivery",
+            ".github/workflow-sources/frameworks/vllm/nightly.yaml": "clients",
+            ".github/workflows/frameworks-vllm-nightly.yaml": "clients",
         }
         for path, domain in expected.items():
             with self.subTest(path=path):

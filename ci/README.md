@@ -38,18 +38,18 @@ The 03:00 UTC product nightly qualifies installed wheels and their declared prod
 
 The separate fresh-install vLLM canary runs daily at 17:45 UTC and extends its workloads on Sundays at 20:15 UTC. It installs the resolved upstream ROCm wheel in a private environment, installs candidate AITER last, verifies imports, then runs the declared operators and models. It cannot advance a supported release channel. See the [client guide](clients/vllm/README.md) for counts, prerequisites and retained evidence.
 
-The [model benchmark workflow](workflows/clients/vllm/README.md) schedules its short profile daily at 19:45 UTC and its extended profile on Sundays at 22:15 UTC. These are independent jobs with their own installation and import checks. They collect measurements for review; they do not declare a speedup or approve a release. Manual runs can select a profile, a subset of its cases and the required GPUs.
+The [model benchmark workflow](../.github/workflow-sources/frameworks/vllm/README.md) schedules its short profile daily at 19:45 UTC and its extended profile on Sundays at 22:15 UTC. These are independent jobs with their own installation and import checks. They collect measurements for review; they do not declare a speedup or approve a release. Manual runs can select a profile, a subset of its cases and the required GPUs.
 
 ## Repository boundaries
 
 | Directory | Responsibility |
 |---|---|
 | `pipelines/` | Common job bootstrap, typed runner and existing source/wheel/image controllers; one Docker process boundary |
-| [`workflows/`](workflows/README.md) | Hierarchical workflow sources, source mapping and deterministic flat GitHub entrypoints |
+| [`workflows/`](../.github/workflow-sources/README.md) | Hierarchical workflow sources, source mapping and deterministic flat GitHub entrypoints |
 | `qualification/` | Source impact, test groups, runtime requirements, execution and independent evidence checks |
 | `clients/registry.json` and named client directories | Reviewed client group/profile definitions; adding a client does not automatically add it to release policy |
 | `release/` | Wheel identities, image composition, release notes, channel history, rollback and observed delivery metrics |
 | `ownership/` | Product domains, reviewers and generated CODEOWNERS rules |
 | `common/` | Strict JSON serialization, validation and content identities shared by these applications |
 
-Tests follow the same separation under `tests/unit/`, `tests/integration/` and `tests/frameworks/`. Operator measurements live under `benchmarks/`; CI invokes their module entrypoint and checks their raw observations. GitHub requires workflow files directly under `.github/workflows`. Canonical definitions live in `ci/workflows/{common,host,product,clients,release,schedules}`; `python -m ci.workflows --write` generates the stable prefixed GitHub filenames and `--check` rejects drift. Cron-only files select reusable executions. The common workflow performs checkout and artifact transfer, then `ci.pipelines.bootstrap` passes typed arguments to the existing runner and Docker controllers. `python -m ci coverage --client vllm` explains the selected profiles, group paths and prerequisites without importing tests.
+Tests follow the same separation under `tests/unit/`, `tests/integration/` and `tests/frameworks/`. Operator measurements live under `benchmarks/`; CI invokes their module entrypoint and checks their raw observations. GitHub requires workflow files directly under `.github/workflows`. Canonical definitions live in `.github/workflow-sources/{repository,library,frameworks,release,reusable,schedules}`; `ci/workflows` contains only the Python generator and its guide. `python -m ci.workflows --write` creates the declared flat GitHub filenames, and `--check` rejects drift. Cron-only files select reusable executions. The reusable workflow performs checkout and artifact transfer, then `ci.pipelines.bootstrap` passes typed arguments to the existing runner and Docker controllers. `python -m ci coverage --client vllm` explains the selected profiles, group paths and prerequisites without importing tests.
