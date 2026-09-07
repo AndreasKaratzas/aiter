@@ -1,0 +1,184 @@
+name: Build and qualify delivery images
+
+on:
+  workflow_call:
+    inputs:
+      qualification_artifact:
+        description: Artifact containing a verified release.json for these wheel bytes
+        type: string
+        required: true
+      publish:
+        description: Publish the tested image archives to immutable GHCR references
+        type: boolean
+        default: false
+    outputs:
+      records_artifact:
+        description: Pattern for records linking published OCI digests to wheels and tests
+        value: image-publication-*
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.qualification_artifact }}
+          path: ${{ runner.temp }}/qualification
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aiter-whl-packages-py*
+          path: dist
+          merge-multiple: true
+      - id: plan
+        name: Bind images to qualified wheels and approved bases
+        env:
+          AITER_SUPPORT_PROFILES: ${{ vars.AITER_SUPPORT_PROFILES }}
+        run: |
+          python3 -m ci.release.images matrix --wheel-dir dist \
+            --release "$RUNNER_TEMP/qualification/release.json" \
+            --output "$RUNNER_TEMP/image-matrix.json"
+
+  build-test:
+    defaults:
+      run:
+        working-directory: control
+    needs: plan
+    runs-on: linux-aiter-do-mi350x-8
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      PYTHONPATH: ${{ github.workspace }}/control
+      IMAGE_LABEL: ${{ matrix.label }}
+      WHEEL_NAME: ${{ matrix.wheel }}
+      WHEEL_SHA256: ${{ matrix.wheel_sha256 }}
+      BASE_IMAGE: ${{ matrix.base_image }}
+      CONSUMER_IMAGES: ${{ matrix.consumers }}
+      IMAGE_TARGET: ${{ matrix.target }}
+      ENVIRONMENT_LOCK: ${{ matrix.environment_lock }}
+      SOURCE_REVISION: ${{ matrix.source_revision }}
+    steps:
+      - name: Checkout reviewed image recipes and execution controls
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: control
+          persist-credentials: false
+      - name: Checkout candidate source for its declared public headers
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ matrix.source_revision }}
+          path: candidate
+          persist-credentials: false
+          submodules: recursive
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aiter-whl-packages-py*
+          path: dist
+          merge-multiple: true
+      - name: Compose and qualify the product and framework images
+        run: |
+          python3 -m ci.pipelines images \
+            --source "$GITHUB_WORKSPACE/candidate" --controls "$GITHUB_WORKSPACE/control" \
+            --wheel "$GITHUB_WORKSPACE/dist/$WHEEL_NAME" --output "$RUNNER_TEMP/image-delivery" \
+            --role "$IMAGE_TARGET" --lock-json "$ENVIRONMENT_LOCK" --consumers-json "$CONSUMER_IMAGES"
+      - name: Retain qualified image archive and evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image-candidate-${{ matrix.label }}
+          path: |
+            ${{ runner.temp }}/image-delivery
+            !${{ runner.temp }}/image-delivery/**/cache/**
+            !${{ runner.temp }}/image-delivery/**/suite/**
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain failures
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image-failure-${{ matrix.label }}
+          path: |
+            ${{ runner.temp }}/image-delivery
+            !${{ runner.temp }}/image-delivery/**/cache/**
+            !${{ runner.temp }}/image-delivery/**/suite/**
+          compression-level: 0
+          if-no-files-found: error
+
+  publish:
+    needs: [plan, build-test]
+    runs-on: build-only-aiter
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: image-candidate-${{ matrix.label }}
+          path: ${{ runner.temp }}/image-delivery
+      - name: Verify archive and restore content without running candidate code
+        run: |
+          python3 -m ci.release.images verify --record "$RUNNER_TEMP/image-delivery/record.json" --archive "$RUNNER_TEMP/image-delivery/image.tar"
+          docker load -i "$RUNNER_TEMP/image-delivery/image.tar"
+          image_id=$(python3 -c 'import json,os; print(json.load(open(os.environ["RUNNER_TEMP"]+"/image-delivery/record.json"))["image_id"])')
+          test "$(docker image inspect "$image_id" --format '{{.Id}}')" = "$image_id"
+          echo "QUALIFIED_IMAGE_ID=$image_id" >> "$GITHUB_ENV"
+      - name: Authenticate for publication
+        if: inputs.publish
+        env:
+          REGISTRY_TOKEN: ${{ github.token }}
+        run: printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: Publish an immutable image reference
+        if: inputs.publish
+        env:
+          IMAGE_TARGET: ${{ matrix.target }}
+        run: |
+          namespace="${GITHUB_REPOSITORY_OWNER,,}"
+          reference="ghcr.io/$namespace/aiter-$IMAGE_TARGET:sha-${QUALIFIED_IMAGE_ID#sha256:}"
+          docker tag "$QUALIFIED_IMAGE_ID" "$reference"
+          docker push "$reference"
+          docker image inspect "$reference" > "$RUNNER_TEMP/image-delivery/published-image.json"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from ci.common.json import load_json, write_json
+          root = Path(os.environ['RUNNER_TEMP']) / 'image-delivery'
+          record = load_json(root / 'record.json')
+          image = load_json(root / 'published-image.json')[0]
+          if image['Id'] != record['image_id'] or not image.get('RepoDigests'):
+              raise ValueError('published image does not match qualified content')
+          write_json(root / 'publication.json', {'image_record_digest':record['image_record_digest'],
+              'image_id':record['image_id'], 'references':image['RepoDigests'], 'wheel':record['wheel']})
+          PY
+      - name: Retain the wheel-to-OCI identity record
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image-publication-${{ matrix.label }}
+          path: |
+            ${{ runner.temp }}/image-delivery/record.json
+            ${{ runner.temp }}/image-delivery/publication.json
+          if-no-files-found: error
+          retention-days: 90

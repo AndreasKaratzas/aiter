@@ -12,6 +12,10 @@ def evaluate(request):
     import transformers
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    dtype = request.get("dtype", "bfloat16")
+    if dtype not in ("bfloat16", "float16"):
+        raise ValueError("Reference dtype must be BF16 or FP16")
+
     tokenizer = AutoTokenizer.from_pretrained(
         request["model"]["snapshot"], local_files_only=True
     )
@@ -20,7 +24,7 @@ def evaluate(request):
             request["model"]["snapshot"],
             local_files_only=True,
             trust_remote_code=False,
-            dtype=torch.bfloat16,
+            dtype=getattr(torch, dtype),
             attn_implementation="eager",
         )
         .to("cuda")
@@ -37,7 +41,7 @@ def evaluate(request):
                 **encoded,
                 do_sample=False,
                 max_new_tokens=request["max_tokens"],
-                pad_token_id=tokenizer.eos_token_id
+                pad_token_id=tokenizer.eos_token_id,
             )
             outputs.append(
                 {

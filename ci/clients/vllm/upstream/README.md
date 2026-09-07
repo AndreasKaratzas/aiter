@@ -19,15 +19,15 @@ The AITER [group declarations](../groups.json) deliberately select a bounded por
 
 | Area | Daily checks | Extended checks | Scope excluded from this port |
 | --- | --- | --- | --- |
-| Entrypoints | Real loopback OpenAI completion and chat, streaming equivalence, model listing, invalid-request recovery | Existing multimodal engine input ordering is separate from the HTTP protocol tests | Speech, pooling, Responses, tool protocols and scale-out server topologies |
+| Entrypoints | Real loopback OpenAI completion and chat, streaming equivalence, model listing, invalid-request recovery | Qwen image grounding through real OpenAI chat requests; batched completion accounting/logprobs and unknown-model recovery also run | Speech, pooling, Responses, tool protocols and scale-out server topologies |
 | LM Eval | First 32 pinned GSM8K test questions, four training demonstrations, exact final answers | Next 128 test questions, held out from development threshold calibration | Full GSM8K leaderboard scores, MMLU/GPQA/ChartQA and large-model matrices |
-| Qwen3 / language | Real Qwen3-1.7B greedy tokens and every prompt log probability against Transformers eager attention; existing Llama batching | FP8 likelihood drift on four complete prompts | Other Qwen3 sizes, MoE/hybrid families, embedding/classification/MTEB |
+| Qwen3 / language | Real Qwen3-1.7B greedy tokens and every prompt log probability against Transformers eager attention; existing Llama batching | FP8 likelihood drift, independent FP16 likelihoods on Llama/Qwen and 2048-token ragged-context scheduling | Other Qwen3 sizes, MoE/hybrid families, embedding/classification/MTEB |
 | Multimodal | Qwen2.5-VL-3B grounds red and blue image pixels | Reorder and reuse those images across three batches; answers must remain attached to each image | Other vision families, audio, video and pooling |
 | Quantized models | Actual online per-channel FP8 projection weights and AITER GEMM during Llama generation | Every recorded prompt-token likelihood compared with BF16 | Prequantized model formats, AWQ/GPTQ/NVFP4 and general accuracy equivalence |
 | Spec Decode | GPU N-gram proposals, nonzero acceptance and exact greedy target tokens | Mixed prompts with both accepted and rejected proposals; every target output must match | Learned draft models, Eagle, MTP, DFlash and DSpark |
 | V1 | Actual 128-token prefill scheduling, prefix reuse, graph replay and TP2 output equivalence | Daily scenarios remain required | The complete upstream engine, scheduler, KV-transfer and distributed unit suites |
 
-`vllm-nightly` contains 19 workload groups and 85 pytest cases. `vllm-extended` is its weekly superset with 23 groups and 89 cases. The separate required import profile adds one case to each complete rolling pipeline. A model case can contain many questions, prompts or worker operations; those quantities are reported separately and never substituted for pytest case counts. `vllm-e2e` selects all 15 declared model groups (16 cases), without the operator groups. These numbers describe this port, not the number of upstream tests selected by the inventory.
+`vllm-nightly` contains 19 workload groups and 86 pytest cases. `vllm-extended` is its weekly superset with 26 groups and 95 cases. The separate required import profile adds one case to each complete rolling pipeline. A model case can contain many questions, prompts or worker operations; those quantities are reported separately and never substituted for pytest case counts. `vllm-e2e` selects all 18 declared model groups (22 cases), without the operator groups. These numbers describe this port, not the number of upstream tests selected by the inventory.
 
 To refresh the inventory from a reviewed vLLM checkout, use an interpreter with PyYAML installed:
 
@@ -38,3 +38,5 @@ python -m ci.clients.vllm.upstream.inventory \
 ```
 
 Review the changed commands and model lists before changing the port. The inventory command reads YAML and Git identity; it does not import upstream test modules, download models or launch their shell commands.
+
+The [feature-to-case catalog](../coverage.json) is the maintained local execution map; the Buildkite inventory remains the pinned upstream survey. `python -m ci.clients.vllm.coverage` validates exact local selector/group/model closure and reports declared cases. It deliberately lists unported GPT-OSS/MXFP4, real expert/MoE, DeepSeek/MLA, learned-draft, hybrid recurrent, audio/video, pooling, KV-transfer and larger-topology model coverage. Adding a model name to a matrix is not a hardware execution result.

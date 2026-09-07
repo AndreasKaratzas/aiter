@@ -118,7 +118,8 @@ bindings/rust/    Typed Rust client of the same native SDK
 csrc/             Native kernel sources; blas/ owns tuning bridges
 build_backend/    Immutable build plans, phase controller and package adapters
 ci/               Architecture checks, qualification, pipelines and delivery
-.github/workflows/ GitHub events and runner allocation
+  workflows/      Editable common/, host/, product/, clients/, release/ workflows
+.github/workflows/ Generated GitHub entrypoints; edit their linked source instead
 .github/scripts/  common/, host/, product/, clients/, release/ adapters
 tests/            unit/, integration/, frameworks/{common,pytorch,vllm,sglang}
   common/         Hardware markers, model fixtures and process/origin helpers
@@ -130,5 +131,7 @@ docs/             Website, canonical-guide mapping and browser checks
 ```
 
 `aiter/` is the installed library. `ci/` is repository automation and does not ship in the SDK. Kernel bytes belong to the library under `aiter/kernels/data/`; logs, reports and writable compilation caches belong outside the checkout.
+
+For a vLLM workflow, start in [`ci/workflows/clients/vllm/`](ci/workflows/clients/vllm/README.md). GitHub requires its executable workflow files in a flat directory, so `python -m ci.workflows --write` copies the organized sources into `.github/workflows/`. CI rejects a stale copy. The [workflow guide](ci/workflows/README.md) explains how to add or change a job.
 
 For implementation details, see [Opus](csrc/include/opus/README.md), [Triton development](aiter/ops/triton/README.md), [native attention benchmarks](benchmarks/native/mha/README.md) and [Triton communication](docs/triton_comms.md).

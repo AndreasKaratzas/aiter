@@ -1,0 +1,109 @@
+name: Run a source or installed-wheel profile
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: Source or installed-wheel qualification
+        type: string
+        default: source
+      wheel:
+        type: string
+        default: ''
+      base_revision:
+        description: Full PR base SHA; absent or unknown means the entire profile
+        type: string
+        default: ''
+      environment_lock:
+        type: string
+        required: true
+      architecture:
+        type: string
+        default: gfx950
+      label:
+        type: string
+        required: true
+      source_revision:
+        type: string
+        default: ''
+      profile:
+        description: Catalog profile to execute
+        type: string
+        required: true
+      image:
+        description: Executor image; resolved to an immutable local image before execution
+        type: string
+        required: true
+      gpus:
+        description: Visible GPU indices inside the worker allocation
+        type: string
+        default: '0,1'
+      runner:
+        type: string
+        default: linux-aiter-do-mi350x-8
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  execute:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: ${{ github.workspace }}/control
+    defaults:
+      run:
+        working-directory: control
+    steps:
+      - name: Checkout reviewed execution controls
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: control
+          persist-credentials: false
+      - name: Checkout candidate source without executing its host helpers
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_revision || github.sha }}
+          path: candidate
+          persist-credentials: false
+          submodules: recursive
+          fetch-depth: 0
+      - name: Download the immutable candidate wheel
+        if: inputs.mode == 'wheel'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: aiter-whl-packages-py*
+          path: dist
+          merge-multiple: true
+      - name: Execute the shared qualification pipeline
+        env:
+          IMPORT_MODE: ${{ inputs.mode }}
+          WHEEL_NAME: ${{ inputs.wheel }}
+          EXECUTOR_IMAGE: ${{ inputs.image }}
+          ENVIRONMENT_LOCK: ${{ inputs.environment_lock }}
+          TEST_PROFILE: ${{ inputs.profile }}
+          TEST_GPUS: ${{ inputs.gpus }}
+          TEST_ARCHITECTURE: ${{ inputs.architecture }}
+          BASE_REVISION: ${{ inputs.base_revision }}
+          SOURCE_REVISION: ${{ inputs.source_revision || github.sha }}
+        run: |
+          python3 -m ci.pipelines profile \
+            --source "$GITHUB_WORKSPACE/candidate" --controls "$GITHUB_WORKSPACE/control" \
+            --output "$RUNNER_TEMP/qualification" --mode "$IMPORT_MODE" \
+            --profile "$TEST_PROFILE" --architecture "$TEST_ARCHITECTURE" --gpus "$TEST_GPUS" \
+            --image "$EXECUTOR_IMAGE" --lock-json "$ENVIRONMENT_LOCK" \
+            --wheel-dir "$GITHUB_WORKSPACE/dist" --wheel-name "$WHEEL_NAME" \
+            --source-revision "$SOURCE_REVISION" --base-revision "$BASE_REVISION"
+      - name: Retain execution evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ inputs.mode == 'wheel' && 'support-evidence' || 'qualification' }}-${{ inputs.label }}
+          path: |
+            ${{ runner.temp }}/qualification
+            !${{ runner.temp }}/qualification/**/cache/**
+            !${{ runner.temp }}/qualification/**/suite/**
+          retention-days: 90
+          if-no-files-found: error

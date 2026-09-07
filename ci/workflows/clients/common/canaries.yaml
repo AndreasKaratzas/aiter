@@ -1,0 +1,59 @@
+name: Rolling framework canaries
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 17 * * *'
+
+permissions:
+  contents: read
+
+# These results are diagnostic. Supported PR/nightly cells use AITER_SUPPORT_PROFILES.
+jobs:
+  resolve:
+    runs-on: build-only-aiter
+    outputs:
+      matrix: ${{ steps.resolve.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - id: resolve
+        name: Freeze each upstream canary image and observe its actual dependencies
+        env:
+          CANARY_IMAGES: ${{ vars.AITER_CANARY_IMAGES }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          from ci.qualification.environments import validate_lock
+          configured = json.loads(os.environ['CANARY_IMAGES'])
+          if set(configured) != {'vllm', 'sglang'}:
+              raise ValueError('configure AITER_CANARY_IMAGES for both rolling frameworks')
+          entries = []
+          for client, reference in configured.items():
+              subprocess.run(['docker','pull',reference], check=True)
+              image = json.loads(subprocess.check_output(['docker','image','inspect',reference]))[0]
+              immutable = image['RepoDigests'][0]
+              output = Path(os.environ['RUNNER_TEMP']) / (client + '-lock.json')
+              subprocess.run(['docker','run','--rm','-v',os.getcwd()+':/workspace:ro','-v',os.environ['RUNNER_TEMP']+':/evidence',
+                  '-w','/workspace',image['Id'],'python3','-m','ci.qualification.environments','--image',immutable,'--client',client,
+                  '--output','/evidence/'+output.name], check=True)
+              lock = validate_lock(json.loads(output.read_text()))
+              entries.append({'profile':client, 'image':immutable, 'environment_lock':json.dumps(lock), 'label':client+'-canary'})
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
+              stream.write('matrix='+json.dumps({'include':entries})+'\n')
+          PY
+  execute:
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}
+    uses: ./.github/workflows/product-run-profile.yaml
+    with:
+      profile: ${{ matrix.profile }}
+      image: ${{ matrix.image }}
+      environment_lock: ${{ matrix.environment_lock }}
+      label: ${{ matrix.label }}
+      architecture: gfx950
+      gpus: '0,1'

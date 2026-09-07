@@ -1,5 +1,7 @@
 """Real-model benchmark admission and statistics are usable without a GPU stack."""
 
+import copy
+import hashlib
 import json
 import subprocess
 import sys
@@ -10,69 +12,214 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from benchmarks.common.measurements import summarize_batches
-from benchmarks.vllm.models.report import check_measurement, retained_files
+from benchmarks.vllm.models.config import engine_options
+from benchmarks.vllm.models.report import (
+    check_measurement,
+    retained_files,
+    validate_probe,
+)
 from benchmarks.vllm.models.runner import Workload, output_records, prompt_tokens
-from ci.common.checkpoints import load_manifest
+from ci.common.checkpoints import load_manifest, verify_snapshot
+
+
+def measurement_fixture(root, workload=None):
+    workload = workload or Workload(batch_size=1, output_tokens=2, repeats=3)
+    model_dir = root / "model"
+    model_dir.mkdir()
+    (model_dir / "weights.safetensors").write_bytes(b"fixture weights")
+    declaration = {
+        "repository": "fixture/model",
+        "revision": "a" * 40,
+        "files": {
+            "weights.safetensors": {
+                "size": 15,
+                "sha256": hashlib.sha256(b"fixture weights").hexdigest(),
+            }
+        },
+    }
+    manifest = root / "models.json"
+    manifest.write_text(
+        json.dumps({"schema_version": 1, "models": {"fixture": declaration}})
+    )
+    model = verify_snapshot(model_dir, declaration, strict=True)
+    modules = {}
+    for name in ("aiter", "vllm"):
+        path = root / name / "__init__.py"
+        path.parent.mkdir()
+        path.write_text("# fixture package")
+        modules[name] = {
+            "path": str(path),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+    workers = [
+        {
+            "rank": rank,
+            "pid": rank + 100,
+            "world_size": workload.tensor_parallel,
+            "device": {"uuid": str(rank), "architecture": "gfx950"},
+            "parameter_dtypes": ["torch." + workload.dtype],
+            "instrumentation_active": False,
+            "hooks_restored": True,
+            "post_probe_observation_unchanged": True,
+            "modules": modules,
+            "aiter": modules["aiter"]["path"],
+            "vllm": modules["vllm"]["path"],
+        }
+        for rank in range(workload.tensor_parallel)
+    ]
+    observations = [
+        {
+            "rank": rank,
+            "operations": {},
+            "kernels": {"aiter.unified_attention": 2},
+            "graph_captures": {},
+            "graph_replays": {},
+        }
+        for rank in range(workload.tensor_parallel)
+    ]
+    if workload.execution == "graph":
+        for observation in observations:
+            observation["graph_captures"] = {
+                "decode": {
+                    "complete": True,
+                    "operations": {},
+                    "kernels": {"aiter.unified_attention": 1},
+                }
+            }
+            observation["graph_replays"] = {"decode": 2}
+    request = {
+        "schema_version": 2,
+        "workload": asdict(workload),
+        "model": "fixture",
+        "manifest": str(manifest),
+        "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
+        "model_declaration": declaration,
+        "environment": {"AITER_JIT_DIR": str(root / "jit")},
+    }
+    outputs = [{"token_ids": [1, 2], "finish_reason": "length"}] * workload.batch_size
+    samples = [
+        {
+            "iteration": index,
+            "duration_ns": (index + 1) * 1000,
+            "outputs": outputs,
+            "output_token_counts": [2] * workload.batch_size,
+        }
+        for index in range(workload.repeats)
+    ]
+    records = {
+        "request.json": request,
+        "prompts.json": prompt_tokens(workload),
+        "engine-options.json": engine_options(workload, model),
+        "model-before.json": model,
+        "model-after.json": model,
+        "untimed-probe.json": {
+            "outputs": outputs,
+            "worker": workers[0],
+            "workers": workers,
+            "observations": observations,
+        },
+    }
+    records.update(
+        {f"sample-{index:04d}.json": sample for index, sample in enumerate(samples)}
+    )
+    for name, value in records.items():
+        (root / name).write_text(json.dumps(value))
+    report = {
+        "schema_version": 2,
+        "status": "PASS",
+        "request": request,
+        "samples": samples,
+        "worker": workers[0],
+        "workers": workers,
+        "untimed_observations": observations,
+        "summary": summarize_batches(samples),
+        "retained_files": retained_files(root, workload.repeats),
+    }
+    (root / "report.json").write_text(json.dumps(report))
+    return report
 
 
 class VllmBenchmarkTests(unittest.TestCase):
     def test_summary_and_raw_sample_tampering_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            workload = Workload(batch_size=1, output_tokens=2, repeats=3)
-            request = {"workload": asdict(workload)}
-            worker = {"instrumentation_active": False}
-            outputs = [{"token_ids": [1, 2], "finish_reason": "length"}]
-            samples = [
-                {
-                    "iteration": index,
-                    "duration_ns": (index + 1) * 1000,
-                    "outputs": outputs,
-                    "output_token_counts": [2],
-                }
-                for index in range(3)
-            ]
-            records = {
-                "request.json": request,
-                "prompts.json": [],
-                "engine-options.json": {},
-                "model-before.json": {},
-                "model-after.json": {},
-                "untimed-probe.json": {"outputs": outputs, "worker": worker},
-            }
-            records.update(
-                {
-                    f"sample-{index:04d}.json": sample
-                    for index, sample in enumerate(samples)
-                }
-            )
-            for name, value in records.items():
-                (root / name).write_text(json.dumps(value))
-            report = {
-                "status": "PASS",
-                "request": request,
-                "samples": samples,
-                "worker": worker,
-                "summary": summarize_batches(samples),
-                "retained_files": retained_files(root, 3),
-            }
+            report = measurement_fixture(root)
             path = root / "report.json"
-            path.write_text(json.dumps(report))
             check_measurement(root)
             report["summary"]["output_tokens_per_second"]["median"] *= 2
             path.write_text(json.dumps(report))
             with self.assertRaisesRegex(ValueError, "statistics"):
                 check_measurement(root)
-            report["summary"] = summarize_batches(samples)
+            report["summary"] = summarize_batches(report["samples"])
             path.write_text(json.dumps(report))
             (root / "sample-0001.json").write_text(
-                json.dumps({**samples[1], "duration_ns": 1})
+                json.dumps({**report["samples"][1], "duration_ns": 1})
             )
-            with self.assertRaisesRegex(
-                ValueError,
-                "raw timing",
-            ):
+            with self.assertRaisesRegex(ValueError, "raw timing"):
                 check_measurement(root)
+
+    def test_self_consistent_but_wrong_model_prompt_options_or_probe_fail(self):
+        for target, mutate in (
+            ("prompts.json", lambda value: []),
+            ("engine-options.json", lambda value: {**value, "enforce_eager": False}),
+            ("model-before.json", lambda value: {**value, "repository": "wrong/model"}),
+            (
+                "untimed-probe.json",
+                lambda value: {
+                    key: item for key, item in value.items() if key != "workers"
+                },
+            ),
+        ):
+            with (
+                self.subTest(target=target),
+                tempfile.TemporaryDirectory() as temporary,
+            ):
+                root = Path(temporary)
+                report = measurement_fixture(root)
+                path = root / target
+                path.write_text(json.dumps(mutate(json.loads(path.read_text()))))
+                report["retained_files"] = retained_files(root, 3)
+                (root / "report.json").write_text(json.dumps(report))
+                with self.assertRaises(ValueError):
+                    check_measurement(root)
+
+    def test_graph_and_tp_evidence_cannot_be_faked_by_flags_or_another_rank(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            workload = Workload(
+                batch_size=1,
+                output_tokens=2,
+                repeats=3,
+                execution="graph",
+                tensor_parallel=2,
+            )
+            report = measurement_fixture(root, workload)
+            check_measurement(root)
+            for mutate in (
+                lambda observations, workers: observations[1]["graph_replays"].clear(),
+                lambda observations, workers: observations[1]["graph_captures"][
+                    "decode"
+                ].update(complete=False),
+                lambda observations, workers: workers[1].update(rank=0),
+                lambda observations, workers: workers[1].update(pid=100),
+                lambda observations, workers: workers[1].update(hooks_restored=False),
+                lambda observations, workers: workers[1].update(
+                    post_probe_observation_unchanged=False
+                ),
+                lambda observations, workers: workers[1].update(
+                    parameter_dtypes=["torch.float16"]
+                ),
+                lambda observations, workers: observations[1]["kernels"].update(
+                    unified_attention=True
+                ),
+            ):
+                observations, workers = (
+                    copy.deepcopy(report["untimed_observations"]),
+                    copy.deepcopy(report["workers"]),
+                )
+                mutate(observations, workers)
+                with self.assertRaises(ValueError):
+                    validate_probe(workload, observations, workers)
 
     def test_model_catalog_is_real_weights_and_exact_revision(self):
         from benchmarks.vllm.models import runner

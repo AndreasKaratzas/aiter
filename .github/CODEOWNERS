@@ -106,3 +106,7 @@
 /benchmarks/vllm/ @AndreasKaratzas # clients
 /.github/scripts/clients/ @AndreasKaratzas # clients
 /examples/ @AndreasKaratzas # api-runtime
+/ci/workflows/ @AndreasKaratzas # delivery
+/ci/workflows/clients/ @AndreasKaratzas # clients
+/.github/workflows/client-*.yaml @AndreasKaratzas # clients
+/.github/workflows/client-*.yml @AndreasKaratzas # clients

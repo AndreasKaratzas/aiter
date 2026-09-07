@@ -11,7 +11,7 @@ The pipeline application connects the existing qualification and release librari
 | `nightly.py` | Resolve/install a fresh official vLLM nightly, install candidate AITER afterward, gate imports, then call the shared qualified runner |
 | `images.py` | Compose product and framework images, call the same profile executor, export and verify image records |
 | `canaries.py` | Execute the registered vLLM latency and SGLang model cases through the same retained Docker process boundary |
-| `workflows.py` | Check the complete workflow inventory and render its domain navigation |
+| `workflows.py` | Compatibility delegation to the hierarchical workflow sources and generator in `ci/workflows` |
 
 ```mermaid
 flowchart TD
@@ -42,7 +42,7 @@ Use `--mode wheel --wheel-dir /work/artifacts --wheel-name CANDIDATE.whl` for an
 
 Image qualification currently targets gfx950 on physical devices 0 and 1. This is the declared scope of the installed image and framework bridge profiles; it does not establish image support for another GPU architecture. The container bootstrap installs the pinned test tools `pytest==9.0.2` and `tabulate==0.10.0` before executing the admitted plan.
 
-[Workflow navigation](../../.github/workflows/README.md) lists every entrypoint. Qualified product and release execution use these controllers. Specialized ATOM, FlashAttention, disaggregated serving, network and kernel bring-up jobs keep their explicit platform procedures; their inventory entries identify them separately. Their results do not automatically become approved release coverage. This application does not hide those remaining procedures behind a claim that every workflow has been migrated.
+[Workflow sources](../workflows/README.md) organize definitions in physical owner directories and generate the stable flat GitHub entrypoints. The checked source map rejects drift; edit the source and run `python -m ci.workflows --write`. [Workflow navigation](../../.github/workflows/README.md) lists every source and entrypoint. Qualified product and release execution use these controllers. Specialized ATOM, FlashAttention, disaggregated serving, network and kernel bring-up jobs keep their explicit platform procedures; their inventory entries identify them separately. Their results do not automatically become approved release coverage. This application does not hide those remaining procedures behind a claim that every workflow has been migrated.
 
 The `canary` command also centralizes execution of the registered vLLM latency and SGLang model cases. Their manifests contain argument arrays and environment values, rather than shell fragments. These jobs retain the actual image identity, selected model command, output and timing. They remain rolling upstream canaries: vLLM uses dummy weights for latency, and SGLang retains its upstream container setup. Neither result is substituted for a supported environment lock or a release qualification record.
 

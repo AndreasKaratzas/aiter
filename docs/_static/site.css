@@ -24,6 +24,8 @@ article code.literal { white-space: normal; overflow-wrap: anywhere; }
 table.docutils { table-layout: auto; width: 100%; display: table; border-collapse: collapse; font-size: .87rem; }
 table.docutils th, table.docutils td { white-space: normal !important; overflow-wrap: anywhere; vertical-align: top; min-width: 0; padding: .7rem .8rem; }
 table.docutils th { background: var(--color-background-secondary); font-weight: 700; }
+/* Wrap header phrases at spaces without splitting short words. */
+table.docutils th, table.docutils th p { overflow-wrap: normal; word-break: normal; }
 table.docutils td p, table.docutils th p { margin: 0; }
 table.docutils td:first-child { min-width: 5rem; }
 @media (max-width: 640px) {

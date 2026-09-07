@@ -2,6 +2,7 @@
 """Evaluation failures cannot disappear from denominators or token-wise comparisons."""
 
 import copy
+import hashlib
 import json
 from decimal import Decimal
 from pathlib import Path
@@ -9,8 +10,38 @@ from pathlib import Path
 import pytest
 from frameworks.vllm.evaluation import gsm8k
 from frameworks.vllm.evaluation.gsm8k import final_answer, score_predictions
-from frameworks.vllm.evaluation.likelihood import compare
+from frameworks.vllm.evaluation.likelihood import compare, validate_reference
 from frameworks.vllm.runtime.server import Server, stream_events
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("model", {}),
+        ("dtype", "torch.bfloat16"),
+        ("attention_implementation", "sdpa"),
+        ("model_class", "aiter.Qwen3ForCausalLM"),
+        ("request_sha256", "bad"),
+    ],
+)
+def test_reference_identity_cannot_be_replaced_by_another_model_or_backend(
+    tmp_path, field, value
+):
+    path = tmp_path / "request.json"
+    path.write_text(
+        json.dumps({"model": {"snapshot": "/verified/model"}, "dtype": "float16"})
+    )
+    result = {
+        "model": {"snapshot": "/verified/model"},
+        "dtype": "torch.float16",
+        "attention_implementation": "eager",
+        "model_class": "transformers.models.qwen3.Qwen3ForCausalLM",
+        "request_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+    validate_reference(result, path, model_class="Qwen3ForCausalLM")
+    result[field] = value
+    with pytest.raises(AssertionError):
+        validate_reference(result, path, model_class="Qwen3ForCausalLM")
 
 
 def test_gsm8k_requires_a_final_unambiguous_numeric_answer():

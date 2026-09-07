@@ -1,0 +1,490 @@
+{
+  "schema_version": 1,
+  "classification": "declaration and selector reachability, not hardware execution or model support",
+  "models": {
+    "llama32_1b": {
+      "family": "llama",
+      "architecture": "LlamaForCausalLM",
+      "parameters": "1B",
+      "modalities": [
+        "text"
+      ],
+      "checkpoint_dtype": "bfloat16"
+    },
+    "qwen3_1_7b": {
+      "family": "qwen3",
+      "architecture": "Qwen3ForCausalLM",
+      "parameters": "1.7B",
+      "modalities": [
+        "text"
+      ],
+      "checkpoint_dtype": "bfloat16"
+    },
+    "qwen25_vl_3b": {
+      "family": "qwen2.5-vl",
+      "architecture": "Qwen2_5_VLForConditionalGeneration",
+      "parameters": "3B",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "checkpoint_dtype": "bfloat16"
+    }
+  },
+  "cases": {
+    "image-pixels-change-the-generated-color": {
+      "selector": "tests/frameworks/vllm/models/multimodal/test_image_grounding.py::test_image_pixels_change_the_generated_color",
+      "group": "vllm-multimodal",
+      "model": "qwen25_vl_3b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "vision-image-grounding"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Qwen vision-language model grounds red/blue images while observed AITER vision and decoder attention run."
+    },
+    "speculative-tokens-match-target-and-drafts-are-accepted": {
+      "selector": "tests/frameworks/vllm/generation/speculative_decoding/test_ngram.py::test_speculative_tokens_match_target_and_drafts_are_accepted",
+      "group": "vllm-speculative",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "ngram-speculation"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Llama model verifies real GPU ngram proposals against identical greedy decoding and observed AITER attention."
+    },
+    "batched-and-individual-generation-agree": {
+      "selector": "tests/frameworks/vllm/generation/batching/test_batch_equivalence.py::test_batched_and_individual_generation_agree",
+      "group": "vllm-batching",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "batch-equivalence"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Llama single versus batched generation equivalence with observed AITER execution."
+    },
+    "prefix-cache-reuses-tokens-and-reset-preserves-output": {
+      "selector": "tests/frameworks/vllm/attention/prefix_cache/test_reuse.py::test_prefix_cache_reuses_tokens_and_reset_preserves_output",
+      "group": "vllm-prefix-cache",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "prefix-reuse",
+        "cache-reset"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Llama reusable prefix execution retains token equivalence and observed cache reuse."
+    },
+    "decode-graph-replays-aiter-and-matches-eager": {
+      "selector": "tests/frameworks/vllm/execution/cuda_graph/test_decode.py::test_decode_graph_replays_aiter_and_matches_eager",
+      "group": "vllm-cuda-graph",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager",
+        "graph"
+      ],
+      "features": [
+        "decode-graphs"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Llama captured decode observes actual graph replay and AITER kernel contents."
+    },
+    "tensor-parallel-two-matches-one-and-executes-both-ranks": {
+      "selector": "tests/frameworks/vllm/distributed/tensor_parallel/test_tp2.py::test_tensor_parallel_two_matches_one_and_executes_both_ranks",
+      "group": "vllm-tensor-parallel",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1,
+        2
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "tensor-parallel"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Llama generation across two GPU ranks checks output and rank participation."
+    },
+    "online-per-channel-fp8-generates-with-aiter-linear": {
+      "selector": "tests/frameworks/vllm/quantization/test_online_fp8.py::test_online_per_channel_fp8_generates_with_aiter_linear",
+      "group": "vllm-online-fp8",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16",
+        "fp8-per-channel"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "online-fp8"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Llama online per-channel FP8 generation exercises the actual AITER linear implementation and compares controlled greedy output."
+    },
+    "completion-stream-matches-complete-response": {
+      "selector": "tests/frameworks/vllm/entrypoints/test_openai_server.py::test_completion_stream_matches_complete_response",
+      "group": "vllm-entrypoints",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "openai-completions",
+        "openai-chat",
+        "streaming",
+        "request-recovery"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Real OpenAI completion/chat streaming and error recovery with per-worker AITER evidence."
+    },
+    "chat-stream-and-invalid-request-recovery": {
+      "selector": "tests/frameworks/vllm/entrypoints/test_openai_server.py::test_chat_stream_and_invalid_request_recovery",
+      "group": "vllm-entrypoints",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "openai-completions",
+        "openai-chat",
+        "streaming",
+        "request-recovery"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Real OpenAI completion/chat streaming and error recovery with per-worker AITER evidence."
+    },
+    "batched-completion-accounting-and-logprobs": {
+      "selector": "tests/frameworks/vllm/entrypoints/test_openai_server.py::test_batched_completion_accounting_and_logprobs",
+      "group": "vllm-entrypoints",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "openai-completions",
+        "openai-chat",
+        "streaming",
+        "request-recovery"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Real OpenAI completion/chat streaming and error recovery with per-worker AITER evidence."
+    },
+    "gsm8k-daily-32": {
+      "selector": "tests/frameworks/vllm/evaluation/test_gsm8k.py::test_gsm8k_daily_32",
+      "group": "vllm-lm-eval",
+      "model": "qwen3_1_7b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "gsm8k-daily"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Pinned Qwen3 GSM8K32-question exact-answer daily regression, AITER enabled and observed."
+    },
+    "qwen3-likelihoods-and-greedy-tokens-match-transformers": {
+      "selector": "tests/frameworks/vllm/models/language/test_qwen3.py::test_qwen3_likelihoods_and_greedy_tokens_match_transformers",
+      "group": "vllm-qwen3-reference",
+      "model": "qwen3_1_7b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "independent-hf-likelihoods"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Dense Qwen3 greedy tokens and all prompt likelihoods against independent Transformers eager attention."
+    },
+    "chunked-prefill-splits-real-schedule-without-changing-tokens": {
+      "selector": "tests/frameworks/vllm/execution/scheduling/test_chunked_prefill.py::test_chunked_prefill_splits_real_schedule_without_changing_tokens",
+      "group": "vllm-chunked-prefill",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "chunked-prefill"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Actual bounded V1 scheduler chunks preserve unchunked target tokens."
+    },
+    "gsm8k-extended-128": {
+      "selector": "tests/frameworks/vllm/evaluation/test_gsm8k.py::test_gsm8k_extended_128",
+      "group": "vllm-lm-eval-extended",
+      "model": "qwen3_1_7b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "gsm8k-heldout"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Held-out128-question pinned GSM8K regression, disjoint from daily calibration slice."
+    },
+    "image-order-and-reuse-preserve-per-request-grounding": {
+      "selector": "tests/frameworks/vllm/models/multimodal/test_image_order.py::test_image_order_and_reuse_preserve_per_request_grounding",
+      "group": "vllm-multimodal-order",
+      "model": "qwen25_vl_3b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "vision-image-order"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Real Qwen vision outputs remain attached to reordered and reused image inputs."
+    },
+    "online-fp8-prompt-likelihood-drift-is-bounded": {
+      "selector": "tests/frameworks/vllm/quantization/test_likelihood.py::test_online_fp8_prompt_likelihood_drift_is_bounded",
+      "group": "vllm-fp8-quality",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16",
+        "fp8-per-channel"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "fp8-likelihoods"
+      ],
+      "context_capacity": 1024,
+      "oracle": "All-token online per-channel FP8 likelihood drift against BF16 with real FP8 parameter and AITER GEMM observations."
+    },
+    "mixed-batch-accepts-and-rejects-drafts-without-changing-target": {
+      "selector": "tests/frameworks/vllm/generation/speculative_decoding/test_mixed_batch.py::test_mixed_batch_accepts_and_rejects_drafts_without_changing_target",
+      "group": "vllm-speculative-mixed",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "mixed-speculation"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Mixed-prompt speculative acceptance/rejection preserves all target token sequences."
+    },
+    "long-ragged-prefill-matches-unchunked-llama32": {
+      "selector": "tests/frameworks/vllm/models/language/test_context.py::test_long_ragged_prefill_matches_unchunked[llama32]",
+      "group": "vllm-long-context",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "long-context",
+        "ragged-batching",
+        "chunked-prefill"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Llama and Qwen 2048/321/65-token ragged requests preserve all greedy tokens across actual chunked and unchunked scheduling."
+    },
+    "long-ragged-prefill-matches-unchunked-qwen3": {
+      "selector": "tests/frameworks/vllm/models/language/test_context.py::test_long_ragged_prefill_matches_unchunked[qwen3]",
+      "group": "vllm-long-context",
+      "model": "qwen3_1_7b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "long-context",
+        "ragged-batching",
+        "chunked-prefill"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Llama and Qwen 2048/321/65-token ragged requests preserve all greedy tokens across actual chunked and unchunked scheduling."
+    },
+    "float16-likelihood-and-greedy-regression-llama32": {
+      "selector": "tests/frameworks/vllm/models/language/test_context.py::test_float16_likelihood_and_greedy_regression[llama32]",
+      "group": "vllm-model-precision",
+      "model": "llama32_1b",
+      "dtypes": [
+        "bfloat16",
+        "float16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "fp16-model",
+        "independent-hf-likelihoods"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Llama and Qwen FP16 model parameters, all-token independent FP16 Transformers likelihoods and greedy tokens; BF16 contrast retained separately."
+    },
+    "float16-likelihood-and-greedy-regression-qwen3": {
+      "selector": "tests/frameworks/vllm/models/language/test_context.py::test_float16_likelihood_and_greedy_regression[qwen3]",
+      "group": "vllm-model-precision",
+      "model": "qwen3_1_7b",
+      "dtypes": [
+        "bfloat16",
+        "float16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "fp16-model",
+        "independent-hf-likelihoods"
+      ],
+      "context_capacity": 1024,
+      "oracle": "Llama and Qwen FP16 model parameters, all-token independent FP16 Transformers likelihoods and greedy tokens; BF16 contrast retained separately."
+    },
+    "image-chat-uses-pixels-and-aiter": {
+      "selector": "tests/frameworks/vllm/entrypoints/multimodal/test_chat.py::test_image_chat_uses_pixels_and_aiter",
+      "group": "vllm-multimodal-serving",
+      "model": "qwen25_vl_3b",
+      "dtypes": [
+        "bfloat16"
+      ],
+      "tensor_parallel": [
+        1
+      ],
+      "execution": [
+        "eager"
+      ],
+      "features": [
+        "vision-http-grounding",
+        "openai-chat"
+      ],
+      "context_capacity": 4096,
+      "oracle": "Real Qwen image grounding through OpenAI HTTP, with per-request AITER worker observations."
+    }
+  },
+  "uncovered": {
+    "model-moe": "No pinned real expert-model numerical acceptance; tensor MoE bridges are separate.",
+    "model-mxfp4": "No pinned real MXFP4 checkpoint acceptance; packed operator bridge and dummy-weight canaries do not substitute.",
+    "learned-draft": "Only ngram_gpu speculation; no Eagle/MTP/DFlash learned draft qualification.",
+    "hybrid-recurrent": "No real hybrid/recurrent checkpoint state-lifecycle acceptance.",
+    "audio-video": "Only controlled images with Qwen2.5-VL; audio and video unported.",
+    "pooling-reranking": "Embedding, pooling, scoring and reranking models unported.",
+    "kv-transfer": "No disaggregated prefill/decode or multi-node KV transport qualification.",
+    "tp4-tp8": "Real-weight assertions cover TP1/TP2, not larger or multi-node topologies.",
+    "gpt-oss": "No real GPT-OSS or expert MXFP4 model acceptance; operator packing tests do not establish model behavior.",
+    "deepseek-mla": "No real DeepSeek/MLA model cache/decode qualification; dummy-weight latency canaries are separate."
+  },
+  "upstream_revision": "5690b02c03832a4ac3af231d3ecebe649c188095"
+}

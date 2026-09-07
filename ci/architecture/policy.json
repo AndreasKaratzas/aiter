@@ -183,7 +183,8 @@
         "ci.qualification.catalog",
         "ci.qualification.report",
         "ci.qualification.run",
-        "ci.qualification.changes"
+        "ci.qualification.changes",
+        "ci.workflows"
       ],
       "exclude": [],
       "allow": [

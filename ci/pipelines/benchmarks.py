@@ -5,8 +5,10 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
+from benchmarks.vllm.models.cases import select
 from benchmarks.vllm.models.config import Workload
 from benchmarks.vllm.models.report import check_measurement
+from benchmarks.vllm.models.suite import check_suite
 from ci.common.json import digest, load_json, require, write_json
 from ci.pipelines.container import configure_git
 from ci.pipelines.docker import Docker
@@ -19,6 +21,68 @@ from ci.release.wheels import collect_source_identity
 
 
 def validate_request(request, installation, controls):
+    if request.get("schema_version") == 2:
+        require(
+            set(request)
+            == {
+                "schema_version",
+                "installation_request_digest",
+                "profile",
+                "cases",
+                "catalog_sha256",
+                "manifest_sha256",
+                "request_digest",
+            },
+            "invalid benchmark selection request",
+        )
+        require(
+            type(request["schema_version"]) is int
+            and request["request_digest"]
+            == digest(
+                {
+                    key: value
+                    for key, value in request.items()
+                    if key != "request_digest"
+                }
+            ),
+            "benchmark request digest changed",
+        )
+        require(
+            request["installation_request_digest"] == installation["request_digest"],
+            "benchmark uses another installation",
+        )
+        require(
+            request["catalog_sha256"]
+            == hash_file(controls / "benchmarks/vllm/models/cases.json")[0],
+            "benchmark case catalog changed",
+        )
+        require(
+            request["manifest_sha256"]
+            == hash_file(controls / "ci/clients/vllm/models.json")[0],
+            "benchmark model registry changed",
+        )
+        require(
+            request["cases"]
+            == select(
+                request["profile"],
+                [case["id"] for case in request["cases"]],
+                path=controls / "benchmarks/vllm/models/cases.json",
+            ),
+            "benchmark case selection changed",
+        )
+        devices = installation["gpus"].split(",")
+        require(
+            len(devices) in (1, 2)
+            and len(set(devices)) == len(devices)
+            and all(value.isdigit() and str(int(value)) == value for value in devices),
+            "invalid benchmark GPU allocation",
+        )
+        require(
+            max(case["workload"]["tensor_parallel"] for case in request["cases"])
+            <= len(devices),
+            "benchmark topology exceeds GPU allocation",
+        )
+        return
     require(
         isinstance(request, dict)
         and set(request)
@@ -63,12 +127,19 @@ def validate_request(request, installation, controls):
 
 def execute(request_path, *, controls):
     installation_root = request_path.parent
-    request, installation = load_json(request_path), load_json(
-        installation_root / "request.json"
+    request, installation = (
+        load_json(request_path),
+        load_json(installation_root / "request.json"),
     )
     validate_request(request, installation, controls)
     check_installation(installation_root, controls=controls)
     suite = installation_root / "suite"
+    if request["schema_version"] == 2:
+        require(
+            hash_file(suite / "benchmarks/vllm/models/cases.json")[0]
+            == request["catalog_sha256"],
+            "copied benchmark cases differ from controls",
+        )
     require(
         hash_file(suite / "ci/clients/vllm/models.json")[0]
         == request["manifest_sha256"],
@@ -86,7 +157,7 @@ def execute(request_path, *, controls):
         "benchmarks.vllm",
         "models",
         "--model",
-        request["model"],
+        request.get("model", "llama32_1b"),
         "--manifest",
         str(suite / "ci/clients/vllm/models.json"),
         "--output",
@@ -95,16 +166,45 @@ def execute(request_path, *, controls):
         str(installation_root / "cache/models"),
         "--download",
     ]
-    for name, value in request["workload"].items():
-        command.extend(["--" + name.replace("_", "-"), str(value)])
-    runner.command(command, env=environment, cwd=suite, timeout=3600)
-    measured = check_measurement(output)
-    require(
-        measured["status"] == "PASS"
-        and measured["request"]["workload"] == request["workload"]
-        and measured["request"]["manifest_sha256"] == request["manifest_sha256"],
-        "benchmark result differs from request",
-    )
+    if request["schema_version"] == 2:
+        command.extend(
+            [
+                "--profile",
+                request["profile"],
+                "--cases",
+                ",".join(case["id"] for case in request["cases"]),
+            ]
+        )
+        runner.command(
+            command, env=environment, cwd=suite, timeout=3600 * len(request["cases"])
+        )
+        measured = check_suite(output)
+        require(
+            measured["request"]["cases"] == request["cases"],
+            "measured suite differs from selection",
+        )
+        measurements = [
+            check_measurement(output / case["id"]) for case in request["cases"]
+        ]
+        require(
+            all(
+                value["request"]["manifest_sha256"] == request["manifest_sha256"]
+                for value in measurements
+            ),
+            "benchmark model registry changed",
+        )
+    else:
+        for name, value in request["workload"].items():
+            command.extend(["--" + name.replace("_", "-"), str(value)])
+        runner.command(command, env=environment, cwd=suite, timeout=3600)
+        measured = check_measurement(output)
+        measurements = [measured]
+        require(
+            measured["status"] == "PASS"
+            and measured["request"]["workload"] == request["workload"]
+            and measured["request"]["manifest_sha256"] == request["manifest_sha256"],
+            "benchmark result differs from request",
+        )
     runner.command(
         [
             "-m",
@@ -124,8 +224,12 @@ def execute(request_path, *, controls):
         "installed candidate or dependencies changed during benchmark",
     )
     require(
-        measured["worker"]["aiter"] == observed["imports"]["aiter"]
-        and measured["worker"]["vllm"] == observed["imports"]["vllm"],
+        all(
+            worker["aiter"] == observed["imports"]["aiter"]
+            and worker["vllm"] == observed["imports"]["vllm"]
+            for value in measurements
+            for worker in value.get("workers", [value["worker"]])
+        ),
         "benchmark imported another candidate or consumer",
     )
     validate_request(request, installation, controls)
@@ -134,14 +238,28 @@ def execute(request_path, *, controls):
         "classification": "advisory-model-benchmark",
         "benchmark_request_digest": request["request_digest"],
         "installation_request_digest": installation["request_digest"],
-        "measurement_sha256": hash_file(output / "report.json")[0],
-        "summary": measured["summary"],
+        "measurement_sha256": hash_file(
+            output
+            / ("suite-report.json" if request["schema_version"] == 2 else "report.json")
+        )[0],
+        "summary": measured.get("summary", measured.get("cases")),
     }
     write_json(installation_root / "benchmark-report.json", result)
     return result
 
 
-def run(*, source, controls, wheel, output, image, gpus, docker=None):
+def run(
+    *,
+    source,
+    controls,
+    wheel,
+    output,
+    image,
+    gpus,
+    docker=None,
+    benchmark_profile="baseline",
+    benchmark_cases=None,
+):
     source, controls, wheel, output = (
         Path(x).resolve() for x in (source, controls, wheel, output)
     )
@@ -152,8 +270,12 @@ def run(*, source, controls, wheel, output, image, gpus, docker=None):
         "benchmark pipeline needs a new external directory",
     )
     require(
-        gpus.isdigit() and str(int(gpus)) == gpus,
-        "model benchmark needs one canonical GPU index",
+        len(gpus.split(",")) in (1, 2)
+        and len(set(gpus.split(","))) == len(gpus.split(","))
+        and all(
+            value.isdigit() and str(int(value)) == value for value in gpus.split(",")
+        ),
+        "model benchmark needs one or two canonical GPU indices",
     )
     output.mkdir(parents=True)
     status = {
@@ -176,13 +298,21 @@ def run(*, source, controls, wheel, output, image, gpus, docker=None):
         )
         admitted = load_json(installation / "request.json")
         request = {
-            "schema_version": 1,
+            "schema_version": 2,
             "installation_request_digest": admitted["request_digest"],
-            "model": "llama32_1b",
+            "profile": benchmark_profile,
+            "cases": select(
+                benchmark_profile,
+                benchmark_cases,
+                path=controls / "benchmarks/vllm/models/cases.json",
+            ),
+            "catalog_sha256": hash_file(controls / "benchmarks/vllm/models/cases.json")[
+                0
+            ],
             "manifest_sha256": hash_file(controls / "ci/clients/vllm/models.json")[0],
-            "workload": asdict(Workload()),
         }
         request["request_digest"] = digest(request)
+        validate_request(request, admitted, controls)
         write_json(installation / "benchmark-request.json", request)
         status["stage"] = "measurement"
         if image:
@@ -195,7 +325,7 @@ def run(*, source, controls, wheel, output, image, gpus, docker=None):
                 evidence=installation,
                 request="benchmark-request.json",
                 controller="ci.pipelines.benchmarks",
-                timeout=5400,
+                timeout=3600 * len(request["cases"]) + 1800,
             )
         else:
             execute(installation / "benchmark-request.json", controls=controls)

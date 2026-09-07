@@ -1,7 +1,31 @@
 # SPDX-License-Identifier: MIT
 """Compare all recorded next-token likelihoods, rejecting alignment and finite-value failures."""
 
+import hashlib
+import json
 import math
+from pathlib import Path
+
+
+def validate_reference(result, request_path, *, model_class):
+    request_path = Path(request_path)
+    request = json.loads(request_path.read_text())
+    if (
+        result.get("request_sha256")
+        != hashlib.sha256(request_path.read_bytes()).hexdigest()
+        or result.get("model") != request["model"]
+    ):
+        raise AssertionError("Reference model or request identity differs")
+    if (
+        result.get("dtype") != "torch." + request.get("dtype", "bfloat16")
+        or result.get("attention_implementation") != "eager"
+        or result.get("model_class", "").rsplit(".", 1)[-1] != model_class
+    ):
+        raise AssertionError("Reference dtype, eager attention or model class differs")
+    if not result["model_class"].startswith("transformers.models."):
+        raise AssertionError(
+            "Reference is not the independent Transformers implementation"
+        )
 
 
 def compare(reference, candidate, *, maximum_error, mean_error):

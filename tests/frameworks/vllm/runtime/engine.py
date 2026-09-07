@@ -13,11 +13,11 @@ from .protocol import parse_request
 def options_for(settings, model):
     options = {
         "model": model["snapshot"],
-        "dtype": "bfloat16",
+        "dtype": settings.dtype,
         "seed": 0,
         "trust_remote_code": False,
         "enforce_eager": not settings.cuda_graph,
-        "max_model_len": 1024,
+        "max_model_len": settings.max_model_len,
         "max_num_seqs": 4,
         "max_num_batched_tokens": settings.prefill_budget,
         "enable_chunked_prefill": settings.chunked_prefill,
@@ -61,7 +61,7 @@ def options_for(settings, model):
 
 
 def materialize(prompts):
-    if isinstance(prompts[0], str):
+    if isinstance(prompts[0], str) or "prompt_token_ids" in prompts[0]:
         return list(prompts), []
     from PIL import Image
 

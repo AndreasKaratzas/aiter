@@ -382,7 +382,7 @@
       "gfx950"
     ],
     "timeout_seconds": 3600,
-    "minimum_cases": 2,
+    "minimum_cases": 3,
     "environment": {
       "MAX_JOBS": "2",
       "AITER_USE_SYSTEM_TRITON": "1",
@@ -551,6 +551,82 @@
     "adapter": "pytest",
     "targets": [
       "tests/frameworks/vllm/generation/speculative_decoding/test_mixed_batch.py"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 1,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-long-context": {
+    "description": "Llama and Qwen 2048/321/65-token ragged requests preserve all greedy tokens across actual chunked and unchunked scheduling.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/language/test_context.py::test_long_ragged_prefill_matches_unchunked"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-model-precision": {
+    "description": "Llama and Qwen FP16 model parameters, all-token independent FP16 Transformers likelihoods and greedy tokens; BF16 contrast retained separately.",
+    "components": [
+      "vllm"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/models/language/test_context.py::test_float16_likelihood_and_greedy_regression"
+    ],
+    "gpus": 1,
+    "architectures": [
+      "gfx950"
+    ],
+    "timeout_seconds": 3600,
+    "minimum_cases": 2,
+    "environment": {
+      "MAX_JOBS": "2",
+      "AITER_USE_SYSTEM_TRITON": "1",
+      "VLLM_ROCM_USE_AITER": "1"
+    },
+    "pytest_options": [
+      "--run-e2e"
+    ],
+    "model_manifest": "ci/clients/vllm/models.json"
+  },
+  "vllm-multimodal-serving": {
+    "description": "Real Qwen image grounding through OpenAI HTTP, with per-request AITER worker observations.",
+    "components": [
+      "vllm",
+      "attention"
+    ],
+    "adapter": "pytest",
+    "targets": [
+      "tests/frameworks/vllm/entrypoints/multimodal/test_chat.py"
     ],
     "gpus": 1,
     "architectures": [

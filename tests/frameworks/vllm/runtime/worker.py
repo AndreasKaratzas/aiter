@@ -5,8 +5,9 @@ import os
 
 from vllm.v1.worker.gpu_worker import Worker
 
+from ci.clients.vllm.observation import AiterTrace
+
 from .identity import environment_identity
-from .observation import AiterTrace
 
 
 class ObservedWorker(Worker):
@@ -74,6 +75,10 @@ class ObservedWorker(Worker):
             "device": index,
             "device_uuid": str(getattr(properties, "uuid", "")),
             "fp8_parameters": fp8_parameters,
+            "model_class": type(model).__module__ + "." + type(model).__name__,
+            "parameter_dtypes": sorted(
+                {str(parameter.dtype) for parameter in model.parameters()}
+            ),
             "fp8_linear_kernels": linear_kernels,
             "environment": environment_identity(),
         }

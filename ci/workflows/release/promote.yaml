@@ -1,0 +1,108 @@
+name: Promote verified wheels
+
+on:
+  workflow_call:
+    inputs:
+      release_type:
+        type: string
+        required: true
+      wheel_names:
+        type: string
+        required: true
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  promote:
+    runs-on: build-only-aiter
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Validate publication channel
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          case "$RELEASE_TYPE" in nightlies|devreleases) ;; *) exit 1 ;; esac
+      - name: Download the exact artifacts used by wheel tests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: aiter-whl-packages-py*
+          path: dist
+          merge-multiple: true
+      - name: Download all support-cell evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: support-evidence-*
+          path: ${{ runner.temp }}/support-evidence
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-qualification-matrix
+          path: ${{ runner.temp }}/release-matrix
+      - uses: actions/download-artifact@v4
+        with:
+          name: nightly-published-release-record
+          path: ${{ runner.temp }}/release-record
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: image-publication-*
+          path: ${{ runner.temp }}/image-publications
+      - name: Verify artifacts, complete support cells and image publication inventory
+        env:
+          EXPECTED_WHEELS: ${{ inputs.wheel_names }}
+        run: |
+          python3 - <<'PYVERIFY'
+          import os
+          from pathlib import Path
+          from ci.common.json import load_json, write_json
+          from ci.qualification.catalog import load_catalog
+          from ci.release.manifest import release_manifest, revalidate_release
+          from ci.release.images import verify_publications
+          root = Path(os.environ['RUNNER_TEMP'])
+          if set(os.environ['EXPECTED_WHEELS'].split()) != {path.name for path in Path('dist').glob('*.whl')}:
+              raise ValueError('downloaded wheel inventory differs from the build output')
+          matrix = load_json(root / 'release-matrix/release-matrix.json')['include']
+          original = load_json(root / 'release-record/release.json')
+          record = release_manifest(Path('dist'), sorted((root / 'support-evidence').glob('support-evidence-*/run')),
+              channel='nightly-tested', notes=original['release_notes'], required_cells=[item['cell'] for item in matrix],
+              required_environments={item['cell']:item['environment_lock_digest'] for item in matrix}, catalog=load_catalog())
+          record = revalidate_release(original, record)
+          verify_publications(root / 'image-publications', record)
+          write_json(root / 'release.json', record)
+          PYVERIFY
+      - name: Configure publication credentials after verification
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::661452401056:role/framework-aiter-${{ inputs.release_type }}
+      - name: Publish the verified artifact set
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          set -euo pipefail
+          destination="s3://framework-whls-${RELEASE_TYPE}/whl/gfx942-gfx950"
+          for wheel in dist/*.whl; do
+            python3 -m ci.release.wheels verify --wheel "$wheel" --require-clean-source
+            name=$(basename "$wheel")
+            if aws s3api head-object --bucket "framework-whls-${RELEASE_TYPE}" --key "whl/gfx942-gfx950/$name" >/dev/null 2>&1; then
+              aws s3 cp "$destination/$name" "$RUNNER_TEMP/existing-$name"
+              cmp "$wheel" "$RUNNER_TEMP/existing-$name"
+            else
+              aws s3 cp "$wheel" "$destination/$name"
+            fi
+            aws s3 cp "$wheel.receipt.json" "$destination/$name.receipt.json"
+          done
+          record=$(python3 -c 'import json,os; print(json.load(open(os.environ["RUNNER_TEMP"]+"/release.json"))["release_digest"].split(":")[1])')
+          aws s3 cp "$RUNNER_TEMP/release.json" "$destination/releases/$record.json"
+      - name: Retain the release record
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nightly-published-release-record
+          path: ${{ runner.temp }}/release.json
+          if-no-files-found: error

@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib.metadata
+import os
 import sys
 from pathlib import Path
 
@@ -9,40 +10,42 @@ from vllm.v1.worker.gpu_worker import Worker
 
 
 class BenchmarkWorker(Worker):
+    def load_model(self, *args, **kwargs):
+        from ci.clients.vllm.observation import AiterTrace
+
+        self._benchmark_trace = AiterTrace(operations=()).start()
+        return super().load_model(*args, **kwargs)
+
     def benchmark_probe(self, enabled):
-        from triton.runtime.jit import JITFunction
-
+        trace = self._benchmark_trace
+        if not trace.active:
+            raise RuntimeError("The untimed observer has already been removed")
         if enabled:
-            if getattr(self, "_benchmark_original_run", None) is not None:
-                raise RuntimeError("An untimed probe is already active")
-            original = JITFunction.run
-            self._benchmark_original_run = original
-            self._benchmark_calls = {}
-
-            def observed(kernel, *args, **kwargs):
-                result = original(kernel, *args, **kwargs)
-                module = kernel.fn.__module__
-                if module.startswith("aiter.") and not kwargs.get("warmup"):
-                    name = module + ":" + kernel.fn.__name__
-                    self._benchmark_calls[name] = self._benchmark_calls.get(name, 0) + 1
-                return result
-
-            JITFunction.run = observed
+            trace.observation.reset()
             return {}
-        original = getattr(self, "_benchmark_original_run", None)
-        if original is None:
-            raise RuntimeError("No untimed probe is active")
-        JITFunction.run = original
-        self._benchmark_original_run = None
-        return self._benchmark_calls
+        import torch
+        from vllm.distributed.parallel_state import get_tensor_model_parallel_rank
+
+        torch.cuda.synchronize()
+        observed = {
+            "rank": get_tensor_model_parallel_rank(),
+            **trace.observation.snapshot(),
+        }
+        self._benchmark_closed_observation = trace.observation.snapshot()
+        trace.close()
+        return observed
 
     def benchmark_identity(self):
         import torch
         import vllm
+        from vllm.distributed.parallel_state import (
+            get_tensor_model_parallel_rank,
+            get_tensor_model_parallel_world_size,
+        )
 
         import aiter
 
-        properties = torch.cuda.get_device_properties(0)
+        properties = torch.cuda.get_device_properties(torch.cuda.current_device())
         modules = {}
         for name, module in tuple(sys.modules.items()):
             if name.split(".")[0] in {"aiter", "vllm"} and getattr(
@@ -68,6 +71,15 @@ class BenchmarkWorker(Worker):
                 "direct_url": dist.read_text("direct_url.json"),
             }
         return {
+            "pid": os.getpid(),
+            "rank": get_tensor_model_parallel_rank(),
+            "world_size": get_tensor_model_parallel_world_size(),
+            "parameter_dtypes": sorted(
+                {
+                    str(value.dtype)
+                    for value in self.model_runner.get_model().parameters()
+                }
+            ),
             "aiter": str(Path(aiter.__file__).resolve()),
             "vllm": str(Path(vllm.__file__).resolve()),
             "packages": distributions,
@@ -79,13 +91,16 @@ class BenchmarkWorker(Worker):
                 "uuid": str(properties.uuid),
             },
             "modules": modules,
-            "instrumentation_active": getattr(self, "_benchmark_original_run", None)
-            is not None,
+            "instrumentation_active": self._benchmark_trace.active,
+            "hooks_restored": self._benchmark_trace.hooks_restored,
+            "post_probe_observation_unchanged": self._benchmark_trace.observation.snapshot()
+            == self._benchmark_closed_observation,
         }
 
     def shutdown(self):
         try:
             return super().shutdown()
         finally:
-            if getattr(self, "_benchmark_original_run", None) is not None:
-                self.benchmark_probe(False)
+            trace = getattr(self, "_benchmark_trace", None)
+            if trace is not None:
+                trace.close()

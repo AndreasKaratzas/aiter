@@ -103,6 +103,9 @@ The site renders the same guides maintained beside the code. A capability descri
    deliver/vllm-e2e
    deliver/pipelines
    deliver/workflows
+   deliver/vllm-workflows
+   deliver/workflow-index
+   deliver/github-entrypoints
    deliver/scripts
    deliver/containers
    deliver/images-common

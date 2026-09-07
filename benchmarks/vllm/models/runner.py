@@ -13,7 +13,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from benchmarks.common.measurements import summarize_batches
-from benchmarks.vllm.models.config import Workload, default_manifest
+from benchmarks.vllm.models.config import Workload, default_manifest, engine_options
 from benchmarks.vllm.models.report import check_measurement, retained_files
 from ci.common.checkpoints import load_manifest, verify_snapshot
 
@@ -26,6 +26,7 @@ def write(path, record):
 def implementation():
     from benchmarks.common import measurements
     from benchmarks.vllm.models import config, report
+    from ci.clients.vllm import observation
     from ci.common import checkpoints
 
     files = [
@@ -35,6 +36,7 @@ def implementation():
         Path(report.__file__),
         Path(measurements.__file__),
         Path(checkpoints.__file__),
+        Path(observation.__file__),
     ]
     return {
         str(path.resolve()): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -78,12 +80,8 @@ def environment(output):
 def prompt_tokens(workload):
     generator = random.Random(workload.seed)
     return [
-        {
-            "prompt_token_ids": [
-                generator.randrange(100, 10000) for _ in range(workload.input_tokens)
-            ]
-        }
-        for _ in range(workload.batch_size)
+        {"prompt_token_ids": [generator.randrange(100, 10000) for _ in range(length)]}
+        for length in workload.prompt_lengths
     ]
 
 
@@ -115,30 +113,9 @@ def measure(workload, model, output):
     if properties.gcnArchName.split(":")[0] != "gfx950":
         raise RuntimeError("This declared model benchmark currently targets gfx950")
     torch.cuda.set_device(0)
-    options = {
-        "model": model["snapshot"],
-        "dtype": "bfloat16",
-        "seed": workload.seed,
-        "load_format": "safetensors",
-        "trust_remote_code": False,
-        "enforce_eager": True,
-        "enable_prefix_caching": False,
-        "async_scheduling": False,
-        "tensor_parallel_size": 1,
-        "max_model_len": workload.input_tokens + workload.output_tokens,
-        "max_num_seqs": workload.batch_size,
-        "max_num_batched_tokens": max(
-            workload.batch_size * workload.input_tokens,
-            workload.input_tokens + workload.output_tokens,
-        ),
-        "kv_cache_memory_bytes": 512 * 1024**2,
-        "gpu_memory_utilization": 0.1,
-        "worker_cls": "benchmarks.vllm.models.worker.BenchmarkWorker",
-        "kernel_config": {
-            "ir_op_priority": {"rms_norm": ["aiter"], "fused_add_rms_norm": ["aiter"]}
-        },
-        "attention_config": {"backend": "ROCM_AITER_UNIFIED_ATTN"},
-    }
+    if torch.cuda.device_count() < workload.tensor_parallel:
+        raise RuntimeError("Not enough visible GPUs for the declared topology")
+    options = engine_options(workload, model)
     prompts = prompt_tokens(workload)
     write(output / "prompts.json", prompts)
     write(output / "engine-options.json", options)
@@ -160,16 +137,18 @@ def measure(workload, model, output):
             )
         finally:
             calls = engine.collective_rpc("benchmark_probe", args=(False,), timeout=120)
-        if len(calls) != 1 or not any(
-            "attention" in name and value > 0 for name, value in calls[0].items()
-        ):
-            raise RuntimeError("The untimed probe observed no AITER attention kernel")
+        from benchmarks.vllm.models.report import validate_probe
+
         identities = engine.collective_rpc("benchmark_identity", timeout=120)
-        if len(identities) != 1 or identities[0]["instrumentation_active"]:
-            raise RuntimeError("Measured execution must have instrumentation disabled")
+        validate_probe(workload, calls, identities)
         write(
             output / "untimed-probe.json",
-            {"aiter_kernel_calls": calls, "outputs": baseline, "worker": identities[0]},
+            {
+                "observations": calls,
+                "outputs": baseline,
+                "workers": identities,
+                "worker": identities[0],
+            },
         )
         for _ in range(workload.warmup):
             if (
@@ -211,7 +190,8 @@ def measure(workload, model, output):
             "samples": samples,
             "summary": summarize_batches(samples),
             "worker": identities[0],
-            "untimed_aiter_kernel_calls": calls[0],
+            "workers": identities,
+            "untimed_observations": calls,
         }
     finally:
         if engine is not None:
@@ -249,7 +229,7 @@ def run(*, workload, manifest, model_name, output=None, cache_dir=None, download
         or os.environ.get("HF_HUB_CACHE", Path.home() / ".cache/huggingface/hub")
     ).resolve()
     request = {
-        "schema_version": 1,
+        "schema_version": 2,
         "benchmark": "vllm-real-weight-batch-latency",
         "workload": asdict(workload),
         "model": model_name,
@@ -264,9 +244,9 @@ def run(*, workload, manifest, model_name, output=None, cache_dir=None, download
     }
     write(output / "request.json", request)
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "status": "FAIL",
-        "scope": "Single-GPU eager real-weight model measurement with synthetic token inputs; complete-batch latency and observed output throughput, not TTFT, serving latency, model quality or release qualification.",
+        "scope": "Declared real-weight model batch measurement with synthetic token inputs and observed per-rank AITER execution; complete-batch latency and output throughput, not TTFT, serving latency, model quality or release qualification.",
         "request": request,
     }
     try:
@@ -310,10 +290,69 @@ def main(argv=None):
     parser.add_argument("--output", type=Path)
     parser.add_argument("--cache-dir", type=Path)
     parser.add_argument("--download", action="store_true")
+    parser.add_argument(
+        "--profile", help="Run a declared benchmark profile in fresh case processes"
+    )
+    parser.add_argument(
+        "--cases", help="Comma-separated unique case IDs within --profile"
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List declared scenarios; performs no model execution",
+    )
     for name, default in asdict(Workload()).items():
-        parser.add_argument("--" + name.replace("_", "-"), type=int, default=default)
+        parser.add_argument(
+            "--" + name.replace("_", "-"), type=type(default), default=default
+        )
     args = parser.parse_args(argv)
+    if args.list:
+        from benchmarks.vllm.models.cases import catalog
+
+        print(
+            json.dumps(
+                {"scope": "declared cases, not execution evidence", **catalog()},
+                indent=2,
+            )
+        )
+        return 0
+    if args.profile:
+        from benchmarks.vllm.models.suite import run_suite
+
+        if (
+            any(
+                getattr(args, name) != default
+                for name, default in asdict(Workload()).items()
+            )
+            or args.model != "llama32_1b"
+        ):
+            parser.error(
+                "Profile cases fix model/workload; use a direct run for custom options"
+            )
+        output, report = run_suite(
+            profile=args.profile,
+            cases=args.cases.split(",") if args.cases else None,
+            output=args.output,
+            manifest=args.manifest,
+            cache_dir=args.cache_dir,
+            download=args.download,
+        )
+        print(
+            json.dumps(
+                {
+                    "status": report["status"],
+                    "output": str(output),
+                    "cases": report["cases"],
+                },
+                indent=2,
+            )
+        )
+        return 0
+    if args.cases:
+        parser.error("--cases requires --profile")
     values = vars(args)
+    for name in ("profile", "cases", "list"):
+        values.pop(name)
     workload = Workload(**{name: values.pop(name) for name in asdict(Workload())})
     values["model_name"] = values.pop("model")
     output, report = run(workload=workload, **values)

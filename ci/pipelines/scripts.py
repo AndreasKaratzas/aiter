@@ -116,7 +116,7 @@ def script_index(*, root=None, check=False, write=False):
     lines = [
         "# Workflow script owners",
         "",
-        "These adapters support retained specialized workflows. Qualified delivery orchestration lives in [ci/pipelines](../../ci/pipelines/README.md); numerical and model acceptance belongs in [tests](../../tests/README.md), and measurements belong in [benchmarks](../../benchmarks/README.md). The script directory contains no flat executable files.",
+        "These adapters support retained specialized workflows. Qualified delivery orchestration lives in [ci/pipelines](../../ci/pipelines/README.md); numerical and model acceptance belongs in [tests](../../tests/README.md), and measurements belong in [benchmarks](../../benchmarks/README.md). The script directory contains no flat executable files. [Hierarchical workflow sources](../../ci/workflows/README.md) generate the flat GitHub callers listed below.",
         "",
         "Edit `ci/pipelines/scripts.json` when changing an adapter, then run `python -m ci.pipelines scripts --write-index`. Host checks verify every maintained script, its owner, workflow references and this index. ATOM helpers listed separately below belong to its external checkout.",
         "",

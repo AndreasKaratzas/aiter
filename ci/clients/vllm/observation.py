@@ -60,26 +60,46 @@ class Observation:
 
 
 class AiterTrace:
-    def __init__(self):
+    def __init__(self, operations=None):
         self.observation = Observation()
         self.stack = ExitStack()
         self.graph_ids = weakref.WeakKeyDictionary()
         self.next_graph = 0
+        self.active = False
+        self._originals = []
+        self.operation_names = (
+            operations
+            if operations is not None
+            else (
+                "rms_norm",
+                "rmsnorm2d_fwd_with_add",
+                "flash_attn_varlen_func",
+                "hipb_mm",
+                "gemm_a8w8_CK",
+                "gemm_a8w8_bpreshuffle",
+            )
+        )
+
+    def _patch(self, owner, name, replacement):
+        self._originals.append((owner, name, getattr(owner, name)))
+        self.stack.enter_context(patch.object(owner, name, replacement))
+
+    @property
+    def hooks_restored(self):
+        return not self.active and all(
+            getattr(owner, name) is original
+            for owner, name, original in self._originals
+        )
 
     def start(self):
+        if self.active:
+            raise RuntimeError("AITER observation is already active")
         import torch
         from triton.runtime.jit import JITFunction
 
         import aiter
 
-        for name in (
-            "rms_norm",
-            "rmsnorm2d_fwd_with_add",
-            "flash_attn_varlen_func",
-            "hipb_mm",
-            "gemm_a8w8_CK",
-            "gemm_a8w8_bpreshuffle",
-        ):
+        for name in self.operation_names:
             original = getattr(aiter, name)
 
             @functools.wraps(original)
@@ -88,7 +108,7 @@ class AiterTrace:
                 self.observation.record("operations", _name)
                 return result
 
-            self.stack.enter_context(patch.object(aiter, name, observe))
+            self._patch(aiter, name, observe)
 
         original_run = JITFunction.run
 
@@ -99,7 +119,7 @@ class AiterTrace:
                 self.observation.record("kernels", f"{module}:{kernel.fn.__name__}")
             return result
 
-        self.stack.enter_context(patch.object(JITFunction, "run", launch))
+        self._patch(JITFunction, "run", launch)
         graph_type = torch.cuda.CUDAGraph
         original_begin = graph_type.capture_begin
         original_end = graph_type.capture_end
@@ -132,8 +152,10 @@ class AiterTrace:
             ("capture_end", end),
             ("replay", replay),
         ):
-            self.stack.enter_context(patch.object(graph_type, name, function))
+            self._patch(graph_type, name, function)
+        self.active = True
         return self
 
     def close(self):
         self.stack.close()
+        self.active = False

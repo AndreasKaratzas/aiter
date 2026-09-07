@@ -1,8 +1,14 @@
 # Review and rollout
 
-The implementation branch is `akaratza_aiter_implementation`, based on `456b92780c8b650c1e3e4b0fa1ca21f0d1fb363d`. The latest request authorizes an AITER fork, a push of this branch and a documentation website after local validation. That publication is separate from promoting a supported AITER package or image. The standalone proposal and manual repositories remain untouched.
+The implementation branch is `akaratza_aiter_implementation`, based on `456b92780c8b650c1e3e4b0fa1ca21f0d1fb363d`. The latest request authorizes an AITER fork, a push of this branch and a documentation website after local validation. That publication is separate from promoting a supported AITER package or image. The proposal rewrite is published in its separate repository; the manual is unchanged in this round.
 
 This file gives the review boundaries for introducing the connected implementation in several PRs. [ARCHITECTURE.md](ARCHITECTURE.md) describes the resulting system; [notes.md](notes.md) records file responsibilities, review findings and test evidence.
+
+## Workflow and vLLM follow-up
+
+Review the September 7 follow-up in three connected changes. First, land the organized workflow sources with their generator, tests, CODEOWNERS rules and generated GitHub files. Preserve execution filenames so existing reusable calls and required checks remain valid. Second, land the expanded model scenarios with their shared execution helpers, case selection and required profile counts. Third, land configurable benchmark workloads, their evidence checks and the workflow inputs that select them. Each change includes its directory guide and website navigation.
+
+The [engineering record](notes.md#september-7-workflow-directories-and-broader-vllm-workloads) records failures and local checks. The new generation check must pass before a workflow change lands. Required model cases must execute with observed AITER work, and benchmark presets must distinguish a completed measurement from a performance improvement or a supported model claim. Configuring more cases is not a substitute for running them on the declared hardware.
 
 ## Ordered PR rounds
 
@@ -41,6 +47,8 @@ The rounds depend on each other. For example, the generator move includes its re
 The earlier `aiter_contracts` and `tools/quality` design has been removed. Runtime descriptions live inside the library. Qualification and delivery are explicit applications under `ci`. GitHub workflow files stay directly inside `.github/workflows`, as GitHub requires, and use `host-`, `product-`, `client-` and `release-` prefixes. Qualified source/wheel/image execution and the vLLM/SGLang canaries use the shared pipeline application. Specialized legacy kernel and multi-service topology workflows retain their own procedures; the [workflow index](.github/workflows/README.md) makes that scope visible.
 
 ## Acceptance history and the current review
+
+The results in this section describe the earlier artifact and framework snapshots. The September 7 expansion and its current selection counts are recorded in the [workflow and vLLM follow-up](#workflow-and-vllm-follow-up) and its linked engineering record.
 
 The latest [ownership and consumer review](notes.md#package-ownership-consumer-coverage-and-documentation) extends rounds 1, 2, 6, 7 and 9. Canonical operation moves must include downstream compatibility and every first-party caller. The kernel data move must include source archives, wheel resources, generators and ownership rules. Compiler batching must land with the complete instantiation ledger, a baseline mode and numerical/build measurements. Moving a shell helper must include its workflow callers and script inventory.
 

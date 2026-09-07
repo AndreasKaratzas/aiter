@@ -473,6 +473,22 @@
     {
       "pattern": "/examples/",
       "domain": "api-runtime"
+    },
+    {
+      "pattern": "/ci/workflows/",
+      "domain": "delivery"
+    },
+    {
+      "pattern": "/ci/workflows/clients/",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/workflows/client-*.yaml",
+      "domain": "clients"
+    },
+    {
+      "pattern": "/.github/workflows/client-*.yml",
+      "domain": "clients"
     }
   ]
 }

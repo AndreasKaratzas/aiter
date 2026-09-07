@@ -8,7 +8,7 @@ import sys
 import pytest
 from common.process import run_process
 
-from frameworks.vllm.evaluation.likelihood import compare
+from frameworks.vllm.evaluation.likelihood import compare, validate_reference
 from frameworks.vllm.runtime.execution import engine_environment, run_engine
 from frameworks.vllm.runtime.protocol import Batch, EngineSettings
 
@@ -64,6 +64,7 @@ def test_qwen3_likelihoods_and_greedy_tokens_match_transformers(
     )
     assert execution["status"] == "PASS" and execution["returncode"] == 0
     reference = json.loads(output.read_text())
+    validate_reference(reference, path, model_class="Qwen3ForCausalLM")
     assert reference["request_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
     assert reference["attention_implementation"] == "eager"
     assert (

@@ -2,7 +2,43 @@
 
 This file records the local implementation, the defects found during review and the evidence retained from testing. [ARCHITECTURE.md](ARCHITECTURE.md) explains the design; [rollout.md](rollout.md) gives the order for reviewing it in separate PRs.
 
-The working branch is `akaratza_aiter_implementation`, based on `456b92780c8b650c1e3e4b0fa1ca21f0d1fb363d`. The latest request authorizes publishing this branch in an AITER fork and deploying its documentation. Implementation and local acceptance precede that publication. The standalone proposal and manual repositories are separate and were not modified.
+The working branch is `akaratza_aiter_implementation`, based on `456b92780c8b650c1e3e4b0fa1ca21f0d1fb363d`. The latest request authorizes publishing this branch in an AITER fork and deploying its documentation. Implementation and local acceptance precede that publication. The proposal and manual have separate repositories. The September 7 proposal rewrite is recorded in the proposal repository; the manual was not changed in this round.
+
+## September 7: workflow directories and broader vLLM workloads
+
+Workflow authors now start in [ci/workflows/](ci/workflows/README.md). Its 38 YAML sources have common, host, product, client and release directories; vLLM, SGLang and the other clients have their own homes. The generator preserves the stable flat filenames GitHub requires and checks that every generated copy matches its source. It does not interpret another template language. A contributor edits the source and runs `python -m ci.workflows --write`; CI rejects forgotten regeneration.
+
+| Files | Change and reason |
+| --- | --- |
+| `ci/workflows/`, `ci/pipelines/workflows.py`, `.github/workflows/` | One authoritative source registry, directory navigation, generated entrypoints and a compatibility command for existing callers. Existing job names and reusable calls retain their identities. |
+| `ci/ownership/owners.json`, `.github/CODEOWNERS`, `ci/qualification/catalog.json`, `ci/architecture/policy.json` | Route source ownership to delivery or client maintainers, recognize the new paths and keep workflow tooling independent of GPU imports. Shared CI changes still broaden qualification. |
+| `tests/frameworks/vllm/models/language/test_context.py`, `tests/frameworks/vllm/runtime/` | Exercise long prompts with mixed lengths and actual FP16 weights on the pinned Llama and Qwen models. Record scheduled work, parameter types and AITER execution. |
+| `tests/frameworks/vllm/entrypoints/test_openai_server.py` | Check batched HTTP response order, token accounting, per-token scores and recovery after an unknown-model request. Compare the batch with individual requests and observe AITER work in the server process. |
+| `tests/frameworks/vllm/entrypoints/multimodal/test_chat.py` | Send red and blue images through the OpenAI-compatible chat endpoint. Require the correct color answer and observe both vision and decoder AITER calls for each request. |
+| `benchmarks/vllm/models/`, `ci/pipelines/benchmarks.py`, `ci/clients/vllm/observation.py` | Select explicit model workloads, share execution observations and retain raw results for each case. The workflow installs vLLM, checks the candidate AITER import, then measures the selected workload. |
+| `README.md`, `ARCHITECTURE.md`, `docs/website/guides.json`, `docs/index.rst` | Make the editable workflow sources discoverable in the checkout and website, with the same maintained guides in both places. |
+
+The first new GPU attempt passed both long-context families, Llama's precision comparison and the new server case. Qwen's cross-format comparison failed: one FP16 prompt-token log probability differed from BF16 by 1.391, while the mean difference was 0.0268 and greedy outputs matched. A separate Transformers FP16 reference agreed with the AITER-enabled FP16 result (maximum error 0.0312, mean 0.00243). The corrected test compares matching number formats against that independent reference; it does not enlarge the original tolerance to erase the failure. The first attempt remains under `/tmp/aiter-vllm-expansion/context/`, and the diagnostic reference is under `/tmp/aiter-vllm-expansion/fp16-reference/`.
+
+The current declarations contain 19 daily workload groups with 86 cases and 26 extended groups with 95 cases, each preceded by the import gate. Within that selection, 18 model groups contain 22 real-checkpoint cases. Those are selection counts, not a claim that this entire expanded profile was rerun. This round exercised six new end-to-end cases on gfx950: two long-context cases, two corrected FP16/reference cases, batched text serving and image chat. They used the current AITER source and vLLM source revision `5690b02c` in the existing development environment; this was not a new wheel build or official-nightly installation. The precision rerun passed both cases in 161.40 seconds. The final image-chat run passed in 49.54 seconds; each image request produced 32 observed vision calls and 72 decoder attention launches. Its initial attempt failed GPU discovery because both visibility masks were set; the failed setup and subsequent passing runs remain separate.
+
+The benchmark catalog has nine scenarios across five profiles. The configured daily 19:45 UTC run selects both smoke cases; Sunday 22:15 UTC selects all eight extended cases. These schedules require the configured executor image and GPU workers. Local development results do not establish that a remote nightly service or release channel is operating.
+
+Independent QA found that benchmark reports needed stronger binding between the selected workload, actual worker observations, subprocess completion and aggregate summaries. Schema 2 now checks those connections and requires the temporary observation hooks to be restored before timing. QA passed 56 focused tests, 34 subtests and 36 independent attempts to admit inconsistent evidence. These checks supplement GPU execution; they cannot replace it.
+
+All eight extended benchmark cases produced accepted measurements, including eager/graph execution, prefill, mixed prompt lengths, long context, FP16 and two-GPU execution. The original parent process nevertheless exited with an error: sorted JSON changed dictionary order, and its checker incorrectly treated an equivalent reconstructed command as different. The fix builds commands in the workload model's explicit field order. Read-only reconstruction then accepted the unchanged eight-case evidence, and a fresh two-GPU graph suite completed with the corrected parent and exit status zero in 111.77 seconds. The original failure remains recorded. Each extended case has three measured samples; these are descriptive measurements, not statistically established speedups or release performance gates.
+
+| Final local check | Result and retained evidence |
+| --- | --- |
+| Host integrity | 561 tests and 841 subtests pass. `/tmp/aiter-workflow-publication-host.xml` |
+| Workflow generation and syntax | All 38 sources match their generated entrypoints; Actionlint passes. The 14 workflow tests also pass independently on Python 3.10 and 3.12. `/tmp/aiter-workflow-schedules-checks.json` |
+| Repository boundaries | Architecture checks pass for 1,048 Python files and 8,986 dependency edges; the catalog validates 68 groups and 20 profiles. `/tmp/aiter-workflow-publication-architecture.json` |
+| New model scenarios | Original long-context and batched serving evidence is in `context/`; the corrected precision cases are in `precision-2/`; image chat is in `multimodal-server-final/`, under `/tmp/aiter-vllm-expansion/`. `/tmp/aiter-http-vision-final-review.json` independently checks the latter. |
+| Benchmark acceptance | The eight-case evidence is in `/tmp/aiter-vllm-expansion/benchmark-extended-2/`; `benchmark-extended-corrected-reconstruction.json` records its later reconstruction. `benchmark-topology-corrected/` and `benchmark-topology-corrected-execution.json` retain the fresh passing controller run. |
+| Independent benchmark QA | `/tmp/aiter-benchmark-expansion-final-review.json` records the closed findings and the exact reviewed files. |
+| Website rendering | The first expanded site passes 520 browser page/viewport checks. Visual inspection of the subsequent build caught a short table heading wrapping inside a word; its browser run was stopped and retained. The corrected publication build and full browser review retain their outputs in `/tmp/aiter-workflow-publication-site-2/` and `/tmp/aiter-workflow-publication-browser-2/`. |
+
+Earlier artifact reports below remain evidence for their original inputs. This round changes automation, benchmarks and test code; it does not establish new gfx942 results, GPU Docker qualification or release publication.
 
 ## Package ownership, consumer coverage and documentation
 

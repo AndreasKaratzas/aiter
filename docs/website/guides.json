@@ -45,7 +45,7 @@
   "deliver/images-pytorch": "docker/pytorch/README.md",
   "deliver/images-vllm": "docker/vllm/README.md",
   "deliver/images-sglang": "docker/sglang/README.md",
-  "deliver/workflows": ".github/workflows/README.md",
+  "deliver/workflows": "ci/workflows/README.md",
   "extend/kernel-resources": "aiter/kernels/data/README.md",
   "extend/dependencies": "requirements/README.md",
   "extend/traces": "benchmarks/traces/README.md",
@@ -63,5 +63,8 @@
   "extend/vllm-benchmarks": "benchmarks/vllm/README.md",
   "use/examples": "examples/README.md",
   "extend/operator-layout": "aiter/ops/README.md",
-  "extend/development-helpers": "aiter/testing/README.md"
+  "extend/development-helpers": "aiter/testing/README.md",
+  "deliver/workflow-index": "ci/workflows/index.md",
+  "deliver/github-entrypoints": ".github/workflows/README.md",
+  "deliver/vllm-workflows": "ci/workflows/clients/vllm/README.md"
 }

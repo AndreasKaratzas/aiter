@@ -18,8 +18,9 @@ from frameworks.vllm.runtime.evidence import (
     validate_workers,
 )
 from frameworks.vllm.runtime.identity import source_revision
-from frameworks.vllm.runtime.observation import Observation
 from frameworks.vllm.runtime.protocol import Batch, EngineSettings, parse_request
+
+from ci.clients.vllm.observation import AiterTrace, Observation
 
 
 def request(settings=None):
@@ -83,6 +84,7 @@ def test_reset_excludes_warmup_but_preserves_the_contents_of_replayed_graphs():
     trace.reset()
     assert observed(trace.snapshot(), "operations", "rms_norm") == 0
     assert observed(trace.snapshot(), "kernels", "unified_attention") == 0
+
     trace.replay("decode")
     snapshot = trace.snapshot()
     assert observed(snapshot, "operations", "rms_norm") == 1
@@ -91,6 +93,43 @@ def test_reset_excludes_warmup_but_preserves_the_contents_of_replayed_graphs():
     assert observed(trace.snapshot(), "kernels", "unified_attention") == 1
     trace.reset()
     assert observed(trace.snapshot(), "kernels", "unified_attention") == 0
+
+
+def test_observer_restores_hooks_and_exposes_escaped_alias_changes(monkeypatch):
+    def original(*args, **kwargs):
+        return 1
+
+    class Graph:
+        capture_begin = original
+        capture_end = original
+        replay = original
+
+    class Kernel:
+        run = original
+
+    aiter = SimpleNamespace(rms_norm=original)
+    monkeypatch.setitem(sys.modules, "aiter", aiter)
+    monkeypatch.setitem(
+        sys.modules, "torch", SimpleNamespace(cuda=SimpleNamespace(CUDAGraph=Graph))
+    )
+    monkeypatch.setitem(
+        sys.modules, "triton.runtime.jit", SimpleNamespace(JITFunction=Kernel)
+    )
+    trace = AiterTrace(operations=("rms_norm",)).start()
+    escaped = aiter.rms_norm
+    trace.close()
+    assert (
+        trace.hooks_restored and aiter.rms_norm is original and Kernel.run is original
+    )
+    closed = trace.observation.snapshot()
+    escaped()
+    assert trace.observation.snapshot() != closed, (
+        "Post-probe identity must detect a cached wrapper"
+    )
+    benchmark_trace = AiterTrace(operations=()).start()
+    assert aiter.rms_norm is original, "Benchmark does not instrument operation aliases"
+    benchmark_trace.close()
+    assert benchmark_trace.hooks_restored
 
 
 def test_unknown_replays_and_failed_captures_do_not_prove_aiter_execution():
@@ -183,7 +222,7 @@ raise SystemExit(pytest.main(sys.argv[1:]))
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "16 tests collected" in result.stdout
+    assert "22 tests collected" in result.stdout
 
 
 @pytest.mark.parametrize("original_checkout", [False, True])

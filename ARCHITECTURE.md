@@ -156,7 +156,8 @@ Preparation validates buffer spans, layouts, devices and output overlap before e
 | `benchmarks/` | Operator measurements, `vllm/` real-model measurements, model-shape sweeps and `traces/` profiler analysis |
 | `requirements/` | Dependency inputs grouped by runtime, build, test, documentation and client environment |
 | `ci/` | Architecture rules, qualification, framework profiles, pipeline orchestration, release delivery and ownership |
-| `.github/workflows/` | GitHub events, job dependencies, runner allocation and credential boundaries |
+| `ci/workflows/` | Editable workflow sources, grouped by responsibility and client |
+| `.github/workflows/` | Generated entrypoints for GitHub events, job dependencies, runner allocation and credential boundaries |
 | `.github/scripts/` | Small workflow adapters grouped under `common/`, `host/`, `product/`, `clients/` and `release/` |
 | `docker/` | `common/` wheelhouse/runtime/development recipes and `pytorch/`, `vllm/`, `sglang/` consumer images |
 
@@ -164,7 +165,7 @@ Native source directories no longer contain first-party Python programs. Generat
 
 The checkout has two application boundaries: `aiter/` is the library that consumers install, and `ci/` is the automation used to develop and qualify it. Installing the wheel does not install CI. Precompiled kernel bytes belong to the installed library under `aiter/kernels/data/`, next to the catalog and admission code that manages them. Source checkouts and wheels use the same resource path. Writable caches remain outside both.
 
-Workflow entry files stay directly under `.github/workflows/` because GitHub does not discover them in subdirectories. Their prefixes identify the owner: `host-`, `product-`, `client-` and `release-`. The programs they invoke have ordinary package and script directories. The [workflow index](.github/workflows/README.md) and [script index](.github/scripts/README.md) show those connections.
+Workflow authors work in `ci/workflows/`, organized into `common/`, `host/`, `product/`, `clients/` and `release/`. Each client has its own directory. A small generator copies these ordinary YAML sources into the flat `.github/workflows/` directory that GitHub requires. Every generated file identifies its editable source; CI checks that the files match. The [workflow guide](ci/workflows/README.md) and [script index](.github/scripts/README.md) show where to make a change.
 
 Python operation code follows its domain. For example, padding and MLA live under `aiter/ops/attention/`, and fused expert dispatch lives under `aiter/ops/moe/`. Five historical module imports remain as small compatibility entry points because downstream code uses them directly. Each resolves to the canonical module object, so an old and a new import share caches and state. New first-party callers use the domain package; they do not add another compatibility path.
 
@@ -305,7 +306,7 @@ Dependency inputs have one repository home, `requirements/`. Runtime metadata, b
 
 `ci.release` builds and qualifies wheels, constructs images from those same bytes, validates curated release notes and records channel history. Daily publication advances only after required product, framework and image work passes. Failed attempts remain visible while the previous qualified reference stays available. Stable publication assembles and verifies a complete draft before exposing it to consumers. Rollback selects an already qualified artifact rather than rebuilding an old source tree.
 
-GitHub requires workflow files directly inside `.github/workflows`; [its reusable-workflow documentation explicitly excludes subdirectories](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#creating-a-reusable-workflow). The files use purpose prefixes. The [workflow index](.github/workflows/README.md) groups them into host, product, client and release jobs and names their execution applications.
+GitHub requires workflow files directly inside `.github/workflows`; [its reusable-workflow documentation explicitly excludes subdirectories](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#creating-a-reusable-workflow). The editable sources therefore live in [ordinary directories under `ci/workflows/`](ci/workflows/README.md). `python -m ci.workflows --write` generates the GitHub files, and `--check` rejects missing, changed or stale copies. The registry preserves execution filenames, so reorganizing sources does not change reusable-workflow calls or the names of required checks.
 
 Qualified source, wheel and image workflows call `ci/pipelines/`; the vLLM and SGLang model canaries use the same Docker process boundary with their client-specific procedures. These entry points keep events, dependencies, permissions and runner allocation in YAML. Specialized legacy kernel, ATOM, flash-attention and disaggregated-serving jobs still retain their own procedures. They remain visible in the inventory and are not silently treated as qualified release cells. The [pipeline guide](ci/pipelines/README.md) identifies that boundary.
 

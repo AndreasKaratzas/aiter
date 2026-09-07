@@ -38,15 +38,18 @@ The 03:00 UTC product nightly qualifies installed wheels and their declared prod
 
 The separate fresh-install vLLM canary runs daily at 17:45 UTC and extends its workloads on Sundays at 20:15 UTC. It installs the resolved upstream ROCm wheel in a private environment, installs candidate AITER last, verifies imports, then runs the declared operators and models. It cannot advance a supported release channel. See the [client guide](clients/vllm/README.md) for counts, prerequisites and retained evidence.
 
+The [model benchmark workflow](workflows/clients/vllm/README.md) schedules its short profile daily at 19:45 UTC and its extended profile on Sundays at 22:15 UTC. These are independent jobs with their own installation and import checks. They collect measurements for review; they do not declare a speedup or approve a release. Manual runs can select a profile, a subset of its cases and the required GPUs.
+
 ## Repository boundaries
 
 | Directory | Responsibility |
 |---|---|
-| `pipelines/` | Shared source, wheel and image orchestration; one Docker process boundary and workflow navigation |
+| `pipelines/` | Shared source, wheel and image orchestration; one Docker process boundary |
+| [`workflows/`](workflows/README.md) | Hierarchical workflow sources, source mapping and deterministic flat GitHub entrypoints |
 | `qualification/` | Source impact, test groups, runtime requirements, execution and independent evidence checks |
 | `clients/registry.json` and named client directories | Reviewed client group/profile definitions; adding a client does not automatically add it to release policy |
 | `release/` | Wheel identities, image composition, release notes, channel history, rollback and observed delivery metrics |
 | `ownership/` | Product domains, reviewers and generated CODEOWNERS rules |
 | `common/` | Strict JSON serialization, validation and content identities shared by these applications |
 
-Tests follow the same separation under `tests/unit/`, `tests/integration/` and `tests/frameworks/`. Operator measurements live under `benchmarks/`; CI invokes their module entrypoint and checks their raw observations. GitHub requires workflow files directly under `.github/workflows`, so filenames use `host-`, `product-`, `client-` and `release-` prefixes. The Python application holds shared behavior instead of duplicating it across workflow files.
+Tests follow the same separation under `tests/unit/`, `tests/integration/` and `tests/frameworks/`. Operator measurements live under `benchmarks/`; CI invokes their module entrypoint and checks their raw observations. GitHub requires workflow files directly under `.github/workflows`. Canonical definitions live in `ci/workflows/{common,host,product,clients,release}`; `python -m ci.workflows --write` generates the stable prefixed GitHub filenames and `--check` rejects drift. The Python application holds shared behavior instead of duplicating it across workflow files.

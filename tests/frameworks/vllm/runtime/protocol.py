@@ -11,6 +11,8 @@ def require(condition, message):
 
 @dataclass(frozen=True)
 class EngineSettings:
+    dtype: str = "bfloat16"
+    max_model_len: int = 1024
     tensor_parallel: int = 1
     prefix_cache: bool = False
     cuda_graph: bool = False
@@ -21,6 +23,14 @@ class EngineSettings:
     prefill_budget: int = 1024
 
     def __post_init__(self):
+        require(
+            self.dtype in ("bfloat16", "float16"),
+            "Reviewed model dtype is BF16 or FP16",
+        )
+        require(
+            type(self.max_model_len) is int and self.max_model_len in (1024, 4096),
+            "Reviewed context capacity is 1024 or 4096",
+        )
         require(
             type(self.tensor_parallel) is int and self.tensor_parallel in (1, 2),
             "The reviewed engine scenarios use one or two ranks.",
@@ -35,12 +45,13 @@ class EngineSettings:
         ):
             require(type(getattr(self, name)) is bool, f"{name} must be a boolean")
         require(
-            type(self.prefill_budget) is int and self.prefill_budget in (128, 1024),
-            "Prefill budget must select the reviewed128 or1024 token schedule",
+            type(self.prefill_budget) is int
+            and self.prefill_budget in (128, 1024, 4096),
+            "Prefill budget must select the reviewed 128, 1024 or 4096 token schedule",
         )
         require(
-            self.chunked_prefill or self.prefill_budget == 1024,
-            "Unchunked prefill must fit the complete1024-token context",
+            self.chunked_prefill or self.prefill_budget >= self.max_model_len,
+            "Unchunked prefill must fit the complete context",
         )
         require(
             not (self.multimodal and (self.speculative or self.cuda_graph)),
@@ -90,6 +101,17 @@ class Batch:
             if isinstance(prompt, str):
                 require(0 < len(prompt) <= 16384, "Prompt text is empty or too large")
                 continue
+            if type(prompt) is dict and set(prompt) == {"prompt_token_ids"}:
+                values = prompt["prompt_token_ids"]
+                require(
+                    type(values) is list
+                    and 1 <= len(values) <= 4096
+                    and all(
+                        type(value) is int and 0 <= value < 2**31 for value in values
+                    ),
+                    "Invalid bounded token prompt",
+                )
+                continue
             require(
                 type(prompt) is dict and set(prompt) == {"text", "rgb", "size"},
                 "Image prompts declare exactly text, rgb and size",
@@ -130,12 +152,32 @@ def parse_request(record):
         Batch(**{**batch, "prompts": tuple(batch["prompts"])})
         for batch in record["batches"]
     ]
+    for batch in batches:
+        kinds = {
+            "text"
+            if isinstance(prompt, str)
+            else "tokens"
+            if "prompt_token_ids" in prompt
+            else "image"
+            for prompt in batch.prompts
+        }
+        require(len(kinds) == 1, "A batch must use one prompt representation")
+        require(
+            all(
+                not isinstance(prompt, dict)
+                or "prompt_token_ids" not in prompt
+                or len(prompt["prompt_token_ids"]) + batch.max_tokens
+                <= settings.max_model_len
+                for prompt in batch.prompts
+            ),
+            "Token prompt and output exceed context capacity",
+        )
     require(
         len({batch.name for batch in batches}) == len(batches), "Duplicate batch names"
     )
     require(
         all(
-            isinstance(prompt, dict) == settings.multimodal
+            (isinstance(prompt, dict) and "rgb" in prompt) == settings.multimodal
             for batch in batches
             for prompt in batch.prompts
         ),

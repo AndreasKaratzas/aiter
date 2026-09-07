@@ -33,7 +33,10 @@
       "vllm-lm-eval-extended",
       "vllm-multimodal-order",
       "vllm-fp8-quality",
-      "vllm-speculative-mixed"
+      "vllm-speculative-mixed",
+      "vllm-long-context",
+      "vllm-model-precision",
+      "vllm-multimodal-serving"
     ],
     "mandatory_groups": [
       "host",
@@ -73,7 +76,10 @@
       "vllm-lm-eval-extended",
       "vllm-multimodal-order",
       "vllm-fp8-quality",
-      "vllm-speculative-mixed"
+      "vllm-speculative-mixed",
+      "vllm-long-context",
+      "vllm-model-precision",
+      "vllm-multimodal-serving"
     ],
     "mandatory_groups": [
       "vllm-multimodal",
@@ -90,7 +96,10 @@
       "vllm-lm-eval-extended",
       "vllm-multimodal-order",
       "vllm-fp8-quality",
-      "vllm-speculative-mixed"
+      "vllm-speculative-mixed",
+      "vllm-long-context",
+      "vllm-model-precision",
+      "vllm-multimodal-serving"
     ]
   },
   "vllm-import": {
@@ -175,7 +184,10 @@
       "vllm-lm-eval-extended",
       "vllm-multimodal-order",
       "vllm-fp8-quality",
-      "vllm-speculative-mixed"
+      "vllm-speculative-mixed",
+      "vllm-long-context",
+      "vllm-model-precision",
+      "vllm-multimodal-serving"
     ],
     "mandatory_groups": [
       "vllm-bridge",
@@ -200,7 +212,10 @@
       "vllm-lm-eval-extended",
       "vllm-multimodal-order",
       "vllm-fp8-quality",
-      "vllm-speculative-mixed"
+      "vllm-speculative-mixed",
+      "vllm-long-context",
+      "vllm-model-precision",
+      "vllm-multimodal-serving"
     ]
   }
 }

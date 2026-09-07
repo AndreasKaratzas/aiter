@@ -71,6 +71,16 @@ def main(argv=None):
     nightly.add_argument(
         "--through", choices=("imports", "workloads"), default="workloads"
     )
+    benchmark = sub.choices["vllm-benchmark"]
+    benchmark.add_argument(
+        "--benchmark-profile",
+        choices=("baseline", "smoke", "throughput", "topology", "extended"),
+        default="baseline",
+    )
+    benchmark.add_argument(
+        "--benchmark-cases",
+        help="Comma-separated exact case IDs within the selected profile",
+    )
     args = parser.parse_args(argv)
     if args.command in ("vllm-nightly", "vllm-benchmark"):
         wheel = args.wheel
@@ -101,7 +111,13 @@ def main(argv=None):
         else:
             from ci.pipelines.benchmarks import run
 
-            run(**options)
+            run(
+                **options,
+                benchmark_profile=args.benchmark_profile,
+                benchmark_cases=args.benchmark_cases.split(",")
+                if args.benchmark_cases
+                else None,
+            )
         return
     if args.command == "workflows":
         from ci.pipelines.workflows import workflow_index

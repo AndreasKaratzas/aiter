@@ -1,0 +1,112 @@
+name: Test installed wheels
+
+on:
+  workflow_call:
+    inputs:
+      release_type:
+        type: string
+        required: true
+      wheel_names:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: linux-aiter-oci-mi300x-1
+            architecture: gfx942
+            label: gfx942-py312
+            python: '3.12'
+            image: rocm/pytorch:rocm7.2_ubuntu24.04_py3.12_pytorch_release_2.9.1
+          - runner: linux-aiter-mi355-1
+            architecture: gfx950
+            label: gfx950-py312
+            python: '3.12'
+            image: rocm/pytorch:rocm7.2_ubuntu24.04_py3.12_pytorch_release_2.9.1
+          - runner: linux-aiter-oci-mi300x-1
+            architecture: gfx942
+            label: gfx942-py310
+            python: '3.10'
+            image: rocm/pytorch:rocm7.2_ubuntu22.04_py3.10_pytorch_release_2.9.1
+          - runner: linux-aiter-mi355-1
+            architecture: gfx950
+            label: gfx950-py310
+            python: '3.10'
+            image: rocm/pytorch:rocm7.2_ubuntu22.04_py3.10_pytorch_release_2.9.1
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aiter-whl-packages-py*
+          path: dist
+          merge-multiple: true
+      - name: Select and verify the candidate
+        env:
+          EXPECTED_WHEELS: ${{ inputs.wheel_names }}
+          TEST_PYTHON: ${{ matrix.python }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          from ci.release.wheels import inspect_wheel, load_receipt, verify_wheel
+          expected = os.environ['EXPECTED_WHEELS'].split()
+          tag = 'cp' + os.environ['TEST_PYTHON'].replace('.', '')
+          selected = []
+          for name in expected:
+              if Path(name).name != name:
+                  raise ValueError('invalid wheel name')
+              path = Path('dist') / name
+              _, metadata = inspect_wheel(path)
+              if any(value.split('-')[0] == tag for value in metadata.tags):
+                  selected.append(path)
+          if len(selected) != 1:
+              raise ValueError('expected exactly one wheel for this Python')
+          wheel = selected[0]
+          verify_wheel(wheel, load_receipt(str(wheel) + '.receipt.json'),
+                       expected_source_revision=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                       require_clean_source=True)
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('WHEEL_NAME=' + wheel.name + '\n')
+          PY
+      - name: Install and test outside the source checkout
+        env:
+          EXECUTOR_IMAGE: ${{ matrix.image }}
+          TEST_ARCHITECTURE: ${{ matrix.architecture }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/wheel-evidence"
+          docker pull "$EXECUTOR_IMAGE"
+          image_id=$(docker image inspect "$EXECUTOR_IMAGE" --format '{{.Id}}')
+          docker image inspect "$EXECUTOR_IMAGE" > "$RUNNER_TEMP/wheel-evidence/image.json"
+          docker run --rm --device=/dev/kfd --device=/dev/dri --group-add video \
+            --shm-size 16g --ipc=host \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -v "$RUNNER_TEMP/wheel-evidence:/evidence" \
+            -e WHEEL_NAME -e TEST_ARCHITECTURE -e AITER_USE_SYSTEM_TRITON=1 \
+            -e AITER_JIT_DIR=/tmp/aiter-jit -e MAX_JOBS=8 \
+            -w /workspace "$image_id" bash -euc '
+              python3 -m pip uninstall -y aiter amd-aiter
+              python3 -m pip install "/workspace/dist/$WHEEL_NAME" -r requirements/test/host.txt
+              python3 -m ci plan --profile wheel --architecture "$TEST_ARCHITECTURE" --wheel "dist/$WHEEL_NAME" --output /evidence/plan.json
+              python3 -m ci run --plan /evidence/plan.json --wheel-dir /workspace/dist --gpus 0 --output-dir /evidence/run
+              python3 -m ci check --plan /evidence/plan.json --results /evidence/run --output /evidence/report.json
+            '
+      - name: Retain all test attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: wheel-evidence-${{ matrix.label }}
+          path: ${{ runner.temp }}/wheel-evidence
+          if-no-files-found: error
+          retention-days: 30

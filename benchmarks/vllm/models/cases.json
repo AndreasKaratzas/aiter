@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "llama-baseline": {
+      "model": "llama32_1b",
+      "purpose": "Established eager BF16 batch workload",
+      "workload": {}
+    },
+    "llama-decode-eager": {
+      "model": "llama32_1b",
+      "purpose": "Short prefill and sustained eager decode",
+      "workload": {
+        "input_tokens": 64,
+        "output_tokens": 128,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "llama-decode-graph": {
+      "model": "llama32_1b",
+      "purpose": "Same decode workload with observed AITER graph replay",
+      "workload": {
+        "execution": "graph",
+        "input_tokens": 64,
+        "output_tokens": 128,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "llama-prefill": {
+      "model": "llama32_1b",
+      "purpose": "Prefill-heavy complete request, one generated token",
+      "workload": {
+        "batch_size": 1,
+        "input_tokens": 2048,
+        "output_tokens": 1,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "qwen-ragged": {
+      "model": "qwen3_1_7b",
+      "purpose": "Mixed 1024/256/64-token requests in one batch",
+      "workload": {
+        "batch_size": 3,
+        "input_tokens": 1024,
+        "prompt_shape": "ragged",
+        "output_tokens": 32,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "qwen-long-context": {
+      "model": "qwen3_1_7b",
+      "purpose": "4096-token prefill plus bounded decode",
+      "workload": {
+        "batch_size": 1,
+        "input_tokens": 4096,
+        "output_tokens": 32,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "qwen-fp16": {
+      "model": "qwen3_1_7b",
+      "purpose": "Actual FP16 dense weights",
+      "workload": {
+        "dtype": "float16",
+        "input_tokens": 128,
+        "output_tokens": 32,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "llama-tp2-eager": {
+      "model": "llama32_1b",
+      "purpose": "Two distinct AITER worker ranks in eager mode",
+      "workload": {
+        "tensor_parallel": 2,
+        "input_tokens": 128,
+        "output_tokens": 32,
+        "warmup": 1,
+        "repeats": 3
+      }
+    },
+    "llama-tp2-graph": {
+      "model": "llama32_1b",
+      "purpose": "Two ranks replay their observed AITER graphs",
+      "workload": {
+        "tensor_parallel": 2,
+        "execution": "graph",
+        "input_tokens": 128,
+        "output_tokens": 32,
+        "warmup": 1,
+        "repeats": 3
+      }
+    }
+  },
+  "profiles": {
+    "baseline": [
+      "llama-baseline"
+    ],
+    "smoke": [
+      "llama-decode-eager",
+      "llama-decode-graph"
+    ],
+    "throughput": [
+      "llama-prefill",
+      "qwen-ragged",
+      "qwen-long-context"
+    ],
+    "topology": [
+      "llama-tp2-eager",
+      "llama-tp2-graph"
+    ],
+    "extended": [
+      "llama-decode-eager",
+      "llama-decode-graph",
+      "llama-prefill",
+      "qwen-ragged",
+      "qwen-long-context",
+      "qwen-fp16",
+      "llama-tp2-eager",
+      "llama-tp2-graph"
+    ]
+  }
+}

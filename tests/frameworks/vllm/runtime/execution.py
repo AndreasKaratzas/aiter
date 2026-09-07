@@ -79,7 +79,7 @@ def run_engine(name, model, directory, *, settings, batches):
     )
     require(
         execution["status"] == "PASS" and execution["returncode"] == 0,
-        f'Engine {name} failed; inspect {execution["log"]}',
+        f"Engine {name} failed; inspect {execution['log']}",
     )
     result = json.loads(output.read_text())
     require(

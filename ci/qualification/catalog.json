@@ -121,7 +121,9 @@
         ".github/workflows/client-vllm-disaggregation.yaml",
         "tests/frameworks/vllm/",
         "docker/vllm/",
-        ".github/workflows/client-vllm-nightly.yaml"
+        ".github/workflows/client-vllm-nightly.yaml",
+        "ci/workflows/clients/vllm/",
+        "benchmarks/vllm/"
       ],
       "depends_on": [
         "pytorch",
@@ -133,7 +135,8 @@
         ".github/workflows/client-sglang-models.yaml",
         "ci/clients/sglang/downstream.py",
         "tests/frameworks/sglang/",
-        "docker/sglang/"
+        "docker/sglang/",
+        "ci/workflows/clients/sglang/"
       ],
       "depends_on": [
         "pytorch",

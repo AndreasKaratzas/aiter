@@ -1,0 +1,113 @@
+name: Measure a pinned model on the current ROCm vLLM nightly
+
+on:
+  schedule:
+    - cron: '45 19 * * *'
+    - cron: '15 22 * * 0'
+  workflow_dispatch:
+    inputs:
+      benchmark_profile:
+        description: Reviewed model measurement profile
+        type: choice
+        options: [baseline, smoke, throughput, topology, extended]
+        default: baseline
+      benchmark_cases:
+        description: Optional comma-separated case IDs from the selected profile (empty selects all)
+        type: string
+        default: ''
+      gpus:
+        description: Physical GPU indices; topology and full extended profiles require two (e.g. 0,1)
+        type: string
+        default: '0'
+
+permissions:
+  contents: read
+  actions: read
+
+# Rolling installation evidence is advisory and never advances a supported channel.
+jobs:
+  build:
+    uses: ./.github/workflows/release-build-wheels.yaml
+    with:
+      release_type: none
+      docker_image_py310: ${{ vars.AITER_VLLM_NIGHTLY_EXECUTOR }}
+      docker_image_py312: ${{ vars.AITER_VLLM_NIGHTLY_EXECUTOR }}
+      build_py310: false
+      build_py312: true
+      gpu_archs: gfx950
+      runner: build-only-aiter
+      add_date_stamp: true
+
+  benchmark:
+    needs: build
+    runs-on: linux-aiter-do-mi350x-8
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: ${{ github.workspace }}/control
+    defaults:
+      run:
+        working-directory: control
+    steps:
+      # control/ holds reviewed build/test instructions; candidate/ identifies AITER being evaluated.
+      # They may differ so candidate changes cannot replace the rules that evaluate them.
+      - name: Checkout test and benchmark instructions
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: control
+          persist-credentials: false
+      - name: Checkout the AITER version to evaluate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          path: candidate
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: aiter-whl-packages-py3.12*
+          path: dist
+          merge-multiple: true
+      - name: Install the nightly, gate imports and measure the selected model scenarios
+        env:
+          EXECUTOR_IMAGE: ${{ vars.AITER_VLLM_NIGHTLY_EXECUTOR }}
+          BENCHMARK_EVENT: ${{ github.event_name }}
+          BENCHMARK_SCHEDULE: ${{ github.event.schedule }}
+          BENCHMARK_PROFILE: ${{ inputs.benchmark_profile }}
+          BENCHMARK_CASES: ${{ inputs.benchmark_cases }}
+          BENCHMARK_GPUS: ${{ inputs.gpus }}
+        run: |
+          case "$BENCHMARK_EVENT" in
+            schedule)
+              case "$BENCHMARK_SCHEDULE" in
+                '45 19 * * *') BENCHMARK_PROFILE=smoke; BENCHMARK_GPUS=0 ;;
+                '15 22 * * 0') BENCHMARK_PROFILE=extended; BENCHMARK_GPUS=0,1 ;;
+                *) echo "Unknown benchmark schedule: $BENCHMARK_SCHEDULE" >&2; exit 2 ;;
+              esac
+              BENCHMARK_CASES=''
+              ;;
+            workflow_dispatch) ;;
+            *) echo "Unsupported benchmark event: $BENCHMARK_EVENT" >&2; exit 2 ;;
+          esac
+          arguments=(
+            --source "$GITHUB_WORKSPACE/candidate" --controls "$GITHUB_WORKSPACE/control" \
+            --wheel-dir "$GITHUB_WORKSPACE/dist" --output "$RUNNER_TEMP/vllm-model-benchmark" \
+            --image "$EXECUTOR_IMAGE" --gpus "$BENCHMARK_GPUS" \
+            --benchmark-profile "$BENCHMARK_PROFILE"
+          )
+          if [[ -n "$BENCHMARK_CASES" ]]; then
+            arguments+=(--benchmark-cases "$BENCHMARK_CASES")
+          fi
+          python3 -m ci.pipelines vllm-benchmark "${arguments[@]}"
+      - name: Retain installation failures and every raw model measurement
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vllm-real-model-measurement
+          path: |
+            ${{ runner.temp }}/vllm-model-benchmark
+            !${{ runner.temp }}/vllm-model-benchmark/**/cache/**
+            !${{ runner.temp }}/vllm-model-benchmark/**/suite/**
+          retention-days: 90
+          if-no-files-found: error

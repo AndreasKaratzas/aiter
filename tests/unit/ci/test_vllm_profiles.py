@@ -27,18 +27,21 @@ class VllmProfiles(unittest.TestCase):
                 "vllm-multimodal-order",
                 "vllm-fp8-quality",
                 "vllm-speculative-mixed",
+                "vllm-long-context",
+                "vllm-model-precision",
+                "vllm-multimodal-serving",
             },
         )
         self.assertLess(day, set(extended["groups"]))
         self.assertNotIn("vllm-import", day)
         self.assertEqual(len(day), 19)
         self.assertEqual(
-            sum(self.catalog["groups"][g]["minimum_cases"] for g in day), 85
+            sum(self.catalog["groups"][g]["minimum_cases"] for g in day), 86
         )
 
     def test_every_model_group_uses_shared_pinned_inputs_and_required_execution(self):
         groups = self.catalog["profiles"]["vllm-e2e"]["groups"]
-        self.assertEqual(len(groups), 15)
+        self.assertEqual(len(groups), 18)
         for name in groups:
             with self.subTest(group=name):
                 group = self.catalog["groups"][name]

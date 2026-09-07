@@ -11,9 +11,11 @@ Required PR and release selections cannot substitute an image or operator-only p
 | Profile | Declared groups | Declared minimum cases | Purpose |
 |---|---:|---:|---|
 | `vllm-import` | 1 | 1 | Candidate AITER and public vLLM imports, without model or GPU allocation |
-| `vllm-nightly` | 19 | 85 | Eight operator groups and eleven daily model groups |
-| `vllm-extended` | 23 | 89 | Daily groups plus four extended model groups |
-| `vllm-e2e` | 15 | 16 | All declared model scenarios, without the operator groups |
+| `vllm-nightly` | 19 | 86 | Eight operator groups and eleven daily model groups |
+| `vllm-extended` | 26 | 95 | Daily groups plus seven extended model groups |
+| `vllm-e2e` | 18 | 22 | All declared model scenarios, without the operator groups |
+
+The [feature catalog](coverage.json) maps model/family/dtype/topology/workload declarations to concrete selectors. `python -m ci.clients.vllm.coverage --feature long-context` filters that inventory without loading models. Explicit gaps include real GPT-OSS/MXFP4, MoE and DeepSeek/MLA models, learned drafts, audio/video and larger distributed topologies.
 
 The eight operator groups account for 73 cases. The fresh nightly pipeline runs the import group separately before either workload profile, adding one case. These numbers describe the reviewed selection; a completed report must establish actual execution with no runtime skips.
 
@@ -35,7 +37,7 @@ The report hashes the bounded `e2e/` evidence tree. Model copies and compiler ca
 
 ## Install a fresh ROCm nightly
 
-[`client-vllm-nightly.yaml`](../../../.github/workflows/client-vllm-nightly.yaml) runs the 19-group daily profile at 17:45 UTC and the 23-group extended profile on Sundays at 20:15 UTC. Explicit dispatch selects either profile. Each also requires the separate import group. It builds one candidate Python 3.12 wheel, then calls `ci.pipelines vllm-nightly` in the immutable executor configured by `AITER_VLLM_NIGHTLY_EXECUTOR`. The base needs the ROCm/native compiler toolchain and the Python/glibc required by the resolved wheel.
+[`client-vllm-nightly.yaml`](../../../.github/workflows/client-vllm-nightly.yaml) runs the 19-group daily profile at 17:45 UTC and the 26-group extended profile on Sundays at 20:15 UTC. Explicit dispatch selects either profile. Each also requires the separate import group. It builds one candidate Python 3.12 wheel, then calls `ci.pipelines vllm-nightly` in the immutable executor configured by `AITER_VLLM_NIGHTLY_EXECUTOR`. The base needs the ROCm/native compiler toolchain and the Python/glibc required by the resolved wheel.
 
 Before installation, a retained C++17 syntax check includes the selected interpreter’s `Python.h`, resolves its transitive configuration headers and checks Python major/minor compatibility. Missing development headers fail this prerequisite.
 
@@ -53,7 +55,7 @@ The pipeline retains official index bytes, the full upstream commit, the wheel U
 
 Public engine and AITER imports must succeed before `vllm-import`; that complete group must pass before the sealed `vllm-nightly` or `vllm-extended` operator/model profile.
 
-The daily profile currently contains 85 cases and the extended profile 89; the import group adds one case to either run.
+The daily profile currently contains 86 cases and the extended profile 95; the import group adds one case to either run.
 
 Both stages use the shared plan/run/check engine. Post-run dependency and payload checks reject changes. The result is an explicitly rolling installation canary, not a supported release environment or automatic channel promotion.
 
@@ -79,4 +81,4 @@ python -m ci.pipelines vllm-nightly \
 
 ## Keep benchmarks separate from qualification
 
-The separately dispatched [real-weight model benchmark](../../../benchmarks/vllm/README.md) reuses the same fresh installation and import gate, then measures repeated synchronous batches with a pinned model from the [model manifest](models.json). Raw timings and measured output counts are retained. It does not substitute latency measurements for model correctness or release qualification.
+The scheduled or explicitly dispatched [real-weight model benchmark](../../../benchmarks/vllm/README.md) reuses the same fresh installation and import gate, then measures repeated synchronous batches with a pinned model from the [model manifest](models.json). Raw timings and measured output counts are retained. It does not substitute latency measurements for model correctness or release qualification.
